@@ -6,7 +6,7 @@ Once I get past the prototype kind of id working efficiently for derived debugSt
 
 Like https://github.com/benrayfield/wikibinator105 (which is incomplete) except:
 * Easier to optimize.
-* Max 127 curries, instead of vararg.
+* Max 127 curries, instead of vararg, unless you derive a currying system outside the curry op which you can since its turing complete.
 * Every object comment param (can be anything) as curry number 2, instead of just wikibinator105's curry op having comment.
 * Has opcodes to get number of curries as cbt8.
 
