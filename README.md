@@ -2,7 +2,9 @@
 (TODO) A deterministic way for millions of people and AIs to build and play together in p2p, safely sandboxed but not dumbed-down, a very simple kind of self-aware living number, where 2 numbers combine to create or find another number, and so on, and a number can be anything such a word, video, game, simulation, publicKey, GPU optimization, music tools, way to use multiple clouds together, etc.
 
 While nearly finished creating the wikibinator105 prototype I found this optimization that required changing the universal function.
-Once I get past the prototype kind of id working efficiently for derived debugStepInto and debugStepOver lambdas, and some basic graphics and sound derived from lambdas, wont need to keep changing the universal function, just use Evaler.ava to put JIT compiled optimizations in it, keyed by those ids or == in hashtable etc. 
+Once I get past the prototype kind of id working efficiently for derived debugStepInto and debugStepOver lambdas, and some basic graphics and sound derived from lambdas, wont need to keep changing the universal function, just use Evaler.ava to put JIT compiled optimizations in it, keyed by those ids or == in hashtable etc.
+
+Look how complicated the bit shifts and masks and if/else conditions got in https://github.com/benrayfield/wikibinator105/blob/main/wikibinator105/impls/marklar105b/ids/MarklarId105b.java so I'm designing a universal function where that kind of thing will be simpler.
 
 Like https://github.com/benrayfield/wikibinator105 (which is incomplete) except:
 * Easier to optimize.
