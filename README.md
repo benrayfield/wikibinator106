@@ -34,7 +34,7 @@ lowBitsOfBize32 //If is a 256mB-1 bit bitstring then this is Integer.MAX_VALUE. 
 hashOrLiteral192 //literal cbt1..128 (and the rest 0s) else last 192 bits of sha3_256 of concat of 2 child id256s.
 
 datastructtype - First byte chooses if its a normal id vs a literal 256 bits.
-	If it starts with 111110 (which no utf8 byte does, and most floats and doubles do not)
+	If it does NOT start with 111110 (which no utf8 byte does, and most floats and doubles do not)
 	then it is literal 256 bits that are their own id.
 	If it starts with 11111000 then its a normal id.
 	If it starts with that plus 1, 2, or 3, then it is the id of the literal bitstring 1 below it,
