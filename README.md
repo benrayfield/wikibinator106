@@ -34,7 +34,9 @@ lowBitsOfBize32 //If is a 256mB-1 bit bitstring then this is Integer.MAX_VALUE. 
 hashOrLiteral192 //literal cbt1..128 (and the rest 0s) else last 192 bits of sha3_256(concat(leftChildId,rightChildId,"wikibinator106"))
 
 The "wikibinator106" included in the content to hash will prove that if the ids are cracked, it was not reusing calculations from any other system and will provide motivation to many people to redesign the system to be more secure, given that 2^96 ids had to be stored and searched 2^96 times to find 1 collision, in theory.
-If so, we will just go to 512 bit ids with some kind of pascals triangle hashing or whatever NPHARD-proven kind of hashing or maybe SHA3 is good enough and SHA3 would be alot faster, of some derived kind, and wont be any more collisions (if there are in the first place?) unless you have a computer the size of a planets volume at least, in theory. It is, just a prototype, but I do want the prototype to scale so millions of people can get a feel for using the system together.
+If so, we will just go to 512 bit ids with some kind of pascals triangle hashing or whatever NPHARD-proven kind of hashing or maybe SHA3 is good enough and SHA3 would be alot faster, of some derived kind, and wont be any more collisions (if there are in the first place?) unless you have a computer the size of a planets volume at least, in theory.
+
+Its just a prototype, but I do want the prototype to scale so millions of people can get a feel for using the system together, and because I only get one chance at this, once it goes-viral it takes on a life of its own and not I nor anyone else has the power to change how opensource forks go, how opensource networks fit together.
 
 datastructtype - First byte chooses if its a normal id vs a literal 256 bits.
 	If it does NOT start with 111110 (which no utf8 byte does, and most floats and doubles do not)
