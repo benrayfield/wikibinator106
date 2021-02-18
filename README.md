@@ -38,5 +38,7 @@ datastructtype - First byte chooses if its a normal id vs a literal 256 bits.
 	then it is literal 256 bits that are their own id.
 	If it starts with 11111000 then its a normal id.
 	If it starts with that plus 1, 2, or 3, then it is the id of the literal bitstring 1 below it,
-	like if it starts with 11111011 it is the id of the same 256 bits except with first byte of 11111010.  
+	like if it starts with 11111011 it is the id of the same 256 bits except with first byte of 11111010.
+	The id of 256 bits which start with 111110 requires 2 of 128 bits which each have their own 256 bit id,
+	and its the parent of those 2 which has its own 256 bit id.
 	
