@@ -31,9 +31,9 @@ ignore1 curriesmore7 //How many curries more until eval, range 0..127
 
 lowBitsOfBize32 //If is a 256mB-1 bit bitstring then this is Integer.MAX_VALUE. Also efficient for tiny bitstrings.
 
-hashOrLiteral192 //literal cbt1..128 (and the rest 0s) else last 192 bits of sha3_256(concat(leftChildId,rightChildId,"wikibinator106"))
+hashOrLiteral192 //literal cbt1..128 (and the rest 0s) else last 192 bits of sha3_256(concat(leftChildId,rightChildId,"wikibinator106.marklar106bId"))
 
-The "wikibinator106" included in the content to hash will prove that if the ids are cracked, it was not reusing calculations from any other system and will provide motivation to many people to redesign the system to be more secure, given that 2^96 ids had to be stored and searched 2^96 times to find 1 collision, in theory.
+The "wikibinator106.marklar106bId" included in the content to hash will prove that if the ids are cracked, it was not reusing calculations from any other system and will provide motivation to many people to redesign the system to be more secure, given that 2^96 ids had to be stored and searched 2^96 times to find 1 collision, in theory.
 If so, we will just go to 512 bit ids with some kind of pascals triangle hashing or whatever NPHARD-proven kind of hashing or maybe SHA3 is good enough and SHA3 would be alot faster, of some derived kind, and wont be any more collisions (if there are in the first place?) unless you have a computer the size of a planets volume at least, in theory.
 
 Its just a prototype, but I do want the prototype to scale so millions of people can get a feel for using the system together, and because I might only get one chance at this, once it goes-viral it takes on a life of its own and not I nor anyone else has the power to change how opensource forks go, how opensource networks fit together. I could of course keep creating improved variations of it, but like IPFS has its network protocols and data structures, once a peer to peer network goes online it gets harder to get people to fork to alternative incompatible improvements.
