@@ -53,8 +53,8 @@ datastructtype - First byte chooses if its a normal id vs a literal 256 bits.
 
 Data structure and security model is a 2-way forest,
 representing lambda functions and possibly non-lambda code at higher security levels,
-where all paths lead to 1 of 4 leafs:
-cleanLeaf, dirtyLeaf, browserlikeLeaf, executableLeaf,
+where all paths lead to 1 of 8 leafs (which you only really need 3 of: cleanFinite, dirty, executable):
+dataLeaf, cleanFiniteLeaf, cleanInfiniteLeaf, dirtyLeaf, browserlikeLeaf, executableLeaf, sudoLeaf, graygooLeaf.
 and the security level of a tree node is at least the security level of its 2 childs,
 and the 2 childs of a leaf are identityFunction (of its same security level) and itself,
 so (L x (R x)) equals x forall x, as in the SECURITY MODEL...
@@ -153,31 +153,15 @@ and that would be their own fault not the fault of conways game of life.
 */
 public enum Sev{
 	
-	/** everything halts in bigO(1). Examples: Op.zero, Op.one, any bitstring made of them
-	by calling them on eachother (cbt called on anything other than a cbt of same size,
-	instead calls itself on itself, so unless its already at max height (if there is a max height of cbt???)
-	then calling a cbt on anything returns a cbt twice as big???
-	...and derived debugStepOver and debugStepInto lambdas.
-	*
+	/** anything that always halts instantly (bigO(1)), such as a cbt/blob/bitstring.
+	I'm unsure if I'll use this securitylevel vs cbts just be at CLEAN level as the lowest level needed???
+	The DATA level might also be a view of any binary forest shape without evaling it,
+	like a reflection thing, BUT I dont want raising securitylevel to cause a halting thing to be nonhalted,
+	so thats probably a bad idea, but other systems might find this securitylevel useful
+	to describe what they do, so I'm thinking of including it just for completeness.
+	*/
 	data,
-	*/
-	
-	/** only Op.zero and Op.one and them called on eachother to form cbt (complete binary tree of bits).
-	TODO also pairs?
-	TODO should there be 1 node where everything made of ONLY calling it on itself halts instantly,
-	and anything not made completely of that appears to be that node when its used as a param of that,
-	like I used to define (u (u u)) as 0 and ((u u) u) as 1. ??? 
-	Need sev, bits, and typeval first. After that, a namespace param,
-	such as "wikibinator105" and "lazycl" namespaces.
-	*
-	bits,
-	*/
-	
-	Need sev, bits, and typeval first. After that, a namespace param,
-	such as "wikibinator105" and "lazycl" namespaces.
-	TODO the "1 node where everything made of ONLY calling it on itself" and somehow combine that with Sev.
-	TODO can that (other than the Sev part) be merged to be a subset of the CLEAN level?
-	
+		
 	/** deterministic lambda calls. Cant escape sandbox to do anything except (lambda lambda)->lambda.
 	The system is made of a few simple rules and the rest is func_param_return cache thats derived deterministicly.
 	No side-effects. Can be paused or cancelled at any time by a higher SecurityLevel.
@@ -276,6 +260,24 @@ public enum Sev{
 	computing theory if you use only stateless/immutable things and math proofs,
 	but at least for now its the only way to do certain needed calculations. Be very careful.
 	*/
-	executable;
+	executable,
+	
+	/** while I'm not confident in the border between sudo/admin and executable in common OSes,
+	the sudo securitylevel REQUIRES admin permission and maybe ability to open ports in firewall etc,
+	basically anything a person can tell their computer to do, it could do automatically,
+	or do it as the user tells it to. Be very very careful.
+	Also, I dont plan to run any code at this level, since the lwjgl opencl API
+	only needs EXECUTABLE securitylevel (you dont run it in admin mode, but the opencl driver itself
+	might need that to install, but it seems to already be on most computers).
+	This is here for completeness.
+	*/
+	sudo,
+	
+	/** anything above sudo, potentially really dangerous and really useful stuff.
+	A minimalist pure math lambda based system may be a good research path
+	toward the safe use of graygoo, black-hole-computers, passive-circuit nitinol 3d cellular automata processors, etc,
+	but I'm not a hardware person and thats just speculation.
+	*/
+	graygoo;
 
 }
