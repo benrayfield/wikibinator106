@@ -151,7 +151,7 @@ Conways game of life does not escape into your private files or command dangerou
 unless someone has set up a machine to do that based on its observations of conways game of life,
 and that would be their own fault not the fault of conways game of life.
 */
-public enum Sev{
+public enum Sev
 	
 	/** anything that always halts instantly (bigO(1)), such as a cbt/blob/bitstring.
 	I'm unsure if I'll use this securitylevel vs cbts just be at CLEAN level as the lowest level needed???
@@ -280,4 +280,4 @@ public enum Sev{
 	*/
 	graygoo;
 
-}
+
