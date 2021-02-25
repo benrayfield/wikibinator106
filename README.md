@@ -3,7 +3,7 @@
 
 UPDATE: Here's the id256 datastruct (and can derive new kinds of ids at runtime but got to start somewhere):
 
-* 8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
+* 8 bits of magic/isliteralcbt256 (if it starts with anything except 111110 then its 256 literal bits that are their own id,
 		11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
 * 1 bit containsAxof2params.
 * 1 bit isclean.
