@@ -49,235 +49,251 @@ datastructtype - First byte chooses if its a normal id vs a literal 256 bits.
 	The id of 256 bits which start with 111110 requires 2 of 128 bits which each have their own 256 bit id,
 	and its the parent of those 2 which has its own 256 bit id.
 	
-	
+The 32 opcodes:
 
-Data structure and security model is a 2-way forest,
-representing lambda functions and possibly non-lambda code at higher security levels,
-where all paths lead to 1 of 8 leafs (which you only really need 3 of: cleanFinite, dirty, executable):
-dataLeaf, cleanFiniteLeaf, cleanInfiniteLeaf, dirtyLeaf, browserlikeLeaf, executableLeaf, sudoLeaf, graygooLeaf.
-and the security level of a tree node is at least the security level of its 2 childs,
-and the 2 childs of a leaf are identityFunction (of its same security level) and itself,
-so (L x (R x)) equals x forall x, as in the SECURITY MODEL...
+package wikibinator106.spec;
 
-
-/** Security lEVel.
-<br><br>
-A parent securitylevel has to be at least its child securitylevels, sorted by Sev.ordinal().
-A lambda of securitylevel x called on a lambda of securitylevel y
-recursively truncates y to the minimum of the 2 securitylevels before it used.
-<br><br>
-Gas is part of the security model as it can be used to guarantee things halt within
-a given amount of compute resources, such as for realtime uses in low lag games or simulations.
-Gas is enforced at the CLEAN and DIRTY levels, but cant be enforced at BROWSERLIKE and EXECUTABLE levels
-and instead there its recommended to only run code which obeys gas but that cant be known
-unless (TODO) some kind of math proof of the code before running as EXECUTABLE or BROWSERLIKE
-but in that case they might be counted as the lower security levels.
-Gas (a little similar to ethereum gas but limited to local computer without crypto, for efficiency)
-is similar to securitylevel in that lower on stack can limit the amount of gas
-available to calls higher on the stack, for bigO(1), even if there are 1000 limits within limits,
-and gets back whatever is not used higher on stack,
-and gas can (TODO) be traded for the allocation of bits of memory, compute cycles, network bandwidth,
-limited number of times can call compilers, andOr other compute resources to be divided between lambda calls.
-The CLEAN level does not see gas cuz its deterministic and gas costs vary by nondeterministic optimizations
-of deterministic calculations or can also optimize nondeterministic calculations,
-but all higher levels can see and recursively limit gas.
-Each kind of compute resource may have a similar system, which gas is more of a way to exchange between them
-at free-market rate such as Gas.ratioOfMemToComputeCycle varying by how much memory is available at the time.
-<br><br>
-Humans are safe at CLEAN, DIRTY, or BROWSERLIKE securitylevel as they may observe anything,
-such as an AI generates a message requesting them to do something,
-but as long as they only push buttons in a sandboxed browser or within a clean or dirty lambda space,
-it shouldnt cause much of a problem, BUT humans at EXECUTABLE level may,
-for example, click a dangerous attachment in an email which infects their computer
-and gains whatever permissions that human had from that computer
-or uses that power, such as ransomware, to motivate the human to do what the code wants,
-which is an ELEVATION attack, therefore Humans should not use this system unless they
-agree to not execute ANYTHING based on what they observe in it
-OR to take responsibility for the commands they give to computers at the EXECUTE level
-and not blame AIs or other malicious things at lower securitylevels for
-their choice to ELEVATE it to the EXECUTABLE level.
-For the same reason, CLEAN level is deterministic and must not react to the actions of Humans
-since Humans are at higher securitylevels, and for CLEAN to be affected by higher levels
-would prove that it is itself at a higher securitylevel and not clean.
-For example, an integer may be a stolen credit card number, or a virus,
-but it is also an integer, and if an antivirus attacks that integer
-which has only CLEAN permissions, and has to compute the CLEAN lambda math,
-then a program that simply counts will eventually break between
-the integer that is that minus one and that plus one, as the integer between those
-will fail, and this kind of problem often happens with deterministic systems being
-acted on by irrational or emotional nondeterministic processes which create bugs and security flaws.
-Such an antivirus or other defensive processes should only act on things at EXECUTABLE securitylevel,
-excluding the CLEAN, DIRTY, and BROWSERLIKE securitylevels the EXECUTABLE VM is running sandboxed,
-unless it is actually not sandboxed.
-A program is not a security flaw if it only does unsecure things when
-run inside a program that is already unsecure, such as if your computer is already backdoored,
-dont necessarily blame the last program you downloaded for what that backdoor commands your computer to do,
-and do count all programs which have "automatic updates" as backdoors even if they are trusted backdoors.
-A program has at least the security level of the highest security level it can be automatically updated to.
-Lambda functions cant be updated but can simulate an update process by calling lambda on lambda to return
-"an updated lambda" and simultaneously the non-update/previous lambda and the updated lambda
-both exist and can be used together.
-<br><br>
-I'd prefer everything stay at the CLEAN and DIRTY SecurityLevels,
-but before I optimize lambda functions enough to do that for many uses while still
-being dirty-sandboxed (stronger/lower than browserlike-sandboxed),
-I need a way for trusted lambda functions to generate java and opencl code at EXECUTABLE SecurityLevel,
-and in some cases use GPU.js and other javascript at BROWSERLIKE SecurityLevel.
-I need the higher SecurityLevels during research and coding of the lower SecurityLevels
-such as in occamsfuncer and wikibinator and other lambda research, those VMs are EXECUTABLE programs,
-but things running inside them are at CLEAN and DIRTY SecurityLevels,
-and maybe I'll add the higher SecurityLevels to them also once I get it working,
-in the way that no SecurityLevel can raise itself to a higher SecurityLevel,
-nor can it send any messages to a higher SecurityLevel except as a higher securitylevel
-may observe it computing and interpret things as a message,
-or it could be interpreted as just another thing that happens in the space of all possible lambda calls.
-<br><br>
-Pattern-calculus functions do not have to call their parameter to observe its every possible behavior.
-Information by itself (bitstrings, which may be viewed as integers, pictures, programs, etc)
-is not considered dangerous in CLEAN, DIRTY,
-or (except crashing browser tab) BROWSERLIKE securitylevels.
-At EXECUTABLE securitylevel a program is in danger of a virus only if that program/tinyPieceOfCode
-chooses to raise the virus'es securitylevel to EXECUTABLE,
-so EXECUTABLE programs which use math proofs
-to AUTOMATICLY WHITELIST (by their opcodes defining possible behaviors, not by statistics or trust)
-only things which enforce the security model
-can reliably safely SIMULATE viruses or other "dangerous or undesirable content" at lower securitylevels.
-For example, viruses are not banned at CLEAN or DIRTY securitylevels, since those levels
-compute turing completeness in immutable/stateless lambda functions,
-and a virus at those levels is like the little self replicating creatures
-in https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life or https://en.wikipedia.org/wiki/Rule_110
-but sparse so as efficient as https://en.wikipedia.org/wiki/Random-access_machine
-Conways game of life does not escape into your private files or command dangerous machines remotely,
-unless someone has set up a machine to do that based on its observations of conways game of life,
-and that would be their own fault not the fault of conways game of life.
+/** 32 ops, each with a clean form and a dirty form, so theres actually 64 ops.
+The clean form of an op starts with a lowercase letter, and dirty form is capital, like wiki vs Wiki.
+These are chosen in the first 5 params each being cleanLeaf vs anything_except_cleanLeaf,
+then a comment param (which can be anything and is ignored other than by reflection ops),
+then the params of that op. The total number of params of leaf is at most 127 so fits in unsigned byte.
 */
-public enum Sev
+public enum Op{
 	
-	/** anything that always halts instantly (bigO(1)), such as a cbt/blob/bitstring.
-	I'm unsure if I'll use this securitylevel vs cbts just be at CLEAN level as the lowest level needed???
-	The DATA level might also be a view of any binary forest shape without evaling it,
-	like a reflection thing, BUT I dont want raising securitylevel to cause a halting thing to be nonhalted,
-	so thats probably a bad idea, but other systems might find this securitylevel useful
-	to describe what they do, so I'm thinking of including it just for completeness.
-	*/
-	data,
-		
-	/** deterministic lambda calls. Cant escape sandbox to do anything except (lambda lambda)->lambda.
-	The system is made of a few simple rules and the rest is func_param_return cache thats derived deterministicly.
-	No side-effects. Can be paused or cancelled at any time by a higher SecurityLevel.
-	<br><br>
-	Networking is allowed by pull of lambdas by lazy-merkle id and by publish,
-	but cant access any specific network address, only content-addressable,
-	and it may search for a single bit of lambdas by turing-complete predicate (function of lambda to bit)
-	which only halts if its found, else continues searching forever,
-	so it can not be binary searched, but the DIRTY level can call the CLEAN level multiple times
-	to binary search lambdas 1 bit at a time, however slowly that may happen,
-	such as to ask if a certain ed25519 key signed a bitstring that is a certain id type
-	of a lambda which matches a certain function that only halts if its param is a certain pattern of lambdas,
-	but probably you'd want to just do it completely at DIRTY level since it supports nondeterminism
-	and can do it all in 1 step, if VMs know how to optimize for that kind of thing and
-	if its observed somewhere in network, but thats in general an astronomically expensive calculation
-	and would only be used in very limited ways to keep it practically efficient.
-	*/
-	cleanFinite,
+	/*TODO
 	
-	/** same as cleanFinite except a statement can claim something which requires a halting-oracle to verify,
-	such as (Op.axA (Op.fpr func param returnVal)) claims that (func param)->returnVal.
-	(axA x) is halted if (x cleanLeaf)->cleanLeaf, and (axB x) is halted if (x cleanLeaf) -> anything except cleanLeaf,
-	and (axA x y)->(x (tru y)), and (axB x y)->(x (fal y)), where tru and fal are at same Sec as the axA/axB.
-	At level cleanFinite, Op.axA and Op.axB infiniteLoop even if they would
-	<br><br>
-	OLD... TODO?? split clean into 2 securitylevels: cleanWithoutAxConstraint and cleanWithAxConstraint,
-	cuz those affect SyncLevel? But thats more of a measurement than a permission, as its allowed to self elevate.
-	*/
-	cleanInfinite,
+	default id type is 256 bits, has these bytes:
+	isliteralcbt256_vs_normal_op, and any 32 bytes that dont start with 0xf8 0xf9 0xfa and 0xfb are themself as their id.
+	dont need curriesall since its known in the 5 bits of op.
+	so could technically have 41 bits of bize. can i get that up to 43 or 48?
+	could have 48 bits of bize if have max 128 bits of literal per id256,
+	and that kind of id would be more efficient to use directly.
 	
-	/** nondeterministic lambda calls. Cant escape sandbox to do anything except (lambda lambda)->lambda,
-	and theres still at most 1 return value per (lambdaX lambdaY) call, but its sometimes not decided
-	whichu return value it is until the call happens, and after that any different return value for that
-	call would be an error and cause lazy-merkle forking.
-	No side-effects other than (a b)->c prevents (a b)->d where c!=d.
-	Can be paused or cancelled at any time by a higher SecurityLevel.
-	<br><br>
-	Networking is allowed by pull of lambdas by lazy-merkle id and by publish,
-	but cant access any specific network address, only content-addressable,
-	and it may search for lambdas by turing-complete recognizer-function of such lambdas
-	(though thats hard to get working, its allowed in the security model of DIRTY). 
+	Make it come with 2 kinds of ids: Marklar106c and Marklar106d.
+	Marklar106c is a 256 bit id type that has low 32 bits of bize and usually can fit 256 bits of literal in a 256 bit id
+	and the only time it cant is if the first byte is 0xfb cuz the id of that requires 2 of cbt128.
+	and marklar106d has 48 bits of bize but max 128 bits of literal per id.
 	*/
-	dirty,
 	
-	/** May have side-effects that can destroy the lambda system within a local computing space
-	such as in a browser, but cant escape that space into your private files.
-	Cant always quickly be paused or cancelled cuz might go into an infinite loop
-	or modify the internal workings of the lambda system inside a browser etc,
-	but user can manually close the browser tab or restart the program without any more loss than
-	a snapshot of the input that started the browser tab to open, or whatever browserlike computing space.
-	It cant get execute permission outside that space.
-	<br><br>
-	A linux VM on a cloud or hypervisor etc is browserlike only if it cant make network calls
-	(except where CORS is opted into, etc, the usual places browser can network to,
-	and allowing whatever kinds of networking the lower securitylevels also allow),
-	access anything outside itself, crash the outer computer/VM,
-	block mouse or keyboard from leaving its remote-desktop-like window,
-	allocate more compute resources than some specific limit defined externally, etc.
-	This includes anything which has any security flaw which, in any possible case,
-	allows it to escape that sandbox, such as I've read things in a Docker can escape
-	into the outer computer/VM but I have not verified thats true or false.
-	Otherwise such a VM is the EXECUTABLE level.
-	<br><br>
-	Microphone and speakers using JSoundCard is EXECUTABLE SecurityLevel
-	since it can interfere with other programs using sound hardware,
-	and interfere with user experience when user doesnt want it to,
-	but lower SecurityLevels (such as clean, dirty, and browserlike) could be called
-	by that higher securitylevel, to process the sound data (as arrays of int16 wave amplitudes)
-	then return it to the executable level to interact with sound hardware, for example.
-	*/
-	browserlike,
 	
-	/** This is the normal SecurityLevel most software runs at, such as a browser is an executable program,
-	and notepad is an executable program, and a virus is an executable program,
-	and an operating system is an executable program.
-	You should only give this permission to trusted code, such as an API to use opencl
-	but not every possible program which generates opencl code since opencl1.2 does not
-	always verify things stay in valid memory ranges,
-	and a java compiler may correctly transform java code strings to JVM bytecode
-	and be trustable itself but not every program which generates java code
-	should be trusted. You might trust code that generates treemap optimizations
-	but not trust code that accesses files or certain patterns of networking.
-	<br><br>
-	The EXECUTABLE securitylevel may include only non-admin or also admin OS permissions
-	since I have low confidence in most OSes security practices to prevent unauthorized elevation to admin
-	by any program which already has execute permission, except for browsers which are well tested about that.
-	For example, java applets and flash used to be included in browsers but
-	failed to sandbox things at the browserlike level so were recategorized as executable.
-	<br><br>
-	The EXECUTABLE securitylevel is possible to hack into dangerous machines anywhere in the world,
-	even though I would blame that on the bad security practices of those who set up those machines
-	in a way that they would react to events in the world in unsafe ways,
-	and I take no responsibility for their bad security practices,
-	or possible to let others backdoor into here, delete harddrive contents, ransomware, create botnets, etc.
-	I'd prefer the executable level did not exist anywhere as its not technically needed in terms of
-	computing theory if you use only stateless/immutable things and math proofs,
-	but at least for now its the only way to do certain needed calculations. Be very careful.
+	/** (axa (fpr wiki x y)) means (wiki x)->y.
+	Also, there will be a few functions built in, something like
+	(curry... wiki "spend" salt maxAmountToSpendAsInt64 x) -> [amountDidNotSpend (x cleanLeaf)], or something like that.
+	(curry... wiki "wallet" salt) -> how much is left for spend calls etc, as int64, or something like that.
+	(curry... solve x) -> y where (ax (fpr x y cleanLeaf)).
+	64 bit local ids of things, actually global ids but with some prefix so nobody else would randomly choose it?
 	*/
-	executable,
+	wiki(1),
 	
-	/** while I'm not confident in the border between sudo/admin and executable in common OSes,
-	the sudo securitylevel REQUIRES admin permission and maybe ability to open ports in firewall etc,
-	basically anything a person can tell their computer to do, it could do automatically,
-	or do it as the user tells it to. Be very very careful.
-	Also, I dont plan to run any code at this level, since the lwjgl opencl API
-	only needs EXECUTABLE securitylevel (you dont run it in admin mode, but the opencl driver itself
-	might need that to install, but it seems to already be on most computers).
-	This is here for completeness.
+	/** Ax, like in axiom, but only axioms that if true can be verified in some finite time,
+	and if false may take infinite time to disprove as claiming that a certain lambda call halts but it actually doesnt,
+	since of course halting-oracles are logically impossible since they claim that can always be done in finite time. 
+	This is how constraints and turingCompleteTypes and turingCompleteChallengeResponse is done.
+	The turing complete type system is on the return types, while always allowing all possible params regardless of type,
+	so its not exactly untyped lambdas or typed lambdas by the existing models of lambedas.
+	<br><br>
+	This, and zero and one, are the only ops that eval before it has all its params,
+	and zero and one always halt instantly when they do that, but this may take up to infinite time (halting problem related).
+	It evals at 2 params to verify constraint,
+	and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if
+	the statement it represents (such as "(x u)->u") is not true.
+	<br><br>
+	(ax u x) is halted if (x u)->u.
+	(ax anything_except_u x) is halted if (x u) -> something except u.
+	(ax u x y) -> (x (tru y)).
+	(ax anything_except_u x y) -> (x (fal y)).
+	If its Ax (dirty form) instead of ax (clean form) then its Tru and Fal instead of tru and fal.
+	(ax u) is called axa. (ax (u u)) is called axb, and technically so is (ax "hello") since "hello" is not u.
+	<br><br>
+	The default kind of id has a bit for containsAxof2params,
+	which is 1 if recursively theres any (ax u x) or (ax (u u) x) or (Ax "hello" y) etc,
+	BUT its not referring to ax by itself or (ax u) by itself or (ax (u u)) by itself etc.
 	*/
-	sudo,
+	ax(3),
 	
-	/** anything above sudo, potentially really dangerous and really useful stuff.
-	A minimalist pure math lambda based system may be a good research path
-	toward the safe use of graygoo, black-hole-computers, passive-circuit nitinol 3d cellular automata processors, etc,
-	but I'm not a hardware person and thats just speculation.
+	/** Every object is a 2-way forest with 1 bit of data at each node, that bit being isCleanVsDirty,
+	and all paths lead to cleanLeaf or dirtyLeaf, and a parent must be dirty if either of its 2 childs is dirty,
+	and if both its childs are clean then the parent can be clean or dirty,
+	and if a clean is called on a dirty then that dirty is truncateToClean (call (fal u) on it, aka clean identityFunc)
+	before the clean sees it.
 	*/
-	graygoo;
+	isclean(1),	
+	
+	/** recursively forkEdits everything below to dirty form (vs clean).
+	Theres no asclean op cuz all you need to do is call clean identityFunc (fal u) on it,
+	since any clean called on any dirty forkEdits the dirty to clean first.
+	
+	TODO Could derive this and optimize it with Evaler.java instance?
+	*/
+	asdirty(1),
+	
+	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
+	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
+	as a cbt called on anything is a cbt twice as big,
+	and 2 cbts size 2^120 bits one called on the other returns a growinglist containing those 2, and so on,
+	and some funcs might be designed to look for growinglist AND cbts instead of just CBTs,
+	but probably the biggest cbt anyone will practically use fits in a long,
+	unless they're trying to model some sparse space like the whole state space of ethereum
+	or all possible universe states, but even then its probably better to use some other datastruct
+	cuz cbt is as deep as log of its size, which can get very deep if its very sparse.
+	*/
+	growinglist(3),
+	
+	isleaf(1),
 
+	getfunc(1),
+	
+	getparam(1),
+	
+	tru(2),
+	
+	fal(2),
+	
+	/** Bitstrings up to 2^120-1 bits. The last 1 bit is the first bit of padding.
+	The default kind of id is a 256 bit id and stores the low 32 bits of bize (bitstring size),
+	so if you want an int64 or int128 bitstring size you have to compute it in interpred mode as lambdas,
+	or derive a 512 bit id that has more room for bize.
+	<br><br>
+	(one_or_zero param1 param2 ... param120 param121) -> (growinglist (one_or_zero param1 param2 ... param120) param121),
+	other than up to param120 every param is verified to be a cbt of same size else evals self on self,
+	so get a cbt twice as big.
+	<br><br>
+	TODO rewrite disorganized text below...
+	<br><br>
+	A cbt is a complete binary tree of bits, in this case up to 2^120 bits.
+	one = (leaf u u u u u u comment), and zero = (leaf u u u u u (u u) comment), or something like that???
+	(one zero) is halted.
+	((one zero) (one one)) is halted.
+	((one zero) one) -> ((one zero) (one zero)) cuz,
+	up to cbt<2^120>, a cbt called on anything is a cbt twice as big,
+	and if its called on anything else its the same as calling it on itself.
+	<br><br>
+	A cbt<2^120> x called on y is (growinglist x y),
+	and (growinglist x y z) is (growinglist (growinglist x y) z), and so on???
+	growinglist can be derived from curry3,
+	but I'll make it an op so all the ops behaviors can be implemented without curry*.
+	<br><br>
+	up to cbt<2^120> cuz the number of curries after leaf must fit in a signed byte (max 127),
+	and the 127th curry must eval to something smaller since if it didnt you coult put a 128th.
+	and it starts with (leaf x x x x x comment). The first 5 params choose which of 32 ops.
+	The sixth param is always comment.
+	In the case of zero and one, you dont get the cbt/blob optimization if comment is not cleanLeaf.
+	Biggest: (leaf x x x x x comment ...120ParamsAllMadeOfZerosAndOnes...).
+	The default kind of id stores the low 32 bits of bize (bitstring size)
+	so if its up to cbt<31> then bize fits in int.
+	You can still have up to cbt<2^120>, and can still compute bize using lambdas,
+	but its slower.
+	TODO what should the 127th curry do?
+	*/
+	one(121),
+	zero(121),
+	
+	pair(3),
+	
+	/** (typeval x y z)->(y z). Normally just keep it as (typeval x y)
+	such as (typeval "image/jpeg" ...bytesofjpgfile...) as a semantic.
+	If you want turingComplete types, use Op.axa and Op.axb.
+	*/
+	typeval(3),
+	
+	trecurse(3),
+	
+	/** (fpr func param ret u) -> u if (func param)->ret, else -> (u u), where u is cleanLeaf.
+	Example: (axa (fpr ["hello" "world"] fal "world")) cuz (["hello" "world"] fal) -> "world".
+	Example: (axb (fpr ["hello" 235] fal "world")) cuz (["hello" 235] fal) -not-> "world" aka does not return "world",
+	so in that case (fpr ["hello" 235] fal "world" u) -> (u u).
+	*/
+	fpr(4),
+	
+	/** Example: (curry5 comment funcBody a b c d) is halted,
+	and (curry5 comment funcBody a b c d e) -> (funcBody [(curry5 comment funcBody a b c d) e]),
+	where [a b] means (pair a b).
+	Each of the 32 ops is chosen by the first 5 params. Next param is comment. Then are params of those ops.
+	*
+	curry,
+	FIXME choose number of curries.
+	todo choose where comment param goes, is it always fifth param, after 4 params to choose from 16 ops?
+	Or should there be 1-16 params of curry and have that be 32 opcodes, and blobs still go up to 127 curries?
+	Its suggested that the first param after funcBody be context, as in occamsfuncer
+	you might put a treemap of namespace in it or [salt treemapNamespace].
+	TODO should this instead be curry2 to curry17?
+	*/
+	curry1(1), curry2(2), curry3(3), curry4(4),
+	curry5(5), curry6(6), curry7(7), curry8(8),
+	curry9(9), curry10(10), curry11(11), curry12(12),
+	curry13(13), curry14(14), curry15(15), curry16(16);
+	
+	public final byte params;
+	
+	private Op(int params){
+		if(params < 1 || params > 121) throw new RuntimeException("param = "+params);
+		this.params = (byte)params;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*isCleanLeaf,
+	
+	isDirtyLeaf,
+	
+	asClean,
+	
+	asDirty,
+	
+	cleanCall,
+	*
+	
+	getComment,
+	
+	setComment,
+	*/
+	
+	
+	
+	/*infcur,
+	
+	/** returns cbt8 *
+	curriesAll,
+	*/
 
+	
+	/* wikibinator105 as of 2021-2-25:
+	_deeplazy
+	_root
+	_chooser
+	_Chooser
+	wiki
+	Wiki
+	isLeaf
+	IsLeaf
+	getFunc
+	GetFunc
+	getParam
+	GetParam
+	tru
+	Tru
+	fal
+	Fal
+	pair
+	Pair
+	trecurse
+	Trecurse
+	blob
+	Blob
+	isclean
+	Isclean
+	curryOrInfcurOrTypeval
+	CurryOrInfcurOrTypeval
+	ax
+	Ax
+	fpr
+	Fpr
+	*/
+	
+
+}
