@@ -1,6 +1,19 @@
 # wikibinator106
 (TODO) A deterministic way for millions of people and AIs to build and play together in p2p, safely sandboxed but not dumbed-down, a very simple kind of self-aware living number, where 2 numbers combine to create or find another number, and so on, and a number can be anything such a word, video, game, simulation, publicKey, GPU optimization, music tools, way to use multiple clouds together, etc.
 
+UPDATE: Here's the id256 datastruct (and can derive new kinds of ids at runtime but got to start somewhere):
+
+* 8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
+		11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
+* 1 bit containsAxof2params.
+* 1 bit isclean.
+* 6 bits of opWithBinheapIndexElse0MeansDeeplazy.
+* 1 bit containsBit1.
+* 7 bits of curriesSoFar.
+* 40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
+* 192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
+
+
 While nearly finished creating the wikibinator105 prototype I found this optimization that required changing the universal function.
 Once I get past the prototype kind of id working efficiently for derived debugStepInto and debugStepOver lambdas, and some basic graphics and sound derived from lambdas, wont need to keep changing the universal function, just use Evaler.ava to put JIT compiled optimizations in it, keyed by those ids or == in hashtable etc.
 

@@ -8,19 +8,37 @@ then the params of that op. The total number of params of leaf is at most 127 so
 */
 public enum Op{
 	
-	/*TODO
 	
-	default id type is 256 bits, has these bytes:
-	isliteralcbt256_vs_normal_op, and any 32 bytes that dont start with 0xf8 0xf9 0xfa and 0xfb are themself as their id.
-	dont need curriesall since its known in the 5 bits of op.
-	so could technically have 41 bits of bize. can i get that up to 43 or 48?
-	could have 48 bits of bize if have max 128 bits of literal per id256,
-	and that kind of id would be more efficient to use directly.
+	marklar106b id:
+		8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
+			11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
+		1 bit containsAxof2params.
+		1 bit isclean.
+		6 bits of opWithBinheapIndexElse0MeansDeeplazy.
+		1 bit containsBit1.
+		7 bits of curriesSoFar.
+		40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
+		192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
 	
-	Make it come with 2 kinds of ids: Marklar106c and Marklar106d.
-	Marklar106c is a 256 bit id type that has low 32 bits of bize and usually can fit 256 bits of literal in a 256 bit id
-	and the only time it cant is if the first byte is 0xfb cuz the id of that requires 2 of cbt128.
-	and marklar106d has 48 bits of bize but max 128 bits of literal per id.
+	"*a such as marklar105a and marklar106a should always be a very simple and not practically efficient kind of id, for academic proofs, tutorials, etc"
+	"TODO name this id type maybe its marklar106b? (havent built the other marklar106b so just remove those comments)"
+	/*TODO default id type...
+	8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
+		11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
+	max cbt<2^120>, 40bits of bize so up to 128gB,
+	1 bit ignore.
+	7 bits of curriesMore (or curriesSoFar? choose 1),
+	5 bits of op,
+	3 bits of masks (containsAx.. containsBit1 isclean)
+	40 bits of bize, so up to 128gB aka 1 terabit.
+	*/
+	
+	Should there be deeplazy op, and should it go at op 0, and should there be binheap indexing so 1 more bit,
+	so 6 bits instead of 5, vs should it just pad with whatevers the r() if you go deeper into leaf, and shift it, in 5 bits?
+	There is that "1 bit of ignore" so can spare 1 more bit.
+	
+	/** the first 5 ops choose which of the 32 ops *
+	_chooser(5),
 	*/
 	
 	
@@ -65,15 +83,7 @@ public enum Op{
 	and if a clean is called on a dirty then that dirty is truncateToClean (call (fal u) on it, aka clean identityFunc)
 	before the clean sees it.
 	*/
-	isclean(1),	
-	
-	/** recursively forkEdits everything below to dirty form (vs clean).
-	Theres no asclean op cuz all you need to do is call clean identityFunc (fal u) on it,
-	since any clean called on any dirty forkEdits the dirty to clean first.
-	
-	TODO Could derive this and optimize it with Evaler.java instance?
-	*/
-	asdirty(1),
+	isclean(1),
 	
 	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
 	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
@@ -135,16 +145,6 @@ public enum Op{
 	*/
 	one(121),
 	zero(121),
-	/*FIXME whats max curries of zero and one? 127? 63? 53? 52? 48? 31?
-	Thats of course after the first few curries choosing op and comment right after that,
-	even though you dont get the cbt/blob optimization if comment is not cleanLeaf.
-	max cbt size is 2^63 bits, and max bitstring size is 2^63-1 bits? Or use 2^53 so fits in double?
-	Have to choose a specific limit and what happens when call it on something, or choose for it to have no limit,
-	cuz its a universalFunc so cant leave that behavior undefined.
-	For example, after that limit, should it automaticly create pairs? infloop?
-	The default kind of id only stores low 32 bits of bize (bitstring size),
-	and it would simplify that to not have to create 512 bit ids to have enough bits for 64 bit bitstrings.
-	*/
 	
 	pair(3),
 	
@@ -178,8 +178,12 @@ public enum Op{
 	*/
 	curry1(1), curry2(2), curry3(3), curry4(4),
 	curry5(5), curry6(6), curry7(7), curry8(8),
-	curry9(9), curry10(10), curry11(11), curry12(12),
-	curry13(13), curry14(14), curry15(15), curry16(16);
+	curry9(9), currya(10), curryb(11), curryc(12),
+	curryd(13), currye(14), curryf(15), curry16(16),
+	
+	/** evaling. This kind of *
+	_deeplazy(0);
+	*/
 	
 	public final byte params;
 	
@@ -250,6 +254,46 @@ public enum Op{
 	Ax
 	fpr
 	Fpr
+	*/
+	
+	/** recursively forkEdits everything below to dirty form (vs clean).
+	Theres no asclean op cuz all you need to do is call clean identityFunc (fal u) on it,
+	since any clean called on any dirty forkEdits the dirty to clean first.
+	
+	TODO Could derive this and optimize it with Evaler.java instance?
+	*
+	asdirty(1),
+	*
+	TODO recursive all, vs recursive all except cbts, vs recursive all except cbts and growinglists of them, vs nonrecursive?
+	Maybe best to derive those.
+	*
+	_reservedForFutureExpansion_(121),
+	//TODO room for 1 more op. _deeplazy? _chooser?
+	*/
+	
+	
+	/*TODO max cbt<2^56>, 43 bits of bize so up to 1tB,
+	6 bits of curriesMore,
+	5 bits of op,
+	3 bits of masks (containsAx.. containsBit1 isclean)
+	7 bits of magic/isliteralcbt256???
+		or stick with 8 of those and its up to 512gB aka 4 terabits aka 42 bits of bize?
+	*/
+		
+	
+	/*TODO
+	
+	default id type is 256 bits, has these bytes:
+	isliteralcbt256_vs_normal_op, and any 32 bytes that dont start with 0xf8 0xf9 0xfa and 0xfb are themself as their id.
+	dont need curriesall since its known in the 5 bits of op.
+	so could technically have 41 bits of bize. can i get that up to 43 or 48?
+	could have 48 bits of bize if have max 128 bits of literal per id256,
+	and that kind of id would be more efficient to use directly.
+	
+	Make it come with 2 kinds of ids: Marklar106c and Marklar106d.
+	Marklar106c is a 256 bit id type that has low 32 bits of bize and usually can fit 256 bits of literal in a 256 bit id
+	and the only time it cant is if the first byte is 0xfb cuz the id of that requires 2 of cbt128.
+	and marklar106d has 48 bits of bize but max 128 bits of literal per id.
 	*/
 	
 
