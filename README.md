@@ -1,6 +1,12 @@
 # wikibinator106
 (TODO) A deterministic way for millions of people and AIs to build and play together in p2p, safely sandboxed but not dumbed-down, a very simple kind of self-aware living number, where 2 numbers combine to create or find another number, and so on, and a number can be anything such a word, video, game, simulation, publicKey, GPU optimization, music tools, way to use multiple clouds together, etc.
 
+A universal function of 7..127 params,
+which is a combinator, universal lambda, and pattern calculus function,
+and is designed to be GPU optimized and for gaming-low-lag sync in p2p network, graphics, sound, etc,
+and has bitstrings built in up to 2^120 bits which in abstract math are padded with 10000...000 until next powOf2
+and can be sparse or dense, but in practice will store only the parts you actually need. 
+
 UPDATE: Here's the id256 datastruct (and can derive new kinds of ids at runtime but got to start somewhere):
 
 * 8 bits of magic/isliteralcbt256 (if it starts with anything except 111110 then its 256 literal bits that are their own id,
