@@ -7,7 +7,7 @@ and is designed to be GPU optimized and for gaming-low-lag sync in p2p network, 
 and has bitstrings built in up to 2^120 bits which in abstract math are padded with 10000...000 until next powOf2
 and can be sparse or dense, but in practice will store only the parts you actually need. 
 
-UPDATE: Here's the id256 datastruct (and can derive new kinds of ids at runtime but got to start somewhere):
+UPDATE: Here's the id256 datastruct, which is deterministicly computed from 2 child id256 or is the cleanLeaf or the dirtyLeaf, and can derive new kinds of ids at runtime but got to start somewhere:
 
 * 8 bits of magic/isliteralcbt256 (if it starts with anything except 111110 then its 256 literal bits that are their own id,
 		11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
