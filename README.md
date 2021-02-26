@@ -13,6 +13,8 @@ UPDATE: Here's the id256 datastruct (and can derive new kinds of ids at runtime 
 * 40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
 * 192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
 
+TODO I'm coding this id type in https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Marklar106bId.java and when thats working will use it in https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/SimpleFn.java and the VM. Theres code in wikibinator105 I can use. Hopefully will get a prototype working soon.
+
 
 While nearly finished creating the wikibinator105 prototype I found this optimization that required changing the universal function.
 Once I get past the prototype kind of id working efficiently for derived debugStepInto and debugStepOver lambdas, and some basic graphics and sound derived from lambdas, wont need to keep changing the universal function, just use Evaler.ava to put JIT compiled optimizations in it, keyed by those ids or == in hashtable etc.
