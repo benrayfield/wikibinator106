@@ -63,7 +63,7 @@ public class Marklar106bId{
 	public static final long maskLow40BitsOfBize_ignoreIfLiteralCbt256 = 0x000000ffffffffffL;
 	
 	public static boolean isLiteral256BitsThatIsItsOwnId(long header){
-		return (header>>>58)==0b111110;
+		return (header>>>58)!=0b111110;
 	}
 	
 	/** else is [normal call pair id or literal 1..128 bits] */
@@ -83,12 +83,6 @@ public class Marklar106bId{
 	
 	public static long add1ToFirstByte(long header){
 		return header+0x0100000000000000L;
-	}
-	
-	public static boolean isLiteral256BitsThatIsTheIdOfItselfExceptSubtract1FromFirstByte(long header){
-		//TODO optimize. Is there a faster way than checking all 3?
-		byte firstByte = (byte)(header>>>56);
-		return firstByte==0b11111001 || firstByte==0b11111010 || firstByte==0b11111011;
 	}
 	
 	/** FIXME is it leftC, depends on "TODO which end of this does the literal go at?" */
