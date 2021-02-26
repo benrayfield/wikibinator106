@@ -9,7 +9,7 @@ then the params of that op. The total number of params of leaf is at most 127 so
 public enum Op{
 	
 	
-	marklar106b id:
+	/*marklar106b id:
 		8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
 			11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
 		1 bit containsAxof2params.
@@ -19,9 +19,11 @@ public enum Op{
 		7 bits of curriesSoFar.
 		40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
 		192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
+	*/
 	
-	"*a such as marklar105a and marklar106a should always be a very simple and not practically efficient kind of id, for academic proofs, tutorials, etc"
-	"TODO name this id type maybe its marklar106b? (havent built the other marklar106b so just remove those comments)"
+	//"*a such as marklar105a and marklar106a should always be a very simple and not practically efficient kind of id, for academic proofs, tutorials, etc"
+	//"TODO name this id type maybe its marklar106b? (havent built the other marklar106b so just remove those comments)"
+	
 	/*TODO default id type...
 	8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
 		11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
@@ -33,7 +35,7 @@ public enum Op{
 	40 bits of bize, so up to 128gB aka 1 terabit.
 	*/
 	
-	Should there be deeplazy op, and should it go at op 0, and should there be binheap indexing so 1 more bit,
+	/*Should there be deeplazy op, and should it go at op 0, and should there be binheap indexing so 1 more bit,
 	so 6 bits instead of 5, vs should it just pad with whatevers the r() if you go deeper into leaf, and shift it, in 5 bits?
 	There is that "1 bit of ignore" so can spare 1 more bit.
 	
@@ -179,7 +181,7 @@ public enum Op{
 	curry1(1), curry2(2), curry3(3), curry4(4),
 	curry5(5), curry6(6), curry7(7), curry8(8),
 	curry9(9), currya(10), curryb(11), curryc(12),
-	curryd(13), currye(14), curryf(15), curry16(16),
+	curryd(13), currye(14), curryf(15), curry16(16);
 	
 	/** evaling. This kind of *
 	_deeplazy(0);

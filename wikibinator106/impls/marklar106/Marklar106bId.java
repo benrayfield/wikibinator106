@@ -45,7 +45,7 @@ public class Marklar106bId{
 	If its 0xf9, then its the id of literal 256 bits whose first 8 bits are 0xf8.
 	If its 0xfa, then its the id of literal 256 bits whose first 8 bits are 0xf9.
 	If its 0xfb, then its the id of literal 256 bits whose first 8 bits are 0xfa.
-	The id of a 256 bits whose first 8 bits are 0xfb, is the id of 2 of 128 bits
+	The id of a 256 bits whose first 8 bits are 0xfb, is the id of parent of 2 of 128 bits
 	one lambda called on the other which halts instantly on those being its left and right childs.
 	*/
 	public static final long maskDatastructType = 0xff00000000000000L;
@@ -74,7 +74,7 @@ public class Marklar106bId{
 	public static boolean isLiteral256BitsThatIsTheIdOfItselfExceptSubtract1FromFirstByte(long header){
 		//TODO optimize. Is there a faster way than checking all 3?
 		byte firstByte = (byte)(header>>>56);
-		return firstByte==0b11111001 || firstByte==0b11111010 || firstByte==0b11111011;
+		return firstByte==(byte)0b11111001 || firstByte==(byte)0b11111010 || firstByte==(byte)0b11111011;
 	}
 	
 	public static long subtract1FromFirstByte(long header){
@@ -87,8 +87,8 @@ public class Marklar106bId{
 	
 	/** FIXME is it leftC, depends on "TODO which end of this does the literal go at?" */
 	public static long parentHeader(
-			long leftHeader, byte leftLizif, long leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128,
-			long rightHeader, byte rightLizif){
+			long leftHeader, byte leftLiz, long leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128,
+			long rightHeader, byte rightLiz){
 		//FIXME this incomplete code copied from Marklar105bId
 		
 		//consider Op.deeplazy
@@ -142,14 +142,22 @@ public class Marklar106bId{
 		*/
 	}
 	
+	public static boolean isLeaf(long header){
+		throw new RuntimeException("TODO");
+	}
+	
+	public static boolean isClean(long header){
+		return (header&maskIsClean_ignoreIfLiteralCbt256)!=0;
+	}
+	
 	/** does it deeply anywhere contain Op.one aka clean bit 1, even if its not a cbt it may still contain that */
-	public static boolean containsBit1(long header, byte lizif){
+	public static boolean containsBit1(long header, byte liz){
 		//FIXME this incomplete code copied from Marklar105bId
 		
-		return lizif != 0 || (header&containsBit1_optimization) != 0; //optimization of the commentedout code below
-		/*if(lizif != 0){
+		return liz != 0 || (header&containsBit1_optimization) != 0; //optimization of the commentedout code below
+		/*if(liz != 0){
 			return true;
-		}else if(isLiteralCbt256(header)){ //lizif==0 so its either 256 0s or 1 then 255 0s
+		}else if(isLiteralCbt256(header)){ //liz==0 so its either 256 0s or 1 then 255 0s
 			return header!=0;
 		}else{
 			return (header&maskContainsBit1_ifFirstByteIsNotF9) != 0;
@@ -180,8 +188,8 @@ public class Marklar106bId{
 		//FIXME this incomplete code copied from Marklar105bId
 		
 		long header = parentHeader(
-			leftHeader, lizif(leftHeader,leftB,leftC,leftD), leftC,
-			rightHeader, lizif(rightHeader,rightB,rightC,rightD)
+			leftHeader, liz(leftHeader,leftB,leftC,leftD), leftC,
+			rightHeader, liz(rightHeader,rightB,rightC,rightD)
 		);
 		if(isLiteralCbt256(header)){ //(cbt128,cbt128)->cbt256 by concat. header==leftC. Most random 256 bits are their own id.
 			assert header==leftC; //FIXME when are JVM assert turned on?
@@ -259,6 +267,25 @@ public class Marklar106bId{
 		writeHere[offset] = MathUtil.readLongFromByteArray(hash, hash.length-24);
 		writeHere[offset+1] = MathUtil.readLongFromByteArray(hash, hash.length-16);
 		writeHere[offset+2] = MathUtil.readLongFromByteArray(hash, hash.length-8);
+	}
+	
+	/** returns index of last 1 bit, or returns 0 if there is no 1 bit. Its correct bize either way. */
+	public static long bize(long... literal){
+		for(int i=literal.length; i>=0; i--){
+			long j = literal[i];
+			if(j != 0) return (i*64L)+63-Long.numberOfTrailingZeros(j);
+		}
+		return 0;
+	}
+	
+	public static long headerForPowOf2SizeContent(long... content){
+		if((content.length&(content.length-1)) != 0) throw new RuntimeException("Not a powOf2 number of longs: "+content.length);
+		throw new RuntimeException("TODO");
+	}
+	
+	/** Low 8 bits of bIZe */
+	public static byte liz(long header){
+		return (byte)header; //maskLow40BitsOfBize_ignoreIfLiteralCbt256 is low 40 bits
 	}
 
 }
