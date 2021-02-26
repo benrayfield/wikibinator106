@@ -23,5 +23,13 @@ public abstract class AbstractFn implements fn{
 	public void setCompiled(EvalerChain compiled){
 		this.compiled = compiled;
 	}
+	
+	public boolean isAxOf2Params(){
+		return Marklar106bId.isAxOf2Params(marklar106bHeader);
+	}
+
+	public boolean isCleanNormedBit1(){
+		return Marklar106bId.isCleanNormedBit1(marklar106bHeader);
+	}
 
 }

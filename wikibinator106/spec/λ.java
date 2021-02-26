@@ -50,6 +50,32 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 		return isLeaf() && !isClean();
 	}
 	
+	public Subclass asClean();
+	
+	public Subclass asDirty();
+	
+	/** true iff deep contains any (Op.ax x y) for any x and y, but doesnt count (Op.ax x) or Op.ax by itself.
+	Where this is false, then sync and verifying is much easier.
+	TODO implement this in subclasses using a bit in header, for constant cost instead of this exponential cost.
+	*/
+	public default boolean containsAxOf2Params(){
+		return !isLeaf() && (isAxOf2Params() || l().containsAxOf2Params() || r().containsAxOf2Params());
+	}
+	
+	public boolean isAxOf2Params();
+	
+	/** sparse matrix optimization, and helps with computing bize when content is all 0s, to know if first bit is 1 vs 0.
+	True if contains any Op.one.
+	Does not include Op.one where comment is not cleanLeaf. Only includes the clean normed form, cuz cbt optimizations work on it.
+	TODO implement this in subclasses using a bit in header, for constant cost instead of this exponential cost.
+	*/
+	public default boolean containsCleanNormedBit1(){
+		return !isLeaf() && (isCleanNormedBit1() || l().containsCleanNormedBit1() || r().containsCleanNormedBit1());
+	}
+	
+	/** see containsBit1() */
+	public boolean isCleanNormedBit1();
+	
 	/** gets the sixth param of cleanLeaf/dirtyLeaf, else returns cleanLeaf cuz it has less than 6 params so far.
 	The first 5 params are either cleanLeaf vs anything_except_cleanLeaf to choose from 32 ops, or 64 if count clean vs dirty.
 	*/
@@ -79,6 +105,8 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	public default byte curriesMore(){
 		return (byte)(curriesAll()-curriesSoFar());
 	}
+	
+	public boolean isCleanCbt();
 	
 	//Even if we only know the low 32 bits of bize in some id types, can still effectively use powOf2 size cbts bigger.
 

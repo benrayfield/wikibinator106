@@ -1,6 +1,8 @@
 /** Ben F Rayfield offers this software opensource MIT license */
 package wikibinator106.impls.marklar106;
 
+import wikibinator106.spec.λ;
+
 public class ImportStatic{
 	
 	public static String toString(Object o){
@@ -156,47 +158,49 @@ public class ImportStatic{
 	//(dovetailing may be needed as an abstraction, but compute it procedurally forward efficiently using Evaler/Compiled).
 	
 	public static final fn wiki      = bootOp(u,	u,	u,	u,	u,	u);
-	public static final fn Wiki      = wiki.dirty();
+	public static final fn Wiki      = wiki.asDirty();
 	
 	public static final fn isleaf    = bootOp(u,	u,	u,	u,	u,	uu);
-	public static final fn Isleaf    = isleaf.dirty();
+	public static final fn Isleaf    = isleaf.asDirty();
 	
 	public static final fn l         = bootOp(u,	u,	u,	u,	uu,	u);
-	public static final fn L         = l.dirty();
+	public static final fn L         = l.asDirty();
 	
 	public static final fn r         = bootOp(u,	u,	u,	u,	uu,	uu);
-	public static final fn R         = r.dirty();
+	public static final fn R         = r.asDirty();
 	
 	public static final fn t         = bootOp(u,	u,	u,	uu,	u);
-	public static final fn T         = t.dirty();
+	public static final fn T         = t.asDirty();
 	
 	public static final fn f        = bootOp(u,	u,	u,	uu,	uu);
-	public static final fn F        = f.dirty();
+	public static final fn F        = f.asDirty();
 	
 	public static final fn curry     = bootOp(u,	u,	uu,	u,	u);
-	public static final fn Curry     = curry.dirty();
+	public static final fn Curry     = curry.asDirty();
 	
-	public static final fn cleancall = bootOp(u,	u,	uu,	u,	uu);
+	//TODO derive this
+	//public static final fn cleancall = bootOp(u,	u,	uu,	u,	uu);
 	//even though its dirty, it still converts params to clean and returns a clean
-	public static final fn Cleancall = cleancall.dirty();
+	//public static final fn Cleancall = cleancall.asDirty();
 	
+	//Op.trecurse
 	public static final fn s         = bootOp(u,	u,	uu,	uu);
-	public static final fn S         = s.dirty();
+	public static final fn S         = s.asDirty();
 	
 	public static final fn pair      = bootOp(u,	uu,	u,	u);
-	public static final fn Pair      = pair.dirty();
+	public static final fn Pair      = pair.asDirty();
 	
 	public static final fn typeval   = bootOp(u,	uu,	u,	uu);
-	public static final fn Typeval   = typeval.dirty();
+	public static final fn Typeval   = typeval.asDirty();
 	
 	public static final fn ax        = bootOp(u,	uu,	uu);
-	public static final fn Ax        = ax.dirty();
+	public static final fn Ax        = ax.asDirty();
 	
 	
 	
 	/** identityFunc */
 	public static final fn i       = cp(f,u);
-	public static final fn I       = i.dirty();
+	public static final fn I       = i.asDirty();
 	
 	/** like cleancall except it just has 1 param, the thing to clean,
 	which forkEdits param recursively to have u as all first params of u. There are no nonnormed clean forms.
@@ -205,20 +209,21 @@ public class ImportStatic{
 	in th at first param, such as (u u u u u u u) is cleanwiki and (u (u u) u u u u u) is a dirtywiki,
 	and of course all forms of the wiki opcode use the same wiki.
 	*/
-	public static final fn cleanone = cleancall.p(i);
+	//public static final fn cleanone = cleancall.p(i);
 	//even though its dirty, it still converts param to clean and returns it
-	public static final fn Cleanone = cleanone.dirty();
+	//public static final fn Cleanone = cleanone.asDirty();
 	
 	/** counterpart of cleanone and Cleanone. Returns a dirty form of its param,
 	by forkEditing it recursively for all first params (of leaf) to be a nonleaf,
 	and if they are already not a leaf then leaves them as they are else uses (leaf leaf) aka (u u).
-	*/
+	*
 	public static final fn Dirtyonepassive = null; //FIXME not null
 	
 	/** returns the normed dirty form, where all first params (of leaf) are (leaf leaf) aka (u u).
 	Similar to Dirtyonepassive except which nonleaf in first param.
-	*/
+	*
 	public static final fn Dirtyonenorm = null; //FIXME not null
+	*/
 	
 	public static final fn callParamOnItself = cp(cp(s,i),i);
 	
@@ -258,6 +263,6 @@ public class ImportStatic{
 	
 	public static final λ funcThatInfloopsForAllPossibleParams = lazy(callParamOnItself,callParamOnItself);
 	
-	public static final λ FuncThatInfloopsForAllPossibleParams = funcThatInfloopsForAllPossibleParams.dirty();
+	public static final λ FuncThatInfloopsForAllPossibleParams = funcThatInfloopsForAllPossibleParams.asDirty();
 
 }

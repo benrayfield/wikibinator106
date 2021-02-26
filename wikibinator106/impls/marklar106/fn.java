@@ -7,7 +7,12 @@ public interface fn extends λ<fn>{
 	
 	/** Low 8 bits of bIZe */
 	public default byte liz(){
-		return Marklar106bId.liz(marklar106bHeader());
+		long h = marklar106bHeader();
+		if(Marklar106bId.isLiteral256Bits(h)){
+			throw new RuntimeException("get it from content bits. find the last 1 bit (if exists, else return 0).");
+		}else{
+			return Marklar106bId.liz_ignoreIfLiteralCbt256(h);
+		}
 	}
 	
 	public default boolean isLeaf(){

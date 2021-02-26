@@ -49,18 +49,22 @@ public class Marklar106bId{
 	one lambda called on the other which halts instantly on those being its left and right childs.
 	*/
 	public static final long maskDatastructType = 0xff00000000000000L;
+	public static final int shiftDatastructType = 56;
 	
 	public static final long maskContainsAxof2params_ignoreIfLiteralCbt256 = 0x0080000000000000L;
 	
 	public static final long maskIsClean_ignoreIfLiteralCbt256 = 0x0040000000000000L;
 	
 	public static final long maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256 = 0x003f000000000000L;
+	public static final int shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256 = 48;
 	
-	public static final long containsBit1_ignoreIfLiteralCbt256 = 0x0000800000000000L;
+	public static final long maskContainsCleanNormedBit1_ignoreIfLiteralCbt256 = 0x0000800000000000L;
 	
-	public static final long maskCurriesSoFar_ignoreIfLiteralCbt256 = 0x00007f0000000000L;
+	public static final long maskCurriesMore_ignoreIfLiteralCbt256 = 0x00007f0000000000L;
+	public static final int shiftCurriesSoFar_ignoreIfLiteralCbt256 = 40;
 	
 	public static final long maskLow40BitsOfBize_ignoreIfLiteralCbt256 = 0x000000ffffffffffL;
+	//public static final int shiftLow40BitsOfBize_ignoreIfLiteralCbt256 = 0;
 	
 	public static boolean isLiteral256BitsThatIsItsOwnId(long header){
 		return (header>>>58)!=0b111110;
@@ -127,20 +131,24 @@ public class Marklar106bId{
 	}
 	
 	public static long headerOfFuncall(
-			boolean containsAxof2params, boolean isClean, int opWithBinheapIndexElse0MeansDeeplazy_6bits,
-			boolean containsBit1, int curriesSoFar_7bits,
-			long lowBitsOfBize_40bits){
-		
-		//FIXME this incomplete code copied from Marklar105bId
-		
-		/*//TODO verify the 3 shorts are all positive else throw? or drop the sign bit (using mask15)?
-		return noncbt256firstbyteLong | ((opbyte&0xffL)<<48)
-			| (containsAxOf2Params?maskContainsAxof2params_ifFirstByteIsNotF9:0L)
-			| (containsBit1?maskContainsBit1_ifFirstByteIsNotF9:0L)
-			| (((long)heightIf15)<<30) | ((long)curriesMoreIf15<<15) | (long)curriesMoreIf15;
-			//| (((long)(curriesAllIf23&mask23))<<23) | (curriesMoreIf23&mask23);
-		*/
+		boolean containsAxof2params,
+		boolean isClean,
+		int opWithBinheapIndexElse0MeansDeeplazy_6bits,
+		boolean containsBit1,
+		int curriesSoFar_7bits,
+		long lowBitsOfBize_40bits
+	){
+		return (containsAxof2params ? maskContainsAxof2params_ignoreIfLiteralCbt256 : 0)
+			| (isClean ? maskIsClean_ignoreIfLiteralCbt256 : 0)
+			| ((((long)opWithBinheapIndexElse0MeansDeeplazy_6bits)<<shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)&maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)
+			| (containsBit1 ? maskContainsBit1_ignoreIfLiteralCbt256 : 0)
+			| ((((long)curriesSoFar_7bits)<<shiftCurriesSoFar_ignoreIfLiteralCbt256)&maskCurriesMore_ignoreIfLiteralCbt256)
+			| (lowBitsOfBize_40bits&maskLow40BitsOfBize_ignoreIfLiteralCbt256);
 	}
+	
+	public static final long headerOfCleanLeaf = headerOfFuncall(false, true, 1, false, 0, 0);
+	
+	public static final long headerOfDirtyLeaf = headerOfCleanLeaf^maskIsClean_ignoreIfLiteralCbt256;
 	
 	public static boolean isLeaf(long header){
 		throw new RuntimeException("TODO");
@@ -150,11 +158,40 @@ public class Marklar106bId{
 		return (header&maskIsClean_ignoreIfLiteralCbt256)!=0;
 	}
 	
+	public static boolean isAxOf2Params(long header){
+		throw new RuntimeException("TODO check isLiteral256Bits and if op is Op.ax and curriesSoFar is 8");
+	}
+
+	public static boolean isCleanNormedBit1(long header){
+		throw new RuntimeException("TODO check isLiteral256Bits and if op is Op.one and curriesSoFar is 6");
+	}
+	
+	public static byte curriesAll(long header){
+		throw new RuntimeException("TODO check isLiteral256Bits andOr op, but not the 7 curry_something_todo_choose_a_design bits.");
+	}
+	
+	public static byte curriesSoFar(long header){
+		//TODO optimize by inlining both funcs code here and merging the duplicate code
+		return (byte)(curriesAll(header)-curriesMore(header));
+	}
+	
+	public static byte curriesMore(long header){
+		throw new RuntimeException("TODO check isLiteral256Bits, op, andOr the 7 bits of curry_something_todo_choose_a_design");
+	}
+	
+	public static boolean containsAxOf2Params(long header){
+		return !isLiteral256Bits(header) && (header&maskContainsAxof2params_ignoreIfLiteralCbt256)!=0;
+	}
+
+	public static boolean containsCleanNormedBit1(long header){
+		return !isLiteral256Bits(header) && (header&maskContainsCleanNormedBit1_ignoreIfLiteralCbt256)!=0;
+	}
+	
 	/** does it deeply anywhere contain Op.one aka clean bit 1, even if its not a cbt it may still contain that */
 	public static boolean containsBit1(long header, byte liz){
 		//FIXME this incomplete code copied from Marklar105bId
 		
-		return liz != 0 || (header&containsBit1_optimization) != 0; //optimization of the commentedout code below
+		return liz != 0 || (header&containsCleanNormedBit1_optimization) != 0; //optimization of the commentedout code below
 		/*if(liz != 0){
 			return true;
 		}else if(isLiteralCbt256(header)){ //liz==0 so its either 256 0s or 1 then 255 0s
@@ -284,7 +321,7 @@ public class Marklar106bId{
 	}
 	
 	/** Low 8 bits of bIZe */
-	public static byte liz(long header){
+	public static byte liz_ignoreIfLiteralCbt256(long header){
 		return (byte)header; //maskLow40BitsOfBize_ignoreIfLiteralCbt256 is low 40 bits
 	}
 

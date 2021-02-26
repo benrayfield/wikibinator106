@@ -51,4 +51,12 @@ public class SimpleFn extends AbstractFn{
 		throw new RuntimeException("TODO");
 	}
 
+	public fn asClean(){
+		throw new RuntimeException("TODO");
+	}
+
+	public fn asDirty(){
+		throw new RuntimeException("TODO");
+	}
+
 }
