@@ -65,7 +65,7 @@ public class Marklar106bId{
 	public static final long maskContainsCleanNormedBit1_ignoreIfLiteralCbt256 = 0x0000800000000000L;
 	
 	public static final long maskCurriesMore_ignoreIfLiteralCbt256 = 0x00007f0000000000L;
-	public static final int shiftCurriesSoFar_ignoreIfLiteralCbt256 = 40;
+	public static final int shiftCurriesMore_ignoreIfLiteralCbt256 = 40;
 	
 	public static final long maskLow40BitsOfBize_ignoreIfLiteralCbt256 = 0x000000ffffffffffL;
 	//public static final int shiftLow40BitsOfBize_ignoreIfLiteralCbt256 = 0;
@@ -78,13 +78,16 @@ public class Marklar106bId{
 	
 	public static final byte commentAt = 6;
 	
-	public static final byte smallestCbtAt = 7;
+	public static final byte smallestCbtAt = commentAt;
+	
+	public static final byte firstParamAt = commentAt+1;
 	
 	/** Which param index is funcBody at, for all of Op.curry1 .. Op.curry16 */
-	public static final byte funcBodyAt = 8;
+	public static final byte funcBodyAt = firstParamAt;
 	
 	public static final byte one6Bits = op6Bits(Op.one);
 	public static final byte zero6Bits = op6Bits(Op.zero);
+	public static final byte ax6Bits = op6Bits(Op.ax);
 	
 	public static boolean isLiteral256BitsThatIsItsOwnId(long header){
 		return (header>>>58)!=0b111110;
@@ -111,12 +114,13 @@ public class Marklar106bId{
 	
 	/** FIXME is it leftC, depends on "TODO which end of this does the literal go at?" */
 	public static long parentHeader(
+			boolean isClean,
 			long leftHeader, byte leftLiz, long leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128,
 			long rightHeader, byte rightLiz){
 		//FIXME this incomplete code copied from Marklar105bId
-		
-		//consider Op.deeplazy
-		
+		//FIXME consider deeplazy as op6bits==0
+		if(isClean & (!isClean(leftHeader) || !isClean(rightHeader)))
+			throw new RuntimeException("Cant be clean if either child is dirty. If both childs are clean, parent can be clean or dirty.");
 		boolean leftIsLiteralCbt128 = isLiteralCbt128(leftHeader);
 		boolean rightIsLiteralCbt128 = isLiteralCbt128(rightHeader);
 		//Cbt called on anything is cbt twice as big, by if its param is anything except a cbt of same size
@@ -125,48 +129,48 @@ public class Marklar106bId{
 		boolean parentIsLiteralCbt256 = leftIsLiteralCbt128 & rightIsLiteralCbt128
 			& isLiteral256Bits(leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128); //check for 0xf9
 		if(parentIsLiteralCbt256) return leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128;
-		
-		//TODO next opbyte or copy opbyte.
-		
-		//Compute cbtheightandbize45 (in last 45 bits of header)
-		
-		//compute containsBit1 by oring that from 2 childs and with self's opbyte being the opbyte of bit1.
-		//compute similar for containsaxof2params.
-		
-		//compute the 3 short15s (heightif and 2 curriesif)
-		throw new RuntimeException("TODO");
-		
-		
-		
-		
-		
-		
-		//boolean rightIsLiteralCbt128 = isLiteralCbt128(rightHeader);
-		//boolean leftIsLiteralCbt256 = isLiteralCbt256(leftHeader);
-		//boolean rightIsLiteralCbt256 = isLiteralCbt256(rightHeader);
-		//if()
-			
-		//TODO
-		
+		byte leftCurriesMore = curriesMore(leftHeader);
+		byte rightCurriesMore = curriesMore(rightHeader);
+		boolean leftIsHalted = leftCurriesMore>0;
+		boolean rightIsHalted = rightCurriesMore>0;
+		//parentIsHalted == leftCurriesMore>1 && leftIsHalted && rightIsHalted
+		byte curriesMore = (leftIsHalted&rightIsHalted) ? (byte)(leftCurriesMore-1) : (byte)0; //7 bits
+		boolean containsAxof2params = containsAxOf2Params(leftHeader) | containsAxOf2Params(rightHeader) | isAxOf1Param(leftHeader);
+		byte op6bits = Op.nextOp6Bits(op6Bits(leftHeader), leftCurriesMore, op6Bits(rightHeader), rightCurriesMore);
+		//FIXME know !parentIsLiteralCbt256, but what if left or right is?
+		boolean containsCleanNormedBit1 = containsCleanNormedBit1_ignoreIfLiteralCbt256(leftHeader)
+			|| containsCleanNormedBit1_ignoreIfLiteralCbt256(rightHeader) || isCleanNormedBit1(leftHeader);
+		//low 40 bits of bize (bitstring size). bize ranges 0..(2^120-1).
+		//Bize is position of last 1 bit in content, or 0 if there is no 1 bit. Content is concat(leftCbt,rightCbt).
+		long leftBiz40 = leftHeader&maskLow40BitsOfBize_ignoreIfLiteralCbt256;
+		long rightBiz40 = rightHeader&maskLow40BitsOfBize_ignoreIfLiteralCbt256;
+		long biz40 = 0;
+		boolean isCbt = isCbt(leftHeader) && isCbt(rightHeader) && leftCurriesMore==rightCurriesMore;
+		if(isCbt){
+			byte leftCbtHeight = (byte)(curriesSoFar(leftHeader)-smallestCbtAt); //cbt size is 1<<cbtHeight
+			if()
+			TODO shifts
+		}
+		return headerOfFuncall(containsAxof2params, isClean, op6bits, containsCleanNormedBit1, curriesMore, biz40);
 	}
 	
 	public static long headerOfFuncall(
 		boolean containsAxof2params,
 		boolean isClean,
-		int opWithBinheapIndexElse0MeansDeeplazy_6bits,
-		boolean containsBit1,
-		int curriesSoFar_7bits,
+		byte opWithBinheapIndexElse0MeansDeeplazy_6bits,
+		boolean containsCleanNormedBit1,
+		byte curriesMore_7bits,
 		long lowBitsOfBize_40bits
 	){
 		return (containsAxof2params ? maskContainsAxof2params_ignoreIfLiteralCbt256 : 0)
 			| (isClean ? maskIsClean_ignoreIfLiteralCbt256 : 0)
 			| ((((long)opWithBinheapIndexElse0MeansDeeplazy_6bits)<<shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)&maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)
-			| (containsBit1 ? maskContainsCleanNormedBit1_ignoreIfLiteralCbt256 : 0)
-			| ((((long)curriesSoFar_7bits)<<shiftCurriesSoFar_ignoreIfLiteralCbt256)&maskCurriesMore_ignoreIfLiteralCbt256)
+			| (containsCleanNormedBit1 ? maskContainsCleanNormedBit1_ignoreIfLiteralCbt256 : 0)
+			| ((((long)curriesMore_7bits)<<shiftCurriesMore_ignoreIfLiteralCbt256)&maskCurriesMore_ignoreIfLiteralCbt256)
 			| (lowBitsOfBize_40bits&maskLow40BitsOfBize_ignoreIfLiteralCbt256);
 	}
 	
-	public static final long headerOfCleanLeaf = headerOfFuncall(false, true, 1, false, 0, 0);
+	public static final long headerOfCleanLeaf = headerOfFuncall(false, true, (byte)1, false, (byte)0, 0L);
 	
 	public static final long headerOfDirtyLeaf = headerOfCleanLeaf^maskIsClean_ignoreIfLiteralCbt256;
 	
@@ -207,9 +211,14 @@ public class Marklar106bId{
 	public static boolean containsAxOf2Params(long header){
 		return !isLiteral256Bits(header) && (header&maskContainsAxof2params_ignoreIfLiteralCbt256)!=0;
 	}
+	
+	public static boolean isAxOf1Param(long header){
+		return op6Bits(header)==ax6Bits && curriesSoFar(header)==firstParamAt;
+	}
 
-	public static boolean containsCleanNormedBit1(long header){
-		return !isLiteral256Bits(header) && (header&maskContainsCleanNormedBit1_ignoreIfLiteralCbt256)!=0;
+	public static boolean containsCleanNormedBit1_ignoreIfLiteralCbt256(long header){
+		return (header&maskContainsCleanNormedBit1_ignoreIfLiteralCbt256)!=0;
+		//return !isLiteral256Bits(header) && (header&maskContainsCleanNormedBit1_ignoreIfLiteralCbt256)!=0;
 	}
 	
 	/** does it deeply anywhere contain Op.one aka clean bit 1, even if its not a cbt it may still contain that *
@@ -244,12 +253,14 @@ public class Marklar106bId{
 	*/
 	public static long[] parentId(
 			String hashAlgorithm,
+			boolean isClean,
 			long leftHeader, long leftB, long leftC, long leftD,
 			long rightHeader, long rightB, long rightC, long rightD){
 		
 		//FIXME this incomplete code copied from Marklar105bId
 		
 		long header = parentHeader(
+			isClean,
 			leftHeader, lizOfId(leftHeader,leftB,leftC,leftD), leftC,
 			rightHeader, lizOfId(rightHeader,rightB,rightC,rightD)
 		);

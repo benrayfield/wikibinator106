@@ -308,6 +308,18 @@ public enum Op{
 		return (byte)(32|o.ordinal());
 	}
 	
+	public static byte nextOp6Bits(byte leftOp6Bits, byte leftCurriesMore, byte rightOp6Bits, byte rightCurriesMore){
+		//FIXME did i miss a deeplazy case?
+		//FIXME did i miss a case (maybe leftCurriesMore==1 ?) when at its last param it starts to eval but keeps its op6Bits?
+		if(leftCurriesMore == 0 || rightCurriesMore == 0) return 0; //deeplazy
+		if(leftOp6Bits < 32){ //has 0..4 params so hasnt chosen an op yet at 5th param
+			boolean rightIsLeaf = rightOp6Bits==1;
+			return rightIsLeaf ? (byte)(leftOp6Bits<<1+1) : (byte)(leftOp6Bits<<1);
+		}else{
+			return leftOp6Bits; //copy op6Bits from left child after its known at param 5
+		}
+	}
+	
 	public static void main(String[] args){
 		if(Op.values().length != 32) throw new RuntimeException("Must be exactly 32 ops but is "+Op.values().length);
 		for(Op op : Op.values()){
