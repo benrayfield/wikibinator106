@@ -1,5 +1,7 @@
 package wikibinator106.spec;
 
+import java.util.Arrays;
+
 /** 32 ops, each with a clean form and a dirty form, so theres actually 64 ops.
 The clean form of an op starts with a lowercase letter, and dirty form is capital, like wiki vs Wiki.
 These are chosen in the first 5 params each being cleanLeaf vs anything_except_cleanLeaf,
@@ -190,11 +192,16 @@ public enum Op{
 	_deeplazy(0);
 	*/
 	
+	/** curriesAll-6. after the first 6 params (first 5 chooses op, next param is comment), then the params of the op) */
 	public final byte params;
+	
+	/** 6+params */
+	public final byte curriesAll;
 	
 	private Op(int params){
 		if(params < 1 || params > 121) throw new RuntimeException("param = "+params);
 		this.params = (byte)params;
+		this.curriesAll = (byte)(6+params);
 	}
 	
 	
@@ -320,11 +327,34 @@ public enum Op{
 		}
 	}
 	
+	/** The op of 1 less curry, if it already has 1..5 curries,
+	or the op of curriesSoFar-4 number of less curries if curriesSoFar>5,
+	since op6bits is known at 5 curries and copied from left child after that. 
+	There is no prev op before cleanLeaf or before dirtyLeaf. There are many possible prev ops before a deeplazy.
+	*/
+	public static byte prevOp6Bits_ignoreIfParamIsDeeplazyOrLeafOrCurriessofarGreaterthan5(byte op6Bits){
+		return (byte)(op6Bits>>1);
+	}
+	
 	public static void main(String[] args){
 		if(Op.values().length != 32) throw new RuntimeException("Must be exactly 32 ops but is "+Op.values().length);
 		for(Op op : Op.values()){
 			System.out.println(op+"("+op.params+")");
 		}
+	}
+	
+	
+	private static final byte[] op6Bits_to_curriesAll;
+	static{
+		op6Bits_to_curriesAll = new byte[64];
+		//op6Bits_to_curriesAll[0]==0 is deeplazy
+		//At fifth param, know which Op. 6th param is comment, then params of the op.
+		for(int i=1; i<32; i++) op6Bits_to_curriesAll[i] = (byte)5;
+		for(Op o : Op.values()) op6Bits_to_curriesAll[32+o.ordinal()] = o.curriesAll;
+	}
+	
+	public static byte op6Bits_to_curriesAll(byte op6Bits){
+		return op6Bits_to_curriesAll[op6Bits];
 	}
 	
 

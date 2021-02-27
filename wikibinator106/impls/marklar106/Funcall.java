@@ -1,12 +1,22 @@
 package wikibinator106.impls.marklar106;
 
-public class SimpleFn extends AbstractFn{
+/** a normal lambda call pair. In this prototype they are always halted cuz uses java stack,
+but the the marklar106b ids (including long header) support nonhalted call pairs.
+The other kinds are for cbt/bitstring such as PowOf2SizeLongArrayBlob.
+All are lambdas.
+*/
+public class Funcall extends AbstractFn{
 	
 	public final fn func, param;
 	
-	public SimpleFn(fn func, fn param){
+	/** clean if both are clean, else dirty. If you want it to be dirty when both are clean, use the other constructor. */
+	public Funcall(fn func, fn param){
+		this(func.isClean()&param.isClean(), func, param);
+	}
+	
+	public Funcall(boolean isClean, fn func, fn param){
 		super(Marklar106bId.parentHeader(
-			func.marklar106bHeader(), func.bizb(), func.j(2), param.marklar106bHeader(), param.bizb()));
+			isClean, func.marklar106bHeader(), func.bizb(), func.j(2), param.marklar106bHeader(), param.bizb()));
 		this.func = func;
 		this.param = param;
 	}

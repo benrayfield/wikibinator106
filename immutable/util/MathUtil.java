@@ -874,6 +874,14 @@ public class MathUtil{
 		return ret;
 	}
 	
+	/** concat */
+	public static byte[] longsAndBytesToBytes(long[] longs, byte[] bytes){
+		byte[] ret = new byte[longs.length*8+bytes.length];
+		for(int i=0; i<longs.length; i++) copyLongIntoByteArray(ret, i<<3, longs[i]);
+		System.arraycopy(bytes, 0, ret, longs.length*8, bytes.length);
+		return ret;
+	}
+	
 	public static int ceilOfDivide(int x, int y){
 		return (x+y-1)/y;
 	}

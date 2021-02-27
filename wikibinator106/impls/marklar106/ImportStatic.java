@@ -26,7 +26,7 @@ public class ImportStatic{
 	public static fn cp(fn func, fn param){
 		fn ret = AxfprCache.getOrNull(func, param);
 		if(ret == null){
-			ret = new SimpleFn(func, param);
+			ret = new Funcall(func, param);
 			AxfprCache.put(func, param, ret);
 		}
 		return ret;

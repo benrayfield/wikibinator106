@@ -2,6 +2,7 @@ package wikibinator106.impls.marklar106;
 
 import immutable.util.HashUtil;
 import immutable.util.MathUtil;
+import immutable.util.Text;
 import wikibinator106.spec.Op;
 
 /** This kind of 256 bit id uniquely identifies a lambda function, in data at rest or p2p network.
@@ -19,7 +20,7 @@ UPDATE: Here's the id256 datastruct (and can derive new kinds of ids at runtime 
 -- 1 bit isclean.
 -- 6 bits of opWithBinheapIndexElse0MeansDeeplazy.
 -- 1 bit containsBit1.
--- 7 bits of curriesSoFar.
+-- 7 bits of curriesMore.
 -- 40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
 -- 192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
 <br><br>
@@ -36,6 +37,38 @@ public class Marklar106bId{
 	are generated from lambdas at runtime in custom JIT compiler I'm making for wikibinator106.
 	*/
 	public static final String defaultHashAlgorithm = "SHA3-256";
+	
+	public static final String nameOfUniversalFunction = "wikibinator106";
+	
+	public static final String nameOfIdType = "marklar106b";
+	
+	public static final String appendTo2ChildIdsToMakeHashContent_string = "_"+nameOfUniversalFunction+"_"+nameOfIdType;
+	
+	/** This causes ids, other than cbt/bitstring literals that fit in an id, to differ for different nameOfUniversalFunction and nameOfIdType,
+	so any proofOfWork done in other systems does not help in cracking this id algorithm.
+	You'd have to compute and store about 2^96 ids before finding 1 collision, since it has 192 bits of hash or is a literal,
+	and if such a collision is found, the proof of the collision will have the nameOfUniversalFunction and nameOfIdType in it,
+	even though those arent stored with the ids, just 32 bytes each and their 2 childs, its part of hash algorithm.
+	192 bits of hash are the last 192 bits of
+	MessageDigest.getInstance(defaultHashAlgorithm).digest(concat(idOfLeftChild,idOfRightChild,appendTo2ChildIdsToMakeHashContent)).
+	<br><br>
+	This only costs as much compute time as copying this once, and does not change the hashing time,
+	since SHA3-256 has a constant size input, and runs more cycles for bigger inputs. hashContentBytes is verified to fit in 1 SHA3-256 cycle.
+	*/
+	private static final byte[] appendTo2ChildIdsToMakeHashContent = Text.stringToBytes(appendTo2ChildIdsToMakeHashContent_string);
+	
+	public static final int hashContentBytes = 32*2+appendTo2ChildIdsToMakeHashContent.length;
+	static{
+		if(defaultHashAlgorithm.toLowerCase().replace("-","").equals("sha3256")){
+			if(hashContentBytes > 135) throw new RuntimeException(
+				"hashContentBytes="+hashContentBytes+" but for efficiency should be at most 135 bytes cuz thats 1 SHA3-256 cycle.");
+		}else{
+			System.out.println("Warning: hashContentBytes="+hashContentBytes+" and dont know if "+defaultHashAlgorithm
+				+" hash algorithm costs more than 1 hash cycle (for efficiency) for that size, and if it does,"
+				+ " could shrink that by using a smaller nameOfIdType="+nameOfIdType+" or if its a new universal function"
+				+" then could choose a shorter nameOfUniversalFunction="+nameOfUniversalFunction);
+		}
+	}
 	
 	/** If the first byte is anything except 0xf8, 0xf9, 0xfa, or 0xfb, then its a literal 256 bits that are their own id,
 	so most random 256 bits are their own id (63/64 of the time),
@@ -70,6 +103,8 @@ public class Marklar106bId{
 	public static final long maskLow40BitsOfBize_ignoreIfLiteralCbt256 = 0x000000ffffffffffL;
 	//public static final int shiftLow40BitsOfBize_ignoreIfLiteralCbt256 = 0;
 	
+	public static final long firstByteAs1 = 1L<<56;
+	
 	/** If it has at least this many params and is halted, then which Op is known */
 	public static final byte opIsKnownAt = 5;
 	
@@ -85,8 +120,11 @@ public class Marklar106bId{
 	/** Which param index is funcBody at, for all of Op.curry1 .. Op.curry16 */
 	public static final byte funcBodyAt = firstParamAt;
 	
-	public static final byte one6Bits = op6Bits(Op.one);
+	public static final byte curriesMoreOfCbt1 = Op.zero.params;
+	public static final byte curriesMoreOfCbt256 = (byte)(curriesMoreOfCbt1-8);
+	
 	public static final byte zero6Bits = op6Bits(Op.zero);
+	public static final byte one6Bits = op6Bits(Op.one);
 	public static final byte ax6Bits = op6Bits(Op.ax);
 	
 	public static boolean isLiteral256BitsThatIsItsOwnId(long header){
@@ -104,19 +142,23 @@ public class Marklar106bId{
 		return firstByte==(byte)0b11111001 || firstByte==(byte)0b11111010 || firstByte==(byte)0b11111011;
 	}
 	
+	/** see isLiteral256BitsThatIsTheIdOfItselfExceptSubtract1FromFirstByte(header) */ 
 	public static long subtract1FromFirstByte(long header){
-		return header-0x0100000000000000L;
+		return header-firstByteAs1;
 	}
 	
+	/** see isLiteral256BitsThatIsTheIdOfItselfExceptSubtract1FromFirstByte(header) */
 	public static long add1ToFirstByte(long header){
-		return header+0x0100000000000000L;
+		return header+firstByteAs1;
 	}
 	
-	/** FIXME is it leftC, depends on "TODO which end of this does the literal go at?" */
+	/** FIXME is it leftC, depends on "TODO which end of this does the literal go at?".
+	Bizb is low 8 bits of bize and is only needed for literalCbt256 since its header is literal data so doesnt contain biz40.
+	*/
 	public static long parentHeader(
 			boolean isClean,
-			long leftHeader, byte leftLiz, long leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128,
-			long rightHeader, byte rightLiz){
+			long leftHeader, byte leftBizb, long leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128,
+			long rightHeader, byte rightBizb){
 		//FIXME this incomplete code copied from Marklar105bId
 		//FIXME consider deeplazy as op6bits==0
 		if(isClean & (!isClean(leftHeader) || !isClean(rightHeader)))
@@ -133,23 +175,39 @@ public class Marklar106bId{
 		byte rightCurriesMore = curriesMore(rightHeader);
 		boolean leftIsHalted = leftCurriesMore>0;
 		boolean rightIsHalted = rightCurriesMore>0;
-		//parentIsHalted == leftCurriesMore>1 && leftIsHalted && rightIsHalted
 		byte curriesMore = (leftIsHalted&rightIsHalted) ? (byte)(leftCurriesMore-1) : (byte)0; //7 bits
+		//boolean parentIsHalted = curriesMore>0;
 		boolean containsAxof2params = containsAxOf2Params(leftHeader) | containsAxOf2Params(rightHeader) | isAxOf1Param(leftHeader);
-		byte op6bits = Op.nextOp6Bits(op6Bits(leftHeader), leftCurriesMore, op6Bits(rightHeader), rightCurriesMore);
+		byte leftOp6Bits = op6Bits(leftHeader);
+		byte rightOp6Bits = op6Bits(rightHeader);
+		byte op6bits = Op.nextOp6Bits(leftOp6Bits, leftCurriesMore, rightOp6Bits, rightCurriesMore);
 		//FIXME know !parentIsLiteralCbt256, but what if left or right is?
 		boolean containsCleanNormedBit1 = containsCleanNormedBit1_ignoreIfLiteralCbt256(leftHeader)
-			|| containsCleanNormedBit1_ignoreIfLiteralCbt256(rightHeader) || isCleanNormedBit1(leftHeader);
+			|| containsCleanNormedBit1_ignoreIfLiteralCbt256(rightHeader)
+			//check if parent is cleanNormedBit1. curriesSoFar of a cbt1 is 6 (opIsKnownAt+1) cuz it includes comment==cleanLeaf.
+			|| (leftOp6Bits==one6Bits && curriesSoFar(leftHeader)==opIsKnownAt);
 		//low 40 bits of bize (bitstring size). bize ranges 0..(2^120-1).
 		//Bize is position of last 1 bit in content, or 0 if there is no 1 bit. Content is concat(leftCbt,rightCbt).
+		//FIXME use the params leftBizb and rightBizb?
 		long leftBiz40 = leftHeader&maskLow40BitsOfBize_ignoreIfLiteralCbt256;
 		long rightBiz40 = rightHeader&maskLow40BitsOfBize_ignoreIfLiteralCbt256;
-		long biz40 = 0;
+		long biz40; //if !isCbt or if its 1000000...000 or if its all 0s.
 		boolean isCbt = isCbt(leftHeader) && isCbt(rightHeader) && leftCurriesMore==rightCurriesMore;
 		if(isCbt){
 			byte leftCbtHeight = (byte)(curriesSoFar(leftHeader)-smallestCbtAt); //cbt size is 1<<cbtHeight
-			if()
-			TODO shifts
+			if(containsCleanNormedBit1_ignoreIfLiteralCbt256(rightHeader)){
+				//add leftCbtSize==rightCbtSize. The last 1 bit is in right child.
+				//cbtSize has to be an int120 to hold all the digits, but since only computing low 40 bits of it, use a long.
+				biz40 = ((1L<<leftCbtHeight)+rightBiz40)&maskLow40BitsOfBize_ignoreIfLiteralCbt256;
+			}else{ //right child is all 0s so the last 1 bit (if exists) is in left child so has same bize as left child
+				biz40 = leftBiz40;
+			} 
+			//Is concat(cbt1,cbt1) up to concat(cbt<2^119>,cbt<2^119).
+			//FIXME if its a call of cbt<2^120> on cbt<2^120> then that evals to (Op.growinglist cbt<2^120> cbt<2^120>)
+			//but before that the op6bits here is still op6bits(Op.zero) or op6bits(Op.one) but its curriesMore==0
+			//and therefore has 2 cbt<2^120> childs and is not halted.
+		}else{
+			biz40 = 0; //if !isCbt or if its 1000000...000 or if its all 0s.
 		}
 		return headerOfFuncall(containsAxof2params, isClean, op6bits, containsCleanNormedBit1, curriesMore, biz40);
 	}
@@ -170,16 +228,50 @@ public class Marklar106bId{
 			| (lowBitsOfBize_40bits&maskLow40BitsOfBize_ignoreIfLiteralCbt256);
 	}
 	
-	public static final long headerOfCleanLeaf = headerOfFuncall(false, true, (byte)1, false, (byte)0, 0L);
+	/** until gets 5 params, dont know which Op (32 of them so 5 bits) but do know op6bits which has a binheap index
+	that means a bitstring of 0..5 bits, stored in 6 bits, and deeplazy is op6bits==0.
+	*/
+	public static final long headerOfCleanLeaf = headerOfFuncall(false, true, (byte)1, false, (byte)5, 0L);
 	
 	public static final long headerOfDirtyLeaf = headerOfCleanLeaf^maskIsClean_ignoreIfLiteralCbt256;
 	
 	public static boolean isLeaf(long header){
-		throw new RuntimeException("TODO");
+		return op6Bits(header)==1;
+	}
+	
+	/** evaling, not halted. Either way its an immutable/stateless snapshot of a tiny piece of computing.
+	Not everything thats evaling/!isHalted is deeplazy. The first is just lazy, which happens at the last param,
+	such as (S x y z) before it evals to (x z (y z)). S aka (Op.trecurse comment), and default comment is cleanLeaf.
+	Deeplazy is what happens past that to prevent any op from having more than 127 params (fits in unsigned byte).
+	When evaling, you dont yet (or ever, cuz of halting-problem) know the op6bits of what it will return,
+	so we view it like its just 1 curry as lambdas normally are, x called on y.
+	FIXME is curriesSoFar andOr curriesMore andOr curriesAll consistent with that?
+	*/
+	public static boolean isDeeplazy(long header){
+		return op6Bits(header)==0;
+	}
+	
+	/** Op is known if its halted and has at least 5 params/curries */
+	public static boolean opIsKnown(long header){
+		return isHalted(header) && curriesSoFar(header)>=5;
+	}
+	
+	public static boolean isHalted(long header){
+		return curriesMore(header)>0;
 	}
 	
 	public static boolean isClean(long header){
-		return (header&maskIsClean_ignoreIfLiteralCbt256)!=0;
+		return isLiteral256Bits(header) || (header&maskIsClean_ignoreIfLiteralCbt256)!=0;
+	}
+	
+	public static boolean isCleanLeaf(long header){
+		//TODO optimize by inlining code from these funcs and merging duplicate code
+		return isLeaf(header) && isClean(header);
+	}
+	
+	public static boolean isDirtyLeaf(long header){
+		//TODO optimize by inlining code from these funcs and merging duplicate code
+		return isLeaf(header) && !isClean(header);
 	}
 	
 	public static boolean isCleanCbt(long header){
@@ -196,7 +288,9 @@ public class Marklar106bId{
 	}
 	
 	public static byte curriesAll(long header){
-		throw new RuntimeException("TODO check isLiteral256Bits andOr op, but not the 7 curry_something_todo_choose_a_design bits.");
+		return isLiteral256Bits(header)
+			? Op.zero.curriesAll //same as Op.one.curriesAll
+			: Op.op6Bits_to_curriesAll(op6Bits(header));
 	}
 	
 	public static byte curriesSoFar(long header){
@@ -205,7 +299,9 @@ public class Marklar106bId{
 	}
 	
 	public static byte curriesMore(long header){
-		throw new RuntimeException("TODO check isLiteral256Bits, op, andOr the 7 bits of curry_something_todo_choose_a_design");
+		return isLiteral256Bits(header)
+			? curriesMoreOfCbt256
+			: (byte)((header&maskCurriesMore_ignoreIfLiteralCbt256)>>shiftCurriesMore_ignoreIfLiteralCbt256);
 	}
 	
 	public static boolean containsAxOf2Params(long header){
@@ -341,7 +437,7 @@ public class Marklar106bId{
 	/** last 192 bits of sha3_256. writes writeHere[offset..(offset+2)]. normally this is long[8] of 2 id256s.
 	*/
 	public static void hash192(String hashAlgorithm, long[] writeHere, int offset, long... in){
-		byte[] hash = HashUtil.hash(hashAlgorithm,MathUtil.longsToBytes(in));
+		byte[] hash = HashUtil.hash(hashAlgorithm,MathUtil.longsAndBytesToBytes(in,appendTo2ChildIdsToMakeHashContent));
 		writeHere[offset] = MathUtil.readLongFromByteArray(hash, hash.length-24);
 		writeHere[offset+1] = MathUtil.readLongFromByteArray(hash, hash.length-16);
 		writeHere[offset+2] = MathUtil.readLongFromByteArray(hash, hash.length-8);
@@ -410,7 +506,7 @@ public class Marklar106bId{
 				>>shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256);
 		}
 	}
-	
+		
 	public static final byte op6Bits(Op o){
 		return (byte)(32|o.ordinal());
 	}
