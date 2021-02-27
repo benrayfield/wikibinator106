@@ -2,6 +2,8 @@ package wikibinator106.spec;
 import java.math.BigInteger;
 import java.util.function.UnaryOperator;
 
+import wikibinator106.impls.marklar106.fn;
+
 /** a universal function of 7..127 params,
 which is a combinator, universal lambda, and pattern calculus function,
 and is designed to be GPU optimized and for gaming-low-lag sync in p2p network, graphics, sound, etc,
@@ -36,6 +38,11 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	
 	public default $<Subclass> e(long maxSpend, Subclass param){
 		return compiled().Eval(maxSpend, this, param);
+	}
+	
+	/** UnaryOperator does lambda call */
+	public default Subclass apply(Subclass param){
+		return e(param);
 	}
 	
 	public boolean isLeaf();
@@ -113,6 +120,10 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	/** Bitstring sIZE. range 0..(2^120-1). */
 	public default Number bize(){
 		throw new RuntimeException("TODO return new BigInteger(15 bytes of bizk() bizj());");
+	}
+	
+	public default byte bizb(){
+		return (byte)bizi();
 	}
 	
 	/** Bitstring sIZE. low 32 bits of bize which ranges 0..(2^120-1).

@@ -6,15 +6,15 @@ public class SimpleEvalerChain implements EvalerChain<fn>{
 	
 	protected boolean on = true;
 	
-	public final EvalerChain prevOrNull;
+	public final EvalerChain<fn> prevOrNull;
 	
-	public final Evaler wrapMe;
+	public final Evaler<fn> wrapMe;
 	
-	public SimpleEvalerChain(Evaler wrapMe){
+	public SimpleEvalerChain(Evaler<fn> wrapMe){
 		this(wrapMe, null);
 	}
 	
-	public SimpleEvalerChain(Evaler wrapMe, EvalerChain prevOrNull){
+	public SimpleEvalerChain(Evaler<fn> wrapMe, EvalerChain<fn> prevOrNull){
 		this.wrapMe = wrapMe;
 		this.prevOrNull = prevOrNull;
 	}
@@ -44,6 +44,22 @@ public class SimpleEvalerChain implements EvalerChain<fn>{
 
 	public EvalerChain prev(){
 		return prevOrNull;
+	}
+
+	public fn u(boolean isClean){
+		return (on?wrapMe:prevOrNull).u(isClean);
+	}
+
+	public fn op(boolean isClean, Op o){
+		return (on?wrapMe:prevOrNull).op(isClean,o);
+	}
+
+	public fn w(Object wrapThis){
+		return (on?wrapMe:prevOrNull).w(wrapThis);
+	}
+
+	public fn ww(Object wrapThis){
+		return (on?wrapMe:prevOrNull).ww(wrapThis);
 	}
 
 }

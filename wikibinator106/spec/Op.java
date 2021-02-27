@@ -44,6 +44,9 @@ public enum Op{
 	*/
 	
 	
+	_unusedOpSpace_todo(1),
+	
+	
 	/** (axa (fpr wiki x y)) means (wiki x)->y.
 	Also, there will be a few functions built in, something like
 	(curry... wiki "spend" salt maxAmountToSpendAsInt64 x) -> [amountDidNotSpend (x cleanLeaf)], or something like that.
@@ -180,8 +183,8 @@ public enum Op{
 	*/
 	curry1(1), curry2(2), curry3(3), curry4(4),
 	curry5(5), curry6(6), curry7(7), curry8(8),
-	curry9(9), currya(10), curryb(11), curryc(12),
-	curryd(13), currye(14), curryf(15), curry16(16);
+	curry9(9), curry10(10), curry11(11), curry12(12),
+	curry13(13), curry14(14), curry15(15), curry16(16);
 	
 	/** evaling. This kind of *
 	_deeplazy(0);
@@ -297,6 +300,20 @@ public enum Op{
 	and the only time it cant is if the first byte is 0xfb cuz the id of that requires 2 of cbt128.
 	and marklar106d has 48 bits of bize but max 128 bits of literal per id.
 	*/
+	
+	/** the 6 op bits in low bits of a byte, that choose between 32 ops, 31 possible leaf/anynonleaf prefixes of them, and 0/deeplazy.
+	That describes 0..5 params, and every param after that copies those same 6 bits from its left child.
+	*/
+	public static byte op6Bits(Op o){
+		return (byte)(32|o.ordinal());
+	}
+	
+	public static void main(String[] args){
+		if(Op.values().length != 32) throw new RuntimeException("Must be exactly 32 ops but is "+Op.values().length);
+		for(Op op : Op.values()){
+			System.out.println(op+"("+op.params+")");
+		}
+	}
 	
 
 }

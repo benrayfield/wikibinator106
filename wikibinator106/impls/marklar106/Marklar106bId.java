@@ -2,6 +2,7 @@ package wikibinator106.impls.marklar106;
 
 import immutable.util.HashUtil;
 import immutable.util.MathUtil;
+import wikibinator106.spec.Op;
 
 /** This kind of 256 bit id uniquely identifies a lambda function, in data at rest or p2p network.
 In this system, the lambda, instead of the bit, is the smallest unit of computing,
@@ -55,6 +56,9 @@ public class Marklar106bId{
 	
 	public static final long maskIsClean_ignoreIfLiteralCbt256 = 0x0040000000000000L;
 	
+	/** these bits op6Bits(Op) which is known at 5 params (and higher, copied from left child),
+	and values 1..31 are 0..4 params, and 0 means deeplazy. See op6Bits(Op).
+	*/
 	public static final long maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256 = 0x003f000000000000L;
 	public static final int shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256 = 48;
 	
@@ -65,6 +69,22 @@ public class Marklar106bId{
 	
 	public static final long maskLow40BitsOfBize_ignoreIfLiteralCbt256 = 0x000000ffffffffffL;
 	//public static final int shiftLow40BitsOfBize_ignoreIfLiteralCbt256 = 0;
+	
+	/** If it has at least this many params and is halted, then which Op is known */
+	public static final byte opIsKnownAt = 5;
+	
+	//Leaf is param index 0. Max possible halted param index is 126 or less depending which op.
+	//public static final byte leafAt = 0;
+	
+	public static final byte commentAt = 6;
+	
+	public static final byte smallestCbtAt = 7;
+	
+	/** Which param index is funcBody at, for all of Op.curry1 .. Op.curry16 */
+	public static final byte funcBodyAt = 8;
+	
+	public static final byte one6Bits = op6Bits(Op.one);
+	public static final byte zero6Bits = op6Bits(Op.zero);
 	
 	public static boolean isLiteral256BitsThatIsItsOwnId(long header){
 		return (header>>>58)!=0b111110;
@@ -103,7 +123,7 @@ public class Marklar106bId{
 		//its return value is instead itself called on itself, but thats an eval, and before that it would be Op._deeplazy.
 		//So here, its only a cbt256 if both its childs are cbt128 and if the first byte of left's content is not 0xf9.
 		boolean parentIsLiteralCbt256 = leftIsLiteralCbt128 & rightIsLiteralCbt128
-			& isLiteralCbt256(leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128); //check for 0xf9
+			& isLiteral256Bits(leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128); //check for 0xf9
 		if(parentIsLiteralCbt256) return leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128;
 		
 		//TODO next opbyte or copy opbyte.
@@ -141,7 +161,7 @@ public class Marklar106bId{
 		return (containsAxof2params ? maskContainsAxof2params_ignoreIfLiteralCbt256 : 0)
 			| (isClean ? maskIsClean_ignoreIfLiteralCbt256 : 0)
 			| ((((long)opWithBinheapIndexElse0MeansDeeplazy_6bits)<<shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)&maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)
-			| (containsBit1 ? maskContainsBit1_ignoreIfLiteralCbt256 : 0)
+			| (containsBit1 ? maskContainsCleanNormedBit1_ignoreIfLiteralCbt256 : 0)
 			| ((((long)curriesSoFar_7bits)<<shiftCurriesSoFar_ignoreIfLiteralCbt256)&maskCurriesMore_ignoreIfLiteralCbt256)
 			| (lowBitsOfBize_40bits&maskLow40BitsOfBize_ignoreIfLiteralCbt256);
 	}
@@ -156,6 +176,11 @@ public class Marklar106bId{
 	
 	public static boolean isClean(long header){
 		return (header&maskIsClean_ignoreIfLiteralCbt256)!=0;
+	}
+	
+	public static boolean isCleanCbt(long header){
+		//true if its a literal cbt256 or...
+		throw new RuntimeException("TODO");
 	}
 	
 	public static boolean isAxOf2Params(long header){
@@ -187,7 +212,7 @@ public class Marklar106bId{
 		return !isLiteral256Bits(header) && (header&maskContainsCleanNormedBit1_ignoreIfLiteralCbt256)!=0;
 	}
 	
-	/** does it deeply anywhere contain Op.one aka clean bit 1, even if its not a cbt it may still contain that */
+	/** does it deeply anywhere contain Op.one aka clean bit 1, even if its not a cbt it may still contain that *
 	public static boolean containsBit1(long header, byte liz){
 		//FIXME this incomplete code copied from Marklar105bId
 		
@@ -200,8 +225,8 @@ public class Marklar106bId{
 			return (header&maskContainsBit1_ifFirstByteIsNotF9) != 0;
 			//FIXME go down from 4tB to 2tB so these 3 bits are part of all non-isLiteralCbt256 headers,???
 			//instead of having to check if it uses the cbtHeightAndBize46???
-		}*/
-	}
+		}*
+	}*/
 	
 	
 	/** "FIXME this incomplete code copied from Marklar105bId".
@@ -225,20 +250,25 @@ public class Marklar106bId{
 		//FIXME this incomplete code copied from Marklar105bId
 		
 		long header = parentHeader(
-			leftHeader, liz(leftHeader,leftB,leftC,leftD), leftC,
-			rightHeader, liz(rightHeader,rightB,rightC,rightD)
+			leftHeader, lizOfId(leftHeader,leftB,leftC,leftD), leftC,
+			rightHeader, lizOfId(rightHeader,rightB,rightC,rightD)
 		);
-		if(isLiteralCbt256(header)){ //(cbt128,cbt128)->cbt256 by concat. header==leftC. Most random 256 bits are their own id.
+		if(isLiteral256Bits(header)){ //(cbt128,cbt128)->cbt256 by concat. header==leftC. Most random 256 bits are their own id.
 			assert header==leftC; //FIXME when are JVM assert turned on?
 			return new long[]{ leftC, leftD, rightC, rightD };
 		}else{
 			//dont know its a cbt yet, but compute cbtHeights in case it is
-			int leftCbtHeight = heightIf15(leftHeader)-minHeightOfCbt; //number of bits in cbt is 2^cbtHeight, including padding.
-			int rightCbtHeight = heightIf15(rightHeader)-minHeightOfCbt;
+			
+			byte leftCurriesSoFar = curriesSoFar(leftHeader);
+			byte rightCurriesSoFar = curriesSoFar(leftHeader);
+			byte leftCbtHeight = (byte)(leftCurriesSoFar-smallestCbtAt); //cbt size is 1<<leftCbtHeight
+			
+			//int leftCbtHeight = heightIf15(leftHeader)-minHeightOfCbt; //number of bits in cbt is 2^cbtHeight, including padding.
+			//int rightCbtHeight = heightIf15(rightHeader)-minHeightOfCbt;
 			//cbt called on anything is cbt twice as big, so if they're different heights it has to eval that first,
 			//which is a bigO(1) eval to just call left on left, but this parentId function was given the 2 childs,
 			//and if those 2 childs cant be together in a halted state as they are, it has to be marked as Op._deeplazy.
-			if(isLiteralCbt1To128(header) && leftCbtHeight == rightCbtHeight){
+			if(isLiteralCbt1To128(header) && leftCurriesSoFar == rightCurriesSoFar){
 				//TODO optimize by not using switch here, but the switch might be useful for debugging for a while.
 				long c = 0, d = 0;
 				//cbt1 to cbt128 literals have all 0s between end of header and start of the content which ends at end of id256.
@@ -307,8 +337,8 @@ public class Marklar106bId{
 	}
 	
 	/** returns index of last 1 bit, or returns 0 if there is no 1 bit. Its correct bize either way. */
-	public static long bize(long... literal){
-		for(int i=literal.length; i>=0; i--){
+	public static long bizeOfContent(long... literal){
+		for(int i=literal.length-1; i>=0; i--){
 			long j = literal[i];
 			if(j != 0) return (i*64L)+63-Long.numberOfTrailingZeros(j);
 		}
@@ -320,9 +350,64 @@ public class Marklar106bId{
 		throw new RuntimeException("TODO");
 	}
 	
-	/** Low 8 bits of bIZe */
-	public static byte liz_ignoreIfLiteralCbt256(long header){
+	/** Low 8 bits of bIZe, but only works if its not a literal cbt256 */
+	public static byte bizb_ignoreIfLiteralCbt256(long header){
 		return (byte)header; //maskLow40BitsOfBize_ignoreIfLiteralCbt256 is low 40 bits
+	}
+	
+	/** Low 8 bits of bIZe */
+	public static byte lizOfId(long header, long b, long c, long d){
+		if(isLiteral256Bits(header)){
+			return (byte)Math.max(0,255-numberOfTrailingZeros(header, b, c, d));
+		}else{
+			return bizb_ignoreIfLiteralCbt256(header);
+		}
+	}
+	
+	/** same as Long.numberOfTrailingZeros(int256) would be. Ranges 0 to 256 */
+	public static int numberOfTrailingZeros(long a, long b, long c, long d){
+		if(d != 0) return (byte)(255-Long.numberOfTrailingZeros(d));
+		if(c != 0) return (byte)(191-Long.numberOfTrailingZeros(c));
+		if(b != 0) return (byte)(127-Long.numberOfTrailingZeros(b));
+		if(a != 0) return (byte)(63-Long.numberOfTrailingZeros(a));
+		return 256;
+	}
+	
+	public static boolean isLiteralCbt1To128(long header){
+		if(!isCbt(header)) return false;
+		int cbtHeight = curriesSoFar(header)-smallestCbtAt;
+		return 1 <= cbtHeight && cbtHeight <= 128;
+	}
+	
+	public static boolean isLiteralCbt128(long header){
+		return isCbt(header) && !isLiteral256Bits(header) && curriesSoFar(header)==(smallestCbtAt+7); //1<<7==128
+	}
+	
+	public static boolean isLiteralCbt(long header){
+		//TODO optimize. theres probably some duplicate code between those 2 funcs
+		return isLiteral256Bits(header) || isLiteralCbt1To128(header);
+	}
+	
+	/** the 6 op bits in low bits of a byte, that choose between 32 ops, 31 possible leaf/anynonleaf prefixes of them, and 0/deeplazy.
+	That describes 0..5 params, and every param after that copies those same 6 bits from its left child.
+	*/
+	public static byte op6Bits(long header){
+		if(isLiteral256Bits(header)){
+			return header<0 ? one6Bits : zero6Bits; //first of 256 bits
+		}else{
+			return (byte)((header&maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)
+				>>shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256);
+		}
+	}
+	
+	public static final byte op6Bits(Op o){
+		return (byte)(32|o.ordinal());
+	}
+	
+	public static boolean isCbt(long header){
+		//TODO optimize using a mask that ignores the 1 bit where one6Bits and zero6Bits differ
+		int op6Bits = op6Bits(header);
+		return op6Bits==one6Bits || op6Bits==zero6Bits;
 	}
 
 }

@@ -5,13 +5,17 @@ public interface fn extends λ<fn>{
 	
 	public long marklar106bHeader();
 	
-	/** Low 8 bits of bIZe */
-	public default byte liz(){
+	public default int bizi(){
+		return (int)biz40();
+	}
+	
+	public default long biz40(){
 		long h = marklar106bHeader();
 		if(Marklar106bId.isLiteral256Bits(h)){
-			throw new RuntimeException("get it from content bits. find the last 1 bit (if exists, else return 0).");
+			return Marklar106bId.bizeOfContent(j(0), j(1), j(2), j(3));
+			//throw new RuntimeException("get it from content bits. find the last 1 bit (if exists, else return 0).");
 		}else{
-			return Marklar106bId.liz_ignoreIfLiteralCbt256(h);
+			return Marklar106bId.bizb_ignoreIfLiteralCbt256(h);
 		}
 	}
 	
@@ -21,6 +25,10 @@ public interface fn extends λ<fn>{
 
 	public default boolean isClean(){
 		return Marklar106bId.isClean(marklar106bHeader());
+	}
+	
+	public default boolean isCleanCbt(){
+		return Marklar106bId.isCleanCbt(marklar106bHeader());
 	}
 
 }

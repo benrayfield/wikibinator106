@@ -16,6 +16,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 		
 		//FIXME code was copied here from wikibinator105 which is a different universal function, different opcodes.
 		
+		/*
 		if(gas <= 0) throw new RuntimeException("Since everything costs at least 1 gas, including calling this to check the gas, caller should not have called this. gas="+gas);
 		//if(gas == 0) throw new RuntimeException("FIXME redesign maxSpend make this easier to pay, like in occamsfuncer you just call $(number) but I like it being a param instead of stateful");
 		gas--;
@@ -84,13 +85,13 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 			ret = null; //FIXME
 		break;
 		case trecurse: case Trecurse:
-			/*
+			
 			//TODO xz and yz in parallel recursively (can become many threads), in some cases,
 			//but not when it takes longer due to thread switch lag.
-			fn xz = x.e(z);
-			fn yz = y.e(z);
-			ret = xz.e(yz);
-			*/
+			//fn xz = x.e(z);
+			//fn yz = y.e(z);
+			//ret = xz.e(yz);
+			
 			$<fn> forkReturned = Fork(gas, x, y, z); //this is singleThreaded, unless a subclass multithreads it in some cases
 			ret = forkReturned.fn;
 			gas = forkReturned.gas;
@@ -165,14 +166,33 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 		//If ret == null, this means didnt have enough gas to do the requested calculation,
 		//and giving back whatever amount of gas was not used.
 		return new $(gas,ret);
+		*/
+		
+		throw new RuntimeException("TODO");
 	}
 	
 	public static boolean areBothCleanCbtsAndSameSize(fn x, fn y){
-		return x.isCbt() && y.isCbt() && x.curriesMore()==y.curriesMore();
+		return x.isCleanCbt() && y.isCleanCbt() && x.curriesMore()==y.curriesMore();
 	}
 
 	public $<fn> Wiki(long maxSpend, fn param){
 		return WikiState.bestKnownApproximationOfSparseSubsetOfWiki.apply(maxSpend,param);
+	}
+
+	public fn u(boolean isClean){
+		throw new RuntimeException("TODO");
+	}
+
+	public fn op(boolean isClean, wikibinator106.spec.Op o){
+		throw new RuntimeException("TODO");
+	}
+
+	public fn w(Object wrapMe){
+		throw new RuntimeException("TODO");
+	}
+
+	public fn ww(Object wrapMe){
+		throw new RuntimeException("TODO");
 	}
 
 }

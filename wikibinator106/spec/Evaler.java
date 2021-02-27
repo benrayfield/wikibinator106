@@ -45,6 +45,32 @@ public interface Evaler<T extends λ>{
 	/** See Op.Wiki. All nondeterminism goes here, and in dirty ops (start with capital letter like Op.Trecurse vs Op.trecurse)
 	which can call this Op.Wiki without truncateToClean happening automatically (cuz clean can only see and create clean).
 	*/
-	public $<T> Wiki(long maxSpend, T param);
+	public default $<T> Wiki(long maxSpend, T param){
+		return Eval(maxSpend, op(false,Op.wiki), param);
+	}
+	
+	/** cleanLeaf or dirtyLeaf */
+	public T u(boolean isClean);
+	
+	/** cleanLeaf */
+	public default T u(){ return u(true); };
+	/** dirtyLeaf */
+	public default T U(){ return u(false); }
+	
+	/** get the lambda form of an opcode, with comment being cleanLeaf (the normed form of the opcode) */
+	public T op(boolean isClean, Op o);
+	/** clean op */
+	public default T op(Op o){ return op(true,o); }
+	/** dirty op */
+	public default T Op(Op o){ return op(false,o); }
+	
+	/** wrap an arrays bits in a lambda without type info, such as byte[] or double[] or String */
+	public T w(Object wrapMe);
+	
+	/** like w(Object) but with type info, using Op.typeval. TODO maybe that should be a param
+	so the spec doesnt require any specific way of using typeval such as "double[]" vs "[double;" vs contentType form
+	vs types that arent even strings. Of course Op.ax is for turingCompleteTypes and this is for loose unverified types.
+	*/
+	public T ww(Object wrapMe);
 
 }

@@ -264,5 +264,15 @@ public class ImportStatic{
 	public static final λ funcThatInfloopsForAllPossibleParams = lazy(callParamOnItself,callParamOnItself);
 	
 	public static final λ FuncThatInfloopsForAllPossibleParams = funcThatInfloopsForAllPossibleParams.asDirty();
+	
+	/** wrap just the bits in cbt, like of byte[] or double[] or String */
+	public static fn w(Object wrapMe){
+		throw new RuntimeException("TODO");
+	}
+	
+	/** wrap in typeval */
+	public static fn ww(Object wrapMe){
+		throw new RuntimeException("TODO");
+	}
 
 }

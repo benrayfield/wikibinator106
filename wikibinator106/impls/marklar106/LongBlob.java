@@ -73,4 +73,12 @@ public class LongBlob extends AbstractFn{
 		throw new RuntimeException("TODO");
 	}
 
+	public fn asClean(){
+		return this;
+	}
+
+	public fn asDirty(){
+		throw new RuntimeException("TODO return the dirty unoptimized callpair form of this blob. cbt optimizations are only form clean cbts.");
+	}
+
 }

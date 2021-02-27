@@ -41,9 +41,9 @@ public interface EvalerChain<T extends λ> extends Evaler<T>{
 	which you can do to test it with and without various optimizations,
 	which must all compute exactly the same thing.
 	*/
-	public EvalerChain prev();
+	public EvalerChain<T> prev();
 	
-	public default EvalerChain get(){
+	public default EvalerChain<T> get(){
 		return on() ? this : prev().get();
 	}
 

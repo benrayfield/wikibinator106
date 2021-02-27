@@ -6,7 +6,7 @@ public class SimpleFn extends AbstractFn{
 	
 	public SimpleFn(fn func, fn param){
 		super(Marklar106bId.parentHeader(
-			func.marklar106bHeader(), func.liz(), func.j(2), param.marklar106bHeader(), param.liz()));
+			func.marklar106bHeader(), func.bizb(), func.j(2), param.marklar106bHeader(), param.bizb()));
 		this.func = func;
 		this.param = param;
 	}
