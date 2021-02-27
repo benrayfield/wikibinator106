@@ -19,7 +19,7 @@ UPDATE: Here's the id256 datastruct, which is deterministicly computed from 2 ch
 * 1 bit isclean.
 * 6 bits of opWithBinheapIndexElse0MeansDeeplazy.
 * 1 bit containsBit1.
-* 7 bits of curriesSoFar.
+* 7 bits of curriesMore. //number of curries until eval
 * 40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
 * 192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
 
