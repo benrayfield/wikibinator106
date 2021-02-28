@@ -886,5 +886,10 @@ public class MathUtil{
 		return (x+y-1)/y;
 	}
 	
+	/** bigEndian. 0 gets high byte. 7 gets low byte */
+	public static byte nthByteInLong(int n, long data){
+		return (byte)(data>>(56-(n<<3)));
+	}
+	
 }
 

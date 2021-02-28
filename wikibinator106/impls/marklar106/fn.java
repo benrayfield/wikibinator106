@@ -30,5 +30,21 @@ public interface fn extends λ<fn>{
 	public default boolean isCleanCbt(){
 		return Marklar106bId.isCleanCbt(marklar106bHeader());
 	}
+	
+	public default byte op6Bits(){
+		return Marklar106bId.op6Bits(marklar106bHeader());
+	}
+	
+	public default byte curriesAll(){
+		return Marklar106bId.curriesAll(marklar106bHeader());
+	}
+	
+	public default byte curriesSoFar(){
+		return Marklar106bId.curriesSoFar(marklar106bHeader());
+	}
+	
+	public default byte curriesMore(){
+		return Marklar106bId.curriesMore(marklar106bHeader());
+	}
 
 }

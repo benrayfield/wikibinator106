@@ -45,74 +45,7 @@ public enum Op{
 	_chooser(5),
 	*/
 	
-	
-	_unusedOpSpace_todo(1),
-	
-	
-	/** (axa (fpr wiki x y)) means (wiki x)->y.
-	Also, there will be a few functions built in, something like
-	(curry... wiki "spend" salt maxAmountToSpendAsInt64 x) -> [amountDidNotSpend (x cleanLeaf)], or something like that.
-	(curry... wiki "wallet" salt) -> how much is left for spend calls etc, as int64, or something like that.
-	(curry... solve x) -> y where (ax (fpr x y cleanLeaf)).
-	64 bit local ids of things, actually global ids but with some prefix so nobody else would randomly choose it?
-	*/
-	wiki(1),
-	
-	/** Ax, like in axiom, but only axioms that if true can be verified in some finite time,
-	and if false may take infinite time to disprove as claiming that a certain lambda call halts but it actually doesnt,
-	since of course halting-oracles are logically impossible since they claim that can always be done in finite time. 
-	This is how constraints and turingCompleteTypes and turingCompleteChallengeResponse is done.
-	The turing complete type system is on the return types, while always allowing all possible params regardless of type,
-	so its not exactly untyped lambdas or typed lambdas by the existing models of lambedas.
-	<br><br>
-	This, and zero and one, are the only ops that eval before it has all its params,
-	and zero and one always halt instantly when they do that, but this may take up to infinite time (halting problem related).
-	It evals at 2 params to verify constraint,
-	and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if
-	the statement it represents (such as "(x u)->u") is not true.
-	<br><br>
-	(ax u x) is halted if (x u)->u.
-	(ax anything_except_u x) is halted if (x u) -> something except u.
-	(ax u x y) -> (x (tru y)).
-	(ax anything_except_u x y) -> (x (fal y)).
-	If its Ax (dirty form) instead of ax (clean form) then its Tru and Fal instead of tru and fal.
-	(ax u) is called axa. (ax (u u)) is called axb, and technically so is (ax "hello") since "hello" is not u.
-	<br><br>
-	The default kind of id has a bit for containsAxof2params,
-	which is 1 if recursively theres any (ax u x) or (ax (u u) x) or (Ax "hello" y) etc,
-	BUT its not referring to ax by itself or (ax u) by itself or (ax (u u)) by itself etc.
-	*/
-	ax(3),
-	
-	/** Every object is a 2-way forest with 1 bit of data at each node, that bit being isCleanVsDirty,
-	and all paths lead to cleanLeaf or dirtyLeaf, and a parent must be dirty if either of its 2 childs is dirty,
-	and if both its childs are clean then the parent can be clean or dirty,
-	and if a clean is called on a dirty then that dirty is truncateToClean (call (fal u) on it, aka clean identityFunc)
-	before the clean sees it.
-	*/
-	isclean(1),
-	
-	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
-	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
-	as a cbt called on anything is a cbt twice as big,
-	and 2 cbts size 2^120 bits one called on the other returns a growinglist containing those 2, and so on,
-	and some funcs might be designed to look for growinglist AND cbts instead of just CBTs,
-	but probably the biggest cbt anyone will practically use fits in a long,
-	unless they're trying to model some sparse space like the whole state space of ethereum
-	or all possible universe states, but even then its probably better to use some other datastruct
-	cuz cbt is as deep as log of its size, which can get very deep if its very sparse.
-	*/
-	growinglist(3),
-	
-	isleaf(1),
-
-	getfunc(1),
-	
-	getparam(1),
-	
-	tru(2),
-	
-	fal(2),
+	zero(121),
 	
 	/** Bitstrings up to 2^120-1 bits. The last 1 bit is the first bit of padding.
 	The default kind of id is a 256 bit id and stores the low 32 bits of bize (bitstring size),
@@ -151,9 +84,82 @@ public enum Op{
 	TODO what should the 127th curry do?
 	*/
 	one(121),
-	zero(121),
+	
+	fal(2),
+	
+	tru(2),
+	
+	getfunc(1),
+	
+	getparam(1),
+	
+	isleaf(1),
+	
+	/** Every object is a 2-way forest with 1 bit of data at each node, that bit being isCleanVsDirty,
+	and all paths lead to cleanLeaf or dirtyLeaf, and a parent must be dirty if either of its 2 childs is dirty,
+	and if both its childs are clean then the parent can be clean or dirty,
+	and if a clean is called on a dirty then that dirty is truncateToClean (call (fal u) on it, aka clean identityFunc)
+	before the clean sees it.
+	*/
+	isclean(1),
+	
+	/** (axa (fpr wiki x y)) means (wiki x)->y.
+	Also, there will be a few functions built in, something like
+	(curry... wiki "spend" salt maxAmountToSpendAsInt64 x) -> [amountDidNotSpend (x cleanLeaf)], or something like that.
+	(curry... wiki "wallet" salt) -> how much is left for spend calls etc, as int64, or something like that.
+	(curry... solve x) -> y where (ax (fpr x y cleanLeaf)).
+	64 bit local ids of things, actually global ids but with some prefix so nobody else would randomly choose it?
+	*/
+	wiki(1),
+	
+	/** (fpr func param ret u) -> u if (func param)->ret, else -> (u u), where u is cleanLeaf.
+	Example: (axa (fpr ["hello" "world"] fal "world")) cuz (["hello" "world"] fal) -> "world".
+	Example: (axb (fpr ["hello" 235] fal "world")) cuz (["hello" 235] fal) -not-> "world" aka does not return "world",
+	so in that case (fpr ["hello" 235] fal "world" u) -> (u u).
+	*/
+	fpr(4),
+	
+	/** Ax, like in axiom, but only axioms that if true can be verified in some finite time,
+	and if false may take infinite time to disprove as claiming that a certain lambda call halts but it actually doesnt,
+	since of course halting-oracles are logically impossible since they claim that can always be done in finite time. 
+	This is how constraints and turingCompleteTypes and turingCompleteChallengeResponse is done.
+	The turing complete type system is on the return types, while always allowing all possible params regardless of type,
+	so its not exactly untyped lambdas or typed lambdas by the existing models of lambedas.
+	<br><br>
+	This, and zero and one, are the only ops that eval before it has all its params,
+	and zero and one always halt instantly when they do that, but this may take up to infinite time (halting problem related).
+	It evals at 2 params to verify constraint,
+	and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if
+	the statement it represents (such as "(x u)->u") is not true.
+	<br><br>
+	(ax u x) is halted if (x u)->u.
+	(ax anything_except_u x) is halted if (x u) -> something except u.
+	(ax u x y) -> (x (tru y)).
+	(ax anything_except_u x y) -> (x (fal y)).
+	If its Ax (dirty form) instead of ax (clean form) then its Tru and Fal instead of tru and fal.
+	(ax u) is called axa. (ax (u u)) is called axb, and technically so is (ax "hello") since "hello" is not u.
+	<br><br>
+	The default kind of id has a bit for containsAxof2params,
+	which is 1 if recursively theres any (ax u x) or (ax (u u) x) or (Ax "hello" y) etc,
+	BUT its not referring to ax by itself or (ax u) by itself or (ax (u u)) by itself etc.
+	*/
+	axa(2),
+	
+	axb(2),
 	
 	pair(3),
+	
+	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
+	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
+	as a cbt called on anything is a cbt twice as big,
+	and 2 cbts size 2^120 bits one called on the other returns a growinglist containing those 2, and so on,
+	and some funcs might be designed to look for growinglist AND cbts instead of just CBTs,
+	but probably the biggest cbt anyone will practically use fits in a long,
+	unless they're trying to model some sparse space like the whole state space of ethereum
+	or all possible universe states, but even then its probably better to use some other datastruct
+	cuz cbt is as deep as log of its size, which can get very deep if its very sparse.
+	*/
+	growinglist(3),
 	
 	/** (typeval x y z)->(y z). Normally just keep it as (typeval x y)
 	such as (typeval "image/jpeg" ...bytesofjpgfile...) as a semantic.
@@ -162,13 +168,6 @@ public enum Op{
 	typeval(3),
 	
 	trecurse(3),
-	
-	/** (fpr func param ret u) -> u if (func param)->ret, else -> (u u), where u is cleanLeaf.
-	Example: (axa (fpr ["hello" "world"] fal "world")) cuz (["hello" "world"] fal) -> "world".
-	Example: (axb (fpr ["hello" 235] fal "world")) cuz (["hello" 235] fal) -not-> "world" aka does not return "world",
-	so in that case (fpr ["hello" 235] fal "world" u) -> (u u).
-	*/
-	fpr(4),
 	
 	/** Example: (curry5 comment funcBody a b c d) is halted,
 	and (curry5 comment funcBody a b c d e) -> (funcBody [(curry5 comment funcBody a b c d) e]),
@@ -197,11 +196,21 @@ public enum Op{
 	
 	/** 6+params */
 	public final byte curriesAll;
+
+	/** the 6 op bits in low bits of a byte, that choose between 32 ops, 31 possible leaf/anynonleaf prefixes of them, and 0/deeplazy.
+	That describes 0..5 params, and every param after that copies those same 6 bits from its left child.
+	If this has 5 params, then the 6 bits are 32|anOp.ordinal().
+	Leaf.op6Bits()==1. deeplazy.op6Bits()==0. From 1 to 31 are number of curries being 1..4.
+	Anything at param 6 or higher copies its op6Bits from its left child if both childs are halted, else 0/deeplazy.
+	(todo shorten that comment, it has duplicate info).
+	*/
+	public final byte op6Bits;
 	
 	private Op(int params){
 		if(params < 1 || params > 121) throw new RuntimeException("param = "+params);
 		this.params = (byte)params;
 		this.curriesAll = (byte)(6+params);
+		this.op6Bits = (byte)(32|ordinal());
 	}
 	
 	
@@ -310,10 +319,10 @@ public enum Op{
 	
 	/** the 6 op bits in low bits of a byte, that choose between 32 ops, 31 possible leaf/anynonleaf prefixes of them, and 0/deeplazy.
 	That describes 0..5 params, and every param after that copies those same 6 bits from its left child.
-	*/
+	*
 	public static byte op6Bits(Op o){
 		return (byte)(32|o.ordinal());
-	}
+	}*/
 	
 	public static byte nextOp6Bits(byte leftOp6Bits, byte leftCurriesMore, byte rightOp6Bits, byte rightCurriesMore){
 		//FIXME did i miss a deeplazy case?

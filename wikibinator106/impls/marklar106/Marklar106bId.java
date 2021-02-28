@@ -85,7 +85,7 @@ public class Marklar106bId{
 	public static final long maskDatastructType = 0xff00000000000000L;
 	public static final int shiftDatastructType = 56;
 	
-	public static final long maskContainsAxof2params_ignoreIfLiteralCbt256 = 0x0080000000000000L;
+	public static final long maskContainsAxConstraint_ignoreIfLiteralCbt256 = 0x0080000000000000L;
 	
 	public static final long maskIsClean_ignoreIfLiteralCbt256 = 0x0040000000000000L;
 	
@@ -125,7 +125,8 @@ public class Marklar106bId{
 	
 	public static final byte zero6Bits = op6Bits(Op.zero);
 	public static final byte one6Bits = op6Bits(Op.one);
-	public static final byte ax6Bits = op6Bits(Op.ax);
+	public static final byte axa6Bits = op6Bits(Op.axa);
+	public static final byte axb6Bits = op6Bits(Op.axb);
 	
 	public static boolean isLiteral256BitsThatIsItsOwnId(long header){
 		return (header>>>58)!=0b111110;
@@ -177,7 +178,7 @@ public class Marklar106bId{
 		boolean rightIsHalted = rightCurriesMore>0;
 		byte curriesMore = (leftIsHalted&rightIsHalted) ? (byte)(leftCurriesMore-1) : (byte)0; //7 bits
 		//boolean parentIsHalted = curriesMore>0;
-		boolean containsAxof2params = containsAxOf2Params(leftHeader) | containsAxOf2Params(rightHeader) | isAxOf1Param(leftHeader);
+		boolean containsAxof2params = containsAxConstraint(leftHeader) | containsAxConstraint(rightHeader) | isAxaOrAxb(leftHeader);
 		byte leftOp6Bits = op6Bits(leftHeader);
 		byte rightOp6Bits = op6Bits(rightHeader);
 		byte op6bits = Op.nextOp6Bits(leftOp6Bits, leftCurriesMore, rightOp6Bits, rightCurriesMore);
@@ -220,7 +221,7 @@ public class Marklar106bId{
 		byte curriesMore_7bits,
 		long lowBitsOfBize_40bits
 	){
-		return (containsAxof2params ? maskContainsAxof2params_ignoreIfLiteralCbt256 : 0)
+		return (containsAxof2params ? maskContainsAxConstraint_ignoreIfLiteralCbt256 : 0)
 			| (isClean ? maskIsClean_ignoreIfLiteralCbt256 : 0)
 			| ((((long)opWithBinheapIndexElse0MeansDeeplazy_6bits)<<shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)&maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)
 			| (containsCleanNormedBit1 ? maskContainsCleanNormedBit1_ignoreIfLiteralCbt256 : 0)
@@ -304,12 +305,18 @@ public class Marklar106bId{
 			: (byte)((header&maskCurriesMore_ignoreIfLiteralCbt256)>>shiftCurriesMore_ignoreIfLiteralCbt256);
 	}
 	
-	public static boolean containsAxOf2Params(long header){
-		return !isLiteral256Bits(header) && (header&maskContainsAxof2params_ignoreIfLiteralCbt256)!=0;
+	/** true if its (axa anything) or (axb anything), either clean or dirty form of those */
+	public static boolean containsAxConstraint(long header){
+		return !isLiteral256Bits(header) && (header&maskContainsAxConstraint_ignoreIfLiteralCbt256)!=0;
 	}
 	
-	public static boolean isAxOf1Param(long header){
-		return op6Bits(header)==ax6Bits && curriesSoFar(header)==firstParamAt;
+	/** true if its axa or axb, either clean or dirty form of those.
+	This is used on a left child to check if containsAxConstraint is true of parent,
+	such as while parent is being created need to compute the containsAxConstraint bit in header.
+	*/
+	public static boolean isAxaOrAxb(long header){
+		byte o6 = op6Bits(header); 
+		return (o6==axa6Bits || o6==axb6Bits) && curriesSoFar(header)==opIsKnownAt;
 	}
 
 	public static boolean containsCleanNormedBit1_ignoreIfLiteralCbt256(long header){

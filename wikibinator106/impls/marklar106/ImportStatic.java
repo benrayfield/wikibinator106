@@ -1,6 +1,7 @@
 /** Ben F Rayfield offers this software opensource MIT license */
 package wikibinator106.impls.marklar106;
 
+import wikibinator106.spec.Op;
 import wikibinator106.spec.λ;
 
 public class ImportStatic{
@@ -24,6 +25,15 @@ public class ImportStatic{
 	and others use λ.e(λ) or λ.e(long,λ) instead which are safe to call in any combos.
 	*/
 	public static fn cp(fn func, fn param){
+		fn ret = AxfprCache.getOrNull(func, param);
+		if(ret == null){
+			ret = new Funcall(func, param);
+			AxfprCache.put(func, param, ret);
+		}
+		return ret;
+	}
+	
+	public static fn cp(boolean isClean, fn func, fn param){
 		fn ret = AxfprCache.getOrNull(func, param);
 		if(ret == null){
 			ret = new Funcall(func, param);
@@ -112,6 +122,28 @@ public class ImportStatic{
 	ukƱx???? (λ   λ   (λ λ) (λ λ))  ?     ?     ?     ? //ax/x/axiomOp
 	*/
 	
+	
+	private static final fn[] op6BitsToCleanFn;
+	static{
+		op6BitsToCleanFn = new fn[64];
+		//op6BitsToCleanFn[0] is null cuz deeplazy.
+		fn u = CleanLeaf.instance;
+		fn uu = u.p(u);
+		op6BitsToCleanFn[1] = u;
+		for(int i=2; i<64; i++){
+			op6BitsToCleanFn[i] = op6BitsToCleanFn[i/2].p((i&1)==0 ? u : uu);
+		}
+	}
+	
+	/** param is 1..63, or 0 to get null meaning deeplazy. */
+	public static fn op6BitsToCleanFn(byte op6Bits){
+		return op6BitsToCleanFn[op6Bits];
+	}
+	
+	/** clean fn form of an Op */
+	public static fn op(Op o){
+		return op6BitsToCleanFn(o.op6Bits);
+	}
 
 	
 	/** the clean universal function aka the leaf which all paths in binary forest of call pairs lead to.
@@ -157,26 +189,35 @@ public class ImportStatic{
 	//but you can build something similar to occamsfuncer callquads inside calls of Op.ax
 	//(dovetailing may be needed as an abstraction, but compute it procedurally forward efficiently using Evaler/Compiled).
 	
-	public static final fn wiki      = bootOp(u,	u,	u,	u,	u,	u);
+	
+	//FIXME 2021-2-28 these ops were recently copied from wikibinator105 so are the wrong way to derive those...
+	
+	//public static final fn wiki      = bootOp(u,	u,	u,	u,	u,	u);
+	public static final fn wiki = op(Op.wiki);
 	public static final fn Wiki      = wiki.asDirty();
 	
-	public static final fn isleaf    = bootOp(u,	u,	u,	u,	u,	uu);
+	//public static final fn isleaf    = bootOp(u,	u,	u,	u,	u,	uu);
+	public static final fn isleaf = op(Op.isleaf);
 	public static final fn Isleaf    = isleaf.asDirty();
 	
-	public static final fn l         = bootOp(u,	u,	u,	u,	uu,	u);
+	//public static final fn l         = bootOp(u,	u,	u,	u,	uu,	u);
+	public static final fn l = op(Op.getfunc);
 	public static final fn L         = l.asDirty();
 	
-	public static final fn r         = bootOp(u,	u,	u,	u,	uu,	uu);
+	//public static final fn r         = bootOp(u,	u,	u,	u,	uu,	uu);
+	public static final fn r = op(Op.getparam);
 	public static final fn R         = r.asDirty();
 	
-	public static final fn t         = bootOp(u,	u,	u,	uu,	u);
+	//public static final fn t         = bootOp(u,	u,	u,	uu,	u);
+	public static final fn t = op(Op.tru);
 	public static final fn T         = t.asDirty();
 	
-	public static final fn f        = bootOp(u,	u,	u,	uu,	uu);
+	//public static final fn f        = bootOp(u,	u,	u,	uu,	uu);
+	public static final fn f = op(Op.fal);
 	public static final fn F        = f.asDirty();
 	
-	public static final fn curry     = bootOp(u,	u,	uu,	u,	u);
-	public static final fn Curry     = curry.asDirty();
+	//public static final fn curry     = bootOp(u,	u,	uu,	u,	u);
+	//public static final fn Curry     = curry.asDirty();
 	
 	//TODO derive this
 	//public static final fn cleancall = bootOp(u,	u,	uu,	u,	uu);
@@ -184,17 +225,23 @@ public class ImportStatic{
 	//public static final fn Cleancall = cleancall.asDirty();
 	
 	//Op.trecurse
-	public static final fn s         = bootOp(u,	u,	uu,	uu);
+	//public static final fn s         = bootOp(u,	u,	uu,	uu);
+	public static final fn s = op(Op.trecurse);
 	public static final fn S         = s.asDirty();
 	
-	public static final fn pair      = bootOp(u,	uu,	u,	u);
+	//public static final fn pair      = bootOp(u,	uu,	u,	u);
+	public static final fn pair = op(Op.pair);
 	public static final fn Pair      = pair.asDirty();
 	
-	public static final fn typeval   = bootOp(u,	uu,	u,	uu);
+	//public static final fn typeval   = bootOp(u,	uu,	u,	uu);
+	public static final fn typeval = op(Op.typeval);
 	public static final fn Typeval   = typeval.asDirty();
 	
-	public static final fn ax        = bootOp(u,	uu,	uu);
-	public static final fn Ax        = ax.asDirty();
+	//public static final fn ax       = bootOp(u,	uu,	uu);
+	public static final fn axa = op(Op.axa);
+	public static final fn axb = op(Op.axb);
+	public static final fn Axa = axa.asDirty();
+	public static final fn Axb = axb.asDirty();
 	
 	
 	

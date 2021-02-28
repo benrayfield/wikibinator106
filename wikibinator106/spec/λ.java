@@ -113,6 +113,13 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 		return (byte)(curriesAll()-curriesSoFar());
 	}
 	
+	/** If this is a cbt, then it has 2 exponent cbtHeight() bits, and this ranges 0..120, or 121 is a nonhalted state.
+	If this is not a cbt, then this is just curriesSoFar()-6.
+	*/
+	public default byte cbtHeight_ignoreUnlessCbt(){
+		return (byte)(curriesSoFar()-6);
+	}
+	
 	public boolean isCleanCbt();
 	
 	//Even if we only know the low 32 bits of bize in some id types, can still effectively use powOf2 size cbts bigger.
@@ -188,19 +195,56 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	*/
 	public Subclass g(long binheapIndex);
 	
+	/** See Op.op6Bits. Its the low 6 bits of this byte. If this has 5 params, then the 6 bits are 32|anOp.ordinal().
+	Leaf.op6Bits()==1. deeplazy.op6Bits()==0. From 1 to 31 are number of curries being 1..4.
+	Anything at param 6 or higher copies its op6Bits from its left child if both childs are halted, else 0/deeplazy.
+	*/
+	public byte op6Bits();
+	
+	public default boolean isCbt(){
+		byte o6 = op6Bits();
+		return o6==Op.one.op6Bits || o6==Op.zero.op6Bits; 
+	}
+	
+	/** get bit at index, if this is a cbt, else 0/false. You should probably use i(int) or j(int) etc for efficiency instead.
+	This helps with default implementations of those, which should be overridden by subclasses for efficiency,
+	such as a subclass that wraps a float[] would be most efficient to use f(int), but can still get its bits this way
+	and rebuild a float from 32 calls of this.
+	*/
+	public default boolean z(long bitIndex){
+		if(!isCbt() || bitIndex < 0) return false; //0
+		byte h = cbtHeight_ignoreUnlessCbt();
+		//FIXME what if bitIndex is bigger than 2 exponent h. Return 0/false. But that case isnt being checked for here.
+		if(h > 0){
+			//FIXME does this get the wrong answer around 2 exponent 62 ... 2 exponent 64?
+			if(h > 63){ //recurse into left child
+				return l().z(bitIndex);
+			}else{ //recurse into right child
+				long leftCbtSize = 1L<<(h-1);
+				return r().z(bitIndex-leftCbtSize);
+			}
+		}else{
+			return op6Bits()==Op.one.op6Bits; //This is a cbt1 (cbt of 1 bit, which may be 0 or 1). Read it.
+		}
+	}
+	
 	/** FIXME rewrite text and redesign code maybe, as this was copied from wikibinator105.
 	0 if not a cbt. get bits n*8..n*8+7 if this is a cbt.
 	TODO throw vs represent it as 0s outside that range or partially outside.
 	This is efficient for wrappers of byte[] etc.
 	*/
-	public byte b(int n);
+	public default byte b(int n){
+		return (byte)(j(n>>3)>>(56-(n<<3)));
+	}
 	
 	/** FIXME rewrite text and redesign code maybe, as this was copied from wikibinator105.
 	0 if not a cbt. get bits n*16..n*16+15 if this is a cbt.
 	TODO throw vs represent it as 0s outside that range or partially outside.
 	This is efficient for wrappers of short[] or char[] or String etc.
 	*/
-	public short s(int n);
+	public default short s(int n){
+		return (short)(j(n>>2)>>(48-(n<<2)));
+	}
 	
 	/** FIXME rewrite text and redesign code maybe, as this was copied from wikibinator105. */
 	public default char c(int n){
@@ -212,7 +256,9 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	TODO throw vs represent it as 0s outside that range or partially outside.
 	This is efficient for wrappers of int[] or float[] etc.
 	*/
-	public int i(int n);
+	public default int i(int n){
+		return (int)(j(n>>1)>>(32-(n<<1)));
+	}
 	
 	/** FIXME rewrite text and redesign code maybe, as this was copied from wikibinator105. */
 	public default float f(int n){
@@ -222,9 +268,14 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	/** FIXME rewrite text and redesign code maybe, as this was copied from wikibinator105.
 	0 if not a cbt. get bits n*64..n*64+63 if this is a cbt.
 	TODO throw vs represent it as 0s outside that range or partially outside.
-	This is efficient for wrappers of long[] or double[] etc.
+	This can be overridden in subclasses for efficient for wrappers of long[] or double[] etc,
+	but is very slow in default implementation.
 	*/
-	public long j(int n);
+	public default long j(int n){
+		long ret = 0;
+		for(int i=0; i<64; i++) ret = (ret<<1) | (z((n<<5)+i) ? 1L : 0L); //read 1 bit 64 times
+		return ret;
+	}
 	
 	/** FIXME rewrite text and redesign code maybe, as this was copied from wikibinator105. */
 	public default double d(int n){

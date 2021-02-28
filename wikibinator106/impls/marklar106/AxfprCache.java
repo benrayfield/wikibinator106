@@ -30,13 +30,16 @@ public class AxfprCache{
 		//System.gc();
 	}
 	
-	public static fn getOrNull(fn func, fn param){
-		Call call = new Call(func,param);
+	public static fn getOrNull(boolean isClean, fn func, fn param){
+		Call call = new Call(isClean,func,param);
 		Ret r = callToRet.get(call);
 		if(r == null) return null;
 		touch(r);
 		return r.ret;
 	}
+	
+	FIXME is this a cache of 3-way-forest where 1 of those childs is boolean isClean,
+	or is this a cache of 2-way forest thats whatever happens when call one on the other?
 	
 	public static void put(fn func, fn param, fn ret){
 		callToRet.put(new Call(func,param), new Ret(ret));
@@ -64,14 +67,17 @@ public class AxfprCache{
 	
 	private static final class Call{
 		
+		public final boolean isClean;
+		
 		public final fn func, param;
 		
 		public final int hash;
 		
-		public Call(fn func, fn param){
+		public Call(boolean isClean, fn func, fn param){
+			this.isClean = isClean;
 			this.func = func;
 			this.param = param;
-			hash = System.identityHashCode(func)-System.identityHashCode(param);
+			hash = System.identityHashCode(func)-System.identityHashCode(param)+(isClean ? 235435 : 0);
 		}
 		
 		public int hashCode(){ return hash; }
@@ -79,7 +85,7 @@ public class AxfprCache{
 		public boolean equals(Object o){
 			if(!(o instanceof Call)) return false;
 			Call c = (Call)o;
-			return c.func == func && c.param == param;
+			return c.func == func && c.param == param && c.isClean == isClean;
 		}
 		
 		/*TODO??? hashcode and equals, and make sure the hashcode
