@@ -88,97 +88,10 @@ then the params of that op. The total number of params of leaf is at most 127 so
 */
 public enum Op{
 	
-	/*TODO
-	
-	default id type is 256 bits, has these bytes:
-	isliteralcbt256_vs_normal_op, and any 32 bytes that dont start with 0xf8 0xf9 0xfa and 0xfb are themself as their id.
-	dont need curriesall since its known in the 5 bits of op.
-	so could technically have 41 bits of bize. can i get that up to 43 or 48?
-	could have 48 bits of bize if have max 128 bits of literal per id256,
-	and that kind of id would be more efficient to use directly.
-	
-	Make it come with 2 kinds of ids: Marklar106c and Marklar106d.
-	Marklar106c is a 256 bit id type that has low 32 bits of bize and usually can fit 256 bits of literal in a 256 bit id
-	and the only time it cant is if the first byte is 0xfb cuz the id of that requires 2 of cbt128.
-	and marklar106d has 48 bits of bize but max 128 bits of literal per id.
-	*/
-	
-	
-	/** (axa (fpr wiki x y)) means (wiki x)->y.
-	Also, there will be a few functions built in, something like
-	(curry... wiki "spend" salt maxAmountToSpendAsInt64 x) -> [amountDidNotSpend (x cleanLeaf)], or something like that.
-	(curry... wiki "wallet" salt) -> how much is left for spend calls etc, as int64, or something like that.
-	(curry... solve x) -> y where (ax (fpr x y cleanLeaf)).
-	64 bit local ids of things, actually global ids but with some prefix so nobody else would randomly choose it?
-	*/
-	wiki(1),
-	
-	/** Ax, like in axiom, but only axioms that if true can be verified in some finite time,
-	and if false may take infinite time to disprove as claiming that a certain lambda call halts but it actually doesnt,
-	since of course halting-oracles are logically impossible since they claim that can always be done in finite time. 
-	This is how constraints and turingCompleteTypes and turingCompleteChallengeResponse is done.
-	The turing complete type system is on the return types, while always allowing all possible params regardless of type,
-	so its not exactly untyped lambdas or typed lambdas by the existing models of lambedas.
-	<br><br>
-	This, and zero and one, are the only ops that eval before it has all its params,
-	and zero and one always halt instantly when they do that, but this may take up to infinite time (halting problem related).
-	It evals at 2 params to verify constraint,
-	and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if
-	the statement it represents (such as "(x u)->u") is not true.
-	<br><br>
-	(ax u x) is halted if (x u)->u.
-	(ax anything_except_u x) is halted if (x u) -> something except u.
-	(ax u x y) -> (x (tru y)).
-	(ax anything_except_u x y) -> (x (fal y)).
-	If its Ax (dirty form) instead of ax (clean form) then its Tru and Fal instead of tru and fal.
-	(ax u) is called axa. (ax (u u)) is called axb, and technically so is (ax "hello") since "hello" is not u.
-	<br><br>
-	The default kind of id has a bit for containsAxof2params,
-	which is 1 if recursively theres any (ax u x) or (ax (u u) x) or (Ax "hello" y) etc,
-	BUT its not referring to ax by itself or (ax u) by itself or (ax (u u)) by itself etc.
-	*/
-	ax(3),
-	
-	/** Every object is a 2-way forest with 1 bit of data at each node, that bit being isCleanVsDirty,
-	and all paths lead to cleanLeaf or dirtyLeaf, and a parent must be dirty if either of its 2 childs is dirty,
-	and if both its childs are clean then the parent can be clean or dirty,
-	and if a clean is called on a dirty then that dirty is truncateToClean (call (fal u) on it, aka clean identityFunc)
-	before the clean sees it.
-	*/
-	isclean(1),	
-	
-	/** recursively forkEdits everything below to dirty form (vs clean).
-	Theres no asclean op cuz all you need to do is call clean identityFunc (fal u) on it,
-	since any clean called on any dirty forkEdits the dirty to clean first.
-	
-	TODO Could derive this and optimize it with Evaler.java instance?
-	*/
-	asdirty(1),
-	
-	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
-	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
-	as a cbt called on anything is a cbt twice as big,
-	and 2 cbts size 2^120 bits one called on the other returns a growinglist containing those 2, and so on,
-	and some funcs might be designed to look for growinglist AND cbts instead of just CBTs,
-	but probably the biggest cbt anyone will practically use fits in a long,
-	unless they're trying to model some sparse space like the whole state space of ethereum
-	or all possible universe states, but even then its probably better to use some other datastruct
-	cuz cbt is as deep as log of its size, which can get very deep if its very sparse.
-	*/
-	growinglist(3),
-	
-	isleaf(1),
-
-	getfunc(1),
-	
-	getparam(1),
-	
-	tru(2),
-	
-	fal(2),
+	zero(121),
 	
 	/** Bitstrings up to 2^120-1 bits. The last 1 bit is the first bit of padding.
-	The default kind of id is a 256 bit id and stores the low 32 bits of bize (bitstring size),
+	The default kind of id is a 256 bit id and stores the low 32 (UPDATE: 40) bits of bize (bitstring size),
 	so if you want an int64 or int128 bitstring size you have to compute it in interpred mode as lambdas,
 	or derive a 512 bit id that has more room for bize.
 	<br><br>
@@ -214,9 +127,109 @@ public enum Op{
 	TODO what should the 127th curry do?
 	*/
 	one(121),
-	zero(121),
 	
+	fal(2),
+	
+	tru(2),
+	
+	getfunc(1),
+	
+	getparam(1),
+	
+	isleaf(1),
+	
+	/** Every object is a 2-way forest with 1 bit of data at each node, that bit being isCleanVsDirty,
+	and all paths lead to cleanLeaf or dirtyLeaf, and a parent must be dirty if either of its 2 childs is dirty,
+	and if both its childs are clean then the parent can be clean or dirty,
+	and if a clean is called on a dirty then that dirty is truncateToClean (call (fal u) on it, aka clean identityFunc)
+	before the clean sees it.
+	*/
+	isclean(1),
+	
+	/** (axa (fpr wiki x y)) means (wiki x)->y.
+	Also, there will be a few functions built in, something like
+	(curry... wiki "spend" salt maxAmountToSpendAsInt64 x) -> [amountDidNotSpend (x cleanLeaf)], or something like that.
+	(curry... wiki "wallet" salt) -> how much is left for spend calls etc, as int64, or something like that.
+	(curry... solve x) -> y where (ax (fpr x y cleanLeaf)).
+	64 bit local ids of things, actually global ids but with some prefix so nobody else would randomly choose it?
+	*/
+	wiki(1),
+	
+	/** (fpr func param ret u) -> u if (func param)->ret, else -> (u u), where u is cleanLeaf.
+	Example: (axa (fpr ["hello" "world"] fal "world")) cuz (["hello" "world"] fal) -> "world".
+	Example: (axb (fpr ["hello" 235] fal "world")) cuz (["hello" 235] fal) -not-> "world" aka does not return "world",
+	so in that case (fpr ["hello" 235] fal "world" u) -> (u u).
+	*/
+	fpr(4),
+	
+	/** (axA x) and (axB x) cant both exist.
+	(axA x) is halted if (x u)->u.
+	(axB x) is halted if (x u) -> anything except u.
+	//Maybe, (axC x) is halted if (x u) does not halt, but I'm unsure if should have an axC.
+	(axA x y) -> (x (T y))
+	(axB x y) -> (x (F y))
+	How would that be detected? A lambda could generate a hash thats the same for (axA x) and (axB x),
+	for any x, but different for axA vs axB, or something like that.
+	(details to work out on whats a normed form)
+	<br><br>
+	The sparse turingComplete bloomfilter is made of axa and axb statements.
+	Its a bloomfilter of 2 bits per binary forest node n.
+	bloomFilter(n)==10 if (axa n) andOr (Axa n) exists.
+	bloomFilter(n)==01 if (axb n) andOr (Axb n) exists.
+	bloomFilter(n)==00 until, if ever, those are observed.
+	bloomFilter(n)==11 if both are observed, which is BULL aka an error that requires forking.
+	In the CLEAN parts, as long as the math of the universal function is computed precisely,
+	its impossible to generate BULL aka bloomFilter(n)==11,
+	and every possibly halting lambda call will have an ax statement,
+	such as using dovetailing (see fntape in readme.md of occamsfuncer)
+	to loop over all possible lambda calls andOr halted lambdas that they return.
+	<br><br>
+	BULL occurs when (axa (fpr pair s pair)) and (axb (fpr pair s pair)) exist
+	somewhere reachable from the same node.
+	<br><br>
+	Ax, like in axiom, but only axioms that if true can be verified in some finite time,
+	and if false may take infinite time to disprove as claiming that a certain lambda call halts but it actually doesnt,
+	since of course halting-oracles are logically impossible since they claim that can always be done in finite time. 
+	This is how constraints and turingCompleteTypes and turingCompleteChallengeResponse is done.
+	The turing complete type system is on the return types, while always allowing all possible params regardless of type,
+	so its not exactly untyped lambdas or typed lambdas by the existing models of lambedas.
+	<br><br>
+	This, and zero and one, are the only ops that eval before it has all its params,
+	and zero and one always halt instantly when they do that, but this may take up to infinite time (halting problem related).
+	It evals at 2 params to verify constraint,
+	and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if
+	the statement it represents (such as "(x u)->u") is not true.
+	<br><br>
+	(ax u x) is halted if (x u)->u.
+	(ax anything_except_u x) is halted if (x u) -> something except u.
+	(ax u x y) -> (x (tru y)).
+	(ax anything_except_u x y) -> (x (fal y)).
+	If its Ax (dirty form) instead of ax (clean form) then its Tru and Fal instead of tru and fal.
+	(ax u) is called axa. (ax (u u)) is called axb, and technically so is (ax "hello") since "hello" is not u.
+	<br><br>
+	The default kind of id has a bit for containsAxof2params,
+	which is 1 if recursively theres any (ax u x) or (ax (u u) x) or (Ax "hello" y) etc,
+	BUT its not referring to ax by itself or (ax u) by itself or (ax (u u)) by itself etc.
+	*/
+	axa(2),
+	
+	/** the bloom-filter counterpart of axa */
+	axb(2),
+	
+	/** church-pair lambda of 3 params */
 	pair(3),
+	
+	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
+	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
+	as a cbt called on anything is a cbt twice as big,
+	and 2 cbts size 2^120 bits one called on the other returns a growinglist containing those 2, and so on,
+	and some funcs might be designed to look for growinglist AND cbts instead of just CBTs,
+	but probably the biggest cbt anyone will practically use fits in a long,
+	unless they're trying to model some sparse space like the whole state space of ethereum
+	or all possible universe states, but even then its probably better to use some other datastruct
+	cuz cbt is as deep as log of its size, which can get very deep if its very sparse.
+	*/
+	growinglist(3),
 	
 	/** (typeval x y z)->(y z). Normally just keep it as (typeval x y)
 	such as (typeval "image/jpeg" ...bytesofjpgfile...) as a semantic.
@@ -225,13 +238,6 @@ public enum Op{
 	typeval(3),
 	
 	trecurse(3),
-	
-	/** (fpr func param ret u) -> u if (func param)->ret, else -> (u u), where u is cleanLeaf.
-	Example: (axa (fpr ["hello" "world"] fal "world")) cuz (["hello" "world"] fal) -> "world".
-	Example: (axb (fpr ["hello" 235] fal "world")) cuz (["hello" 235] fal) -not-> "world" aka does not return "world",
-	so in that case (fpr ["hello" 235] fal "world" u) -> (u u).
-	*/
-	fpr(4),
 	
 	/** Example: (curry5 comment funcBody a b c d) is halted,
 	and (curry5 comment funcBody a b c d e) -> (funcBody [(curry5 comment funcBody a b c d) e]),
@@ -250,77 +256,4 @@ public enum Op{
 	curry5(5), curry6(6), curry7(7), curry8(8),
 	curry9(9), curry10(10), curry11(11), curry12(12),
 	curry13(13), curry14(14), curry15(15), curry16(16);
-	
-	public final byte params;
-	
-	private Op(int params){
-		if(params < 1 || params > 121) throw new RuntimeException("param = "+params);
-		this.params = (byte)params;
-	}
-	
-	
-	
-	
-	
-	
-	
-	/*isCleanLeaf,
-	
-	isDirtyLeaf,
-	
-	asClean,
-	
-	asDirty,
-	
-	cleanCall,
-	*
-	
-	getComment,
-	
-	setComment,
-	*/
-	
-	
-	
-	/*infcur,
-	
-	/** returns cbt8 *
-	curriesAll,
-	*/
-
-	
-	/* wikibinator105 as of 2021-2-25:
-	_deeplazy
-	_root
-	_chooser
-	_Chooser
-	wiki
-	Wiki
-	isLeaf
-	IsLeaf
-	getFunc
-	GetFunc
-	getParam
-	GetParam
-	tru
-	Tru
-	fal
-	Fal
-	pair
-	Pair
-	trecurse
-	Trecurse
-	blob
-	Blob
-	isclean
-	Isclean
-	curryOrInfcurOrTypeval
-	CurryOrInfcurOrTypeval
-	ax
-	Ax
-	fpr
-	Fpr
-	*/
-	
-
-}
+...

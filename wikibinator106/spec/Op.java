@@ -10,45 +10,10 @@ then the params of that op. The total number of params of leaf is at most 127 so
 */
 public enum Op{
 	
-	
-	/*marklar106b id:
-		8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
-			11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
-		1 bit containsAxof2params.
-		1 bit isclean.
-		6 bits of opWithBinheapIndexElse0MeansDeeplazy.
-		1 bit containsBit1.
-		7 bits of curriesSoFar.
-		40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
-		192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
-	*/
-	
-	//"*a such as marklar105a and marklar106a should always be a very simple and not practically efficient kind of id, for academic proofs, tutorials, etc"
-	//"TODO name this id type maybe its marklar106b? (havent built the other marklar106b so just remove those comments)"
-	
-	/*TODO default id type...
-	8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
-		11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
-	max cbt<2^120>, 40bits of bize so up to 128gB,
-	1 bit ignore.
-	7 bits of curriesMore (or curriesSoFar? choose 1),
-	5 bits of op,
-	3 bits of masks (containsAx.. containsBit1 isclean)
-	40 bits of bize, so up to 128gB aka 1 terabit.
-	*/
-	
-	/*Should there be deeplazy op, and should it go at op 0, and should there be binheap indexing so 1 more bit,
-	so 6 bits instead of 5, vs should it just pad with whatevers the r() if you go deeper into leaf, and shift it, in 5 bits?
-	There is that "1 bit of ignore" so can spare 1 more bit.
-	
-	/** the first 5 ops choose which of the 32 ops *
-	_chooser(5),
-	*/
-	
 	zero(121),
 	
 	/** Bitstrings up to 2^120-1 bits. The last 1 bit is the first bit of padding.
-	The default kind of id is a 256 bit id and stores the low 32 bits of bize (bitstring size),
+	The default kind of id is a 256 bit id and stores the low 32 (UPDATE: 40) bits of bize (bitstring size),
 	so if you want an int64 or int128 bitstring size you have to compute it in interpred mode as lambdas,
 	or derive a 512 bit id that has more room for bize.
 	<br><br>
@@ -119,7 +84,32 @@ public enum Op{
 	*/
 	fpr(4),
 	
-	/** Ax, like in axiom, but only axioms that if true can be verified in some finite time,
+	/** (axA x) and (axB x) cant both exist.
+	(axA x) is halted if (x u)->u.
+	(axB x) is halted if (x u) -> anything except u.
+	//Maybe, (axC x) is halted if (x u) does not halt, but I'm unsure if should have an axC.
+	(axA x y) -> (x (T y))
+	(axB x y) -> (x (F y))
+	How would that be detected? A lambda could generate a hash thats the same for (axA x) and (axB x),
+	for any x, but different for axA vs axB, or something like that.
+	(details to work out on whats a normed form)
+	<br><br>
+	The sparse turingComplete bloomfilter is made of axa and axb statements.
+	Its a bloomfilter of 2 bits per binary forest node n.
+	bloomFilter(n)==10 if (axa n) andOr (Axa n) exists.
+	bloomFilter(n)==01 if (axb n) andOr (Axb n) exists.
+	bloomFilter(n)==00 until, if ever, those are observed.
+	bloomFilter(n)==11 if both are observed, which is BULL aka an error that requires forking.
+	In the CLEAN parts, as long as the math of the universal function is computed precisely,
+	its impossible to generate BULL aka bloomFilter(n)==11,
+	and every possibly halting lambda call will have an ax statement,
+	such as using dovetailing (see fntape in readme.md of occamsfuncer)
+	to loop over all possible lambda calls andOr halted lambdas that they return.
+	<br><br>
+	BULL occurs when (axa (fpr pair s pair)) and (axb (fpr pair s pair)) exist
+	somewhere reachable from the same node.
+	<br><br>
+	Ax, like in axiom, but only axioms that if true can be verified in some finite time,
 	and if false may take infinite time to disprove as claiming that a certain lambda call halts but it actually doesnt,
 	since of course halting-oracles are logically impossible since they claim that can always be done in finite time. 
 	This is how constraints and turingCompleteTypes and turingCompleteChallengeResponse is done.
@@ -145,8 +135,10 @@ public enum Op{
 	*/
 	axa(2),
 	
+	/** the bloom-filter counterpart of axa */
 	axb(2),
 	
+	/** church-pair lambda of 3 params */
 	pair(3),
 	
 	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
@@ -187,10 +179,6 @@ public enum Op{
 	curry9(9), curry10(10), curry11(11), curry12(12),
 	curry13(13), curry14(14), curry15(15), curry16(16);
 	
-	/** evaling. This kind of *
-	_deeplazy(0);
-	*/
-	
 	/** curriesAll-6. after the first 6 params (first 5 chooses op, next param is comment), then the params of the op) */
 	public final byte params;
 	
@@ -212,117 +200,6 @@ public enum Op{
 		this.curriesAll = (byte)(6+params);
 		this.op6Bits = (byte)(32|ordinal());
 	}
-	
-	
-	
-	
-	
-	
-	
-	/*isCleanLeaf,
-	
-	isDirtyLeaf,
-	
-	asClean,
-	
-	asDirty,
-	
-	cleanCall,
-	*
-	
-	getComment,
-	
-	setComment,
-	*/
-	
-	
-	
-	/*infcur,
-	
-	/** returns cbt8 *
-	curriesAll,
-	*/
-
-	
-	/* wikibinator105 as of 2021-2-25:
-	_deeplazy
-	_root
-	_chooser
-	_Chooser
-	wiki
-	Wiki
-	isLeaf
-	IsLeaf
-	getFunc
-	GetFunc
-	getParam
-	GetParam
-	tru
-	Tru
-	fal
-	Fal
-	pair
-	Pair
-	trecurse
-	Trecurse
-	blob
-	Blob
-	isclean
-	Isclean
-	curryOrInfcurOrTypeval
-	CurryOrInfcurOrTypeval
-	ax
-	Ax
-	fpr
-	Fpr
-	*/
-	
-	/** recursively forkEdits everything below to dirty form (vs clean).
-	Theres no asclean op cuz all you need to do is call clean identityFunc (fal u) on it,
-	since any clean called on any dirty forkEdits the dirty to clean first.
-	
-	TODO Could derive this and optimize it with Evaler.java instance?
-	*
-	asdirty(1),
-	*
-	TODO recursive all, vs recursive all except cbts, vs recursive all except cbts and growinglists of them, vs nonrecursive?
-	Maybe best to derive those.
-	*
-	_reservedForFutureExpansion_(121),
-	//TODO room for 1 more op. _deeplazy? _chooser?
-	*/
-	
-	
-	/*TODO max cbt<2^56>, 43 bits of bize so up to 1tB,
-	6 bits of curriesMore,
-	5 bits of op,
-	3 bits of masks (containsAx.. containsBit1 isclean)
-	7 bits of magic/isliteralcbt256???
-		or stick with 8 of those and its up to 512gB aka 4 terabits aka 42 bits of bize?
-	*/
-		
-	
-	/*TODO
-	
-	default id type is 256 bits, has these bytes:
-	isliteralcbt256_vs_normal_op, and any 32 bytes that dont start with 0xf8 0xf9 0xfa and 0xfb are themself as their id.
-	dont need curriesall since its known in the 5 bits of op.
-	so could technically have 41 bits of bize. can i get that up to 43 or 48?
-	could have 48 bits of bize if have max 128 bits of literal per id256,
-	and that kind of id would be more efficient to use directly.
-	
-	Make it come with 2 kinds of ids: Marklar106c and Marklar106d.
-	Marklar106c is a 256 bit id type that has low 32 bits of bize and usually can fit 256 bits of literal in a 256 bit id
-	and the only time it cant is if the first byte is 0xfb cuz the id of that requires 2 of cbt128.
-	and marklar106d has 48 bits of bize but max 128 bits of literal per id.
-	*/
-	
-	/** the 6 op bits in low bits of a byte, that choose between 32 ops, 31 possible leaf/anynonleaf prefixes of them, and 0/deeplazy.
-	That describes 0..5 params, and every param after that copies those same 6 bits from its left child.
-	*
-	public static byte op6Bits(Op o){
-		return (byte)(32|o.ordinal());
-	}*/
 	
 	public static byte nextOp6Bits(byte leftOp6Bits, byte leftCurriesMore, byte rightOp6Bits, byte rightCurriesMore){
 		//FIXME did i miss a deeplazy case?
@@ -368,3 +245,151 @@ public enum Op{
 	
 
 }
+
+
+
+/*marklar106b id:
+8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
+	11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
+1 bit containsAxof2params.
+1 bit isclean.
+6 bits of opWithBinheapIndexElse0MeansDeeplazy.
+1 bit containsBit1.
+7 bits of curriesSoFar.
+40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
+192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
+*/
+
+//"*a such as marklar105a and marklar106a should always be a very simple and not practically efficient kind of id, for academic proofs, tutorials, etc"
+//"TODO name this id type maybe its marklar106b? (havent built the other marklar106b so just remove those comments)"
+
+/*TODO default id type...
+8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
+11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
+max cbt<2^120>, 40bits of bize so up to 128gB,
+1 bit ignore.
+7 bits of curriesMore (or curriesSoFar? choose 1),
+5 bits of op,
+3 bits of masks (containsAx.. containsBit1 isclean)
+40 bits of bize, so up to 128gB aka 1 terabit.
+*/
+
+/*Should there be deeplazy op, and should it go at op 0, and should there be binheap indexing so 1 more bit,
+so 6 bits instead of 5, vs should it just pad with whatevers the r() if you go deeper into leaf, and shift it, in 5 bits?
+There is that "1 bit of ignore" so can spare 1 more bit.
+
+/** the first 5 ops choose which of the 32 ops *
+_chooser(5),
+*/
+
+
+
+
+
+
+
+
+/*isCleanLeaf,
+
+isDirtyLeaf,
+
+asClean,
+
+asDirty,
+
+cleanCall,
+*
+
+getComment,
+
+setComment,
+*/
+
+
+
+/*infcur,
+
+/** returns cbt8 *
+curriesAll,
+*/
+
+
+/* wikibinator105 as of 2021-2-25:
+_deeplazy
+_root
+_chooser
+_Chooser
+wiki
+Wiki
+isLeaf
+IsLeaf
+getFunc
+GetFunc
+getParam
+GetParam
+tru
+Tru
+fal
+Fal
+pair
+Pair
+trecurse
+Trecurse
+blob
+Blob
+isclean
+Isclean
+curryOrInfcurOrTypeval
+CurryOrInfcurOrTypeval
+ax
+Ax
+fpr
+Fpr
+*/
+
+/** recursively forkEdits everything below to dirty form (vs clean).
+Theres no asclean op cuz all you need to do is call clean identityFunc (fal u) on it,
+since any clean called on any dirty forkEdits the dirty to clean first.
+
+TODO Could derive this and optimize it with Evaler.java instance?
+*
+asdirty(1),
+*
+TODO recursive all, vs recursive all except cbts, vs recursive all except cbts and growinglists of them, vs nonrecursive?
+Maybe best to derive those.
+*
+_reservedForFutureExpansion_(121),
+//TODO room for 1 more op. _deeplazy? _chooser?
+*/
+
+
+/*TODO max cbt<2^56>, 43 bits of bize so up to 1tB,
+6 bits of curriesMore,
+5 bits of op,
+3 bits of masks (containsAx.. containsBit1 isclean)
+7 bits of magic/isliteralcbt256???
+	or stick with 8 of those and its up to 512gB aka 4 terabits aka 42 bits of bize?
+*/
+	
+
+/*TODO
+
+default id type is 256 bits, has these bytes:
+isliteralcbt256_vs_normal_op, and any 32 bytes that dont start with 0xf8 0xf9 0xfa and 0xfb are themself as their id.
+dont need curriesall since its known in the 5 bits of op.
+so could technically have 41 bits of bize. can i get that up to 43 or 48?
+could have 48 bits of bize if have max 128 bits of literal per id256,
+and that kind of id would be more efficient to use directly.
+
+Make it come with 2 kinds of ids: Marklar106c and Marklar106d.
+Marklar106c is a 256 bit id type that has low 32 bits of bize and usually can fit 256 bits of literal in a 256 bit id
+and the only time it cant is if the first byte is 0xfb cuz the id of that requires 2 of cbt128.
+and marklar106d has 48 bits of bize but max 128 bits of literal per id.
+*/
+
+/** the 6 op bits in low bits of a byte, that choose between 32 ops, 31 possible leaf/anynonleaf prefixes of them, and 0/deeplazy.
+That describes 0..5 params, and every param after that copies those same 6 bits from its left child.
+*
+public static byte op6Bits(Op o){
+	return (byte)(32|o.ordinal());
+}*/
