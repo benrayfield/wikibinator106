@@ -73,12 +73,16 @@ public class LongBlob extends AbstractFn{
 		throw new RuntimeException("TODO");
 	}
 
-	public fn asClean(){
+	public fn vm_asClean(){
 		return this;
 	}
 
-	public fn asDirty(){
-		throw new RuntimeException("TODO return the dirty unoptimized callpair form of this blob. cbt optimizations are only form clean cbts.");
+	public fn vm_asDirty(){
+		throw new RuntimeException("TODO, asDirty vs asDirty_recursive???, and... return the dirty unoptimized callpair form of this blob. cbt optimizations are only form clean cbts.");
+	}
+
+	public fn vm_asDirty_recursiveAll(){
+		throw new RuntimeException("TODO, asDirty vs asDirty_recursive???, and..., that throw message in asDirty"); 
 	}
 
 }

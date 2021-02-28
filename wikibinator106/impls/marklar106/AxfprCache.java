@@ -30,17 +30,46 @@ public class AxfprCache{
 		//System.gc();
 	}
 	
-	public static fn getOrNull(boolean isClean, fn func, fn param){
-		Call call = new Call(isClean,func,param);
+	public static fn getOrNull(fn func, fn param){
+		Call call = new Call(func,param);
 		Ret r = callToRet.get(call);
 		if(r == null) return null;
 		touch(r);
 		return r.ret;
 	}
 	
-	FIXME is this a cache of 3-way-forest where 1 of those childs is boolean isClean,
-	or is this a cache of 2-way forest thats whatever happens when call one on the other?
+	//FIXME? is this a cache of 3-way-forest where 1 of those childs is boolean isClean,
+	//or is this a cache of 2-way forest thats whatever happens when call one on the other?
 	
+	/* Fixed this by x.isClean()==(x.l().isClean()&x.r().isClean(), and (L x (R x)) equals x, forall x[
+		Do I even want to have fns where both childs are clean and parent is dirty?
+		If not, then all fns can be derived just by (func param)->ret starting from cleanLeaf and dirtyLeaf,
+		and other than there being 2 leafs, all data is in the forest shape, and everything else is cache,
+		so if a node is dirty then it has at least 1 dirty child, in that possible design.
+		FIXME
+		/** If func and param are both clean, then you have a choice
+		for the parent node (of that funcall, not the return value) to be clean vs dirty.
+		If func is clean and param is dirty, then param is truncated to clean first,
+		eve WAIT...
+		
+		FIXME I'm designing this wrong. There needs to be 2 separate kinds of AxfprCache,
+		though can share code... (func param)->ret, and the func and param child nodes
+		of a parent node and that parent being clean vs dirty.
+		
+		There is a way to merge those, but I dont know if I want to pay the extra complexity...
+		If there was an Op.dirty op, where (Op.dirty x) is dirty x,
+		and (L (dirty x)) is the same as (L x) other than x would otherwise be unable to
+		contain dirty childs...
+		So maybe Op.dirty should take 3 params which are the 2 childs of x then the param of x?
+		I'd need it to be equally fast as the other way (storing a bit in header for isclean vs dirty)
+		and not to actually have 3 such params, just use it as a math abstraction,
+		and I'd need to find a way for it not to interfere with "(L x (R x)) equals x forall x"
+		where Op.dirty could be an x, so (dirty x.l x.r y) would be the same as (dirty_form_of_x y).
+		But (dirty x.l x.r y) is (((dirty x.l) x.r) y) so that seems to interfere with
+		(L ((dirty x.l) x.r)) being both x.l and (dirty x.l),
+		but does not seem to interfere with (R ((dirty x.l) x.r)) being x.r cuz thats true either way.
+	]
+	*/
 	public static void put(fn func, fn param, fn ret){
 		callToRet.put(new Call(func,param), new Ret(ret));
 	}
@@ -67,17 +96,14 @@ public class AxfprCache{
 	
 	private static final class Call{
 		
-		public final boolean isClean;
-		
 		public final fn func, param;
 		
 		public final int hash;
 		
-		public Call(boolean isClean, fn func, fn param){
-			this.isClean = isClean;
+		public Call(fn func, fn param){
 			this.func = func;
 			this.param = param;
-			hash = System.identityHashCode(func)-System.identityHashCode(param)+(isClean ? 235435 : 0);
+			hash = System.identityHashCode(func)-System.identityHashCode(param);
 		}
 		
 		public int hashCode(){ return hash; }
@@ -85,7 +111,7 @@ public class AxfprCache{
 		public boolean equals(Object o){
 			if(!(o instanceof Call)) return false;
 			Call c = (Call)o;
-			return c.func == func && c.param == param && c.isClean == isClean;
+			return c.func == func && c.param == param;
 		}
 		
 		/*TODO??? hashcode and equals, and make sure the hashcode

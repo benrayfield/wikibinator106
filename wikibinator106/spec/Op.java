@@ -116,22 +116,11 @@ public enum Op{
 	The turing complete type system is on the return types, while always allowing all possible params regardless of type,
 	so its not exactly untyped lambdas or typed lambdas by the existing models of lambedas.
 	<br><br>
-	This, and zero and one, are the only ops that eval before it has all its params,
+	axa, axb, zero, and one, are the only ops that eval before it has all its params,
 	and zero and one always halt instantly when they do that, but this may take up to infinite time (halting problem related).
-	It evals at 2 params to verify constraint,
+	It evals at its first param to verify constraint,
 	and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if
 	the statement it represents (such as "(x u)->u") is not true.
-	<br><br>
-	(ax u x) is halted if (x u)->u.
-	(ax anything_except_u x) is halted if (x u) -> something except u.
-	(ax u x y) -> (x (tru y)).
-	(ax anything_except_u x y) -> (x (fal y)).
-	If its Ax (dirty form) instead of ax (clean form) then its Tru and Fal instead of tru and fal.
-	(ax u) is called axa. (ax (u u)) is called axb, and technically so is (ax "hello") since "hello" is not u.
-	<br><br>
-	The default kind of id has a bit for containsAxof2params,
-	which is 1 if recursively theres any (ax u x) or (ax (u u) x) or (Ax "hello" y) etc,
-	BUT its not referring to ax by itself or (ax u) by itself or (ax (u u)) by itself etc.
 	*/
 	axa(2),
 	
@@ -251,7 +240,7 @@ public enum Op{
 /*marklar106b id:
 8 bits of magic/isliteralcbt256 (if it starts with 111110 then it is itself.
 	11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
-1 bit containsAxof2params.
+1 bit containsAxconstraint.
 1 bit isclean.
 6 bits of opWithBinheapIndexElse0MeansDeeplazy.
 1 bit containsBit1.

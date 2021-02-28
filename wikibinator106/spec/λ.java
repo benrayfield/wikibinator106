@@ -2,6 +2,7 @@ package wikibinator106.spec;
 import java.math.BigInteger;
 import java.util.function.UnaryOperator;
 
+import wikibinator106.impls.marklar106.Marklar106bId;
 import wikibinator106.impls.marklar106.fn;
 
 /** a universal function of 7..127 params,
@@ -45,8 +46,13 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 		return e(param);
 	}
 	
+	/** x.isClean()==(x.l().isClean()&x.r().isClean()), and (L x (R x)) equals x, forall x.
+	(L cleanLeaf) is cleanIdentityFunc. (L dirtyLeaf) is dirtyIdentityFunc.
+	(R cleanLeaf) is cleanLeaf. (R dirtyLeaf) is dirtyLeaf.
+	*/
 	public boolean isLeaf();
-	
+
+	/** x.isClean()==(x.l().isClean()&x.r().isClean(), and (L x (R x)) equals x, forall x */
 	public boolean isClean();
 	
 	public default boolean isCleanLeaf(){
@@ -57,16 +63,12 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 		return isLeaf() && !isClean();
 	}
 	
-	public Subclass asClean();
-	
-	public Subclass asDirty();
-	
 	/** true iff deep contains any (Op.ax x y) for any x and y, but doesnt count (Op.ax x) or Op.ax by itself.
 	Where this is false, then sync and verifying is much easier.
 	TODO implement this in subclasses using a bit in header, for constant cost instead of this exponential cost.
 	*/
-	public default boolean containsAxOf2Params(){
-		return !isLeaf() && (isAxOf2Params() || l().containsAxOf2Params() || r().containsAxOf2Params());
+	public default boolean containsAxconstraint(){
+		return !isLeaf() && (isAxOf2Params() || l().containsAxconstraint() || r().containsAxconstraint());
 	}
 	
 	public boolean isAxOf2Params();

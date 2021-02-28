@@ -194,27 +194,27 @@ public class ImportStatic{
 	
 	//public static final fn wiki      = bootOp(u,	u,	u,	u,	u,	u);
 	public static final fn wiki = op(Op.wiki);
-	public static final fn Wiki      = wiki.asDirty();
+	public static final fn Wiki      = wiki.vm_asDirty_recursiveAll();
 	
 	//public static final fn isleaf    = bootOp(u,	u,	u,	u,	u,	uu);
 	public static final fn isleaf = op(Op.isleaf);
-	public static final fn Isleaf    = isleaf.asDirty();
+	public static final fn Isleaf    = isleaf.vm_asDirty_recursiveAll();
 	
 	//public static final fn l         = bootOp(u,	u,	u,	u,	uu,	u);
 	public static final fn l = op(Op.getfunc);
-	public static final fn L         = l.asDirty();
+	public static final fn L         = l.vm_asDirty_recursiveAll();
 	
 	//public static final fn r         = bootOp(u,	u,	u,	u,	uu,	uu);
 	public static final fn r = op(Op.getparam);
-	public static final fn R         = r.asDirty();
+	public static final fn R         = r.vm_asDirty_recursiveAll();
 	
 	//public static final fn t         = bootOp(u,	u,	u,	uu,	u);
 	public static final fn t = op(Op.tru);
-	public static final fn T         = t.asDirty();
+	public static final fn T         = t.vm_asDirty_recursiveAll();
 	
 	//public static final fn f        = bootOp(u,	u,	u,	uu,	uu);
 	public static final fn f = op(Op.fal);
-	public static final fn F        = f.asDirty();
+	public static final fn F        = f.vm_asDirty_recursiveAll();
 	
 	//public static final fn curry     = bootOp(u,	u,	uu,	u,	u);
 	//public static final fn Curry     = curry.asDirty();
@@ -227,27 +227,27 @@ public class ImportStatic{
 	//Op.trecurse
 	//public static final fn s         = bootOp(u,	u,	uu,	uu);
 	public static final fn s = op(Op.trecurse);
-	public static final fn S         = s.asDirty();
+	public static final fn S         = s.vm_asDirty_recursiveAll();
 	
 	//public static final fn pair      = bootOp(u,	uu,	u,	u);
 	public static final fn pair = op(Op.pair);
-	public static final fn Pair      = pair.asDirty();
+	public static final fn Pair      = pair.vm_asDirty_recursiveAll();
 	
 	//public static final fn typeval   = bootOp(u,	uu,	u,	uu);
 	public static final fn typeval = op(Op.typeval);
-	public static final fn Typeval   = typeval.asDirty();
+	public static final fn Typeval   = typeval.vm_asDirty_recursiveAll();
 	
 	//public static final fn ax       = bootOp(u,	uu,	uu);
 	public static final fn axa = op(Op.axa);
 	public static final fn axb = op(Op.axb);
-	public static final fn Axa = axa.asDirty();
-	public static final fn Axb = axb.asDirty();
+	public static final fn Axa = axa.vm_asDirty_recursiveAll();
+	public static final fn Axb = axb.vm_asDirty_recursiveAll();
 	
 	
 	
 	/** identityFunc */
 	public static final fn i       = cp(f,u);
-	public static final fn I       = i.asDirty();
+	public static final fn I       = i.vm_asDirty_recursiveAll();
 	
 	/** like cleancall except it just has 1 param, the thing to clean,
 	which forkEdits param recursively to have u as all first params of u. There are no nonnormed clean forms.
@@ -308,9 +308,9 @@ public class ImportStatic{
 		return cp(S,T(func),T(param));
 	}
 	
-	public static final λ funcThatInfloopsForAllPossibleParams = lazy(callParamOnItself,callParamOnItself);
+	public static final fn funcThatInfloopsForAllPossibleParams = lazy(callParamOnItself,callParamOnItself);
 	
-	public static final λ FuncThatInfloopsForAllPossibleParams = funcThatInfloopsForAllPossibleParams.asDirty();
+	public static final fn FuncThatInfloopsForAllPossibleParams = funcThatInfloopsForAllPossibleParams.vm_asDirty_recursiveAll();
 	
 	/** wrap just the bits in cbt, like of byte[] or double[] or String */
 	public static fn w(Object wrapMe){

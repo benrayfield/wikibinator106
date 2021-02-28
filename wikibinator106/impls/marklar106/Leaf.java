@@ -39,7 +39,7 @@ public abstract class Leaf extends AbstractFn{
 		throw new RuntimeException("TODO");
 	}
 
-	public boolean containsAxOf2Params(){
+	public boolean containsAxconstraint(){
 		return false;
 	}
 	

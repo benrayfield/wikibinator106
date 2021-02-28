@@ -1,4 +1,6 @@
 package wikibinator106.impls.marklar106;
+import static wikibinator106.impls.marklar106.ImportStatic.cp;
+
 import wikibinator106.spec.λ;
 
 public interface fn extends λ<fn>{
@@ -29,6 +31,32 @@ public interface fn extends λ<fn>{
 	
 	public default boolean isCleanCbt(){
 		return Marklar106bId.isCleanCbt(marklar106bHeader());
+	}
+	
+	
+	/** Only to be called by a wikibinator106 VM.
+	only forkEdits this node, and (TODO?) throws if causes x.isClean()==(x.l().isClean()&x.r().isClean()) cuz
+	it would break AxfprCache for that not to be true, and cuz...
+	x.isClean()==(x.l().isClean()&x.r().isClean()), and (L x (R x)) equals x, forall x.
+	(L cleanLeaf) is cleanIdentityFunc. (L dirtyLeaf) is dirtyIdentityFunc.
+	(R cleanLeaf) is cleanLeaf. (R dirtyLeaf) is dirtyLeaf.
+	*/
+	public fn vm_asClean();
+	
+	/** Only to be called by a wikibinator106 VM.
+	only forkEdits this node, and (TODO?) throws if causes x.isClean()==(x.l().isClean()&x.r().isClean()) cuz
+	it would break AxfprCache for that not to be true, and cuz...
+	x.isClean()==(x.l().isClean()&x.r().isClean()), and (L x (R x)) equals x, forall x.
+	(L cleanLeaf) is cleanIdentityFunc. (L dirtyLeaf) is dirtyIdentityFunc.
+	(R cleanLeaf) is cleanLeaf. (R dirtyLeaf) is dirtyLeaf.
+	*/
+	public fn vm_asDirty();
+	
+	/** Only to be called by a wikibinator106 VM. The default implementation uses AxfprCache
+	so is average cost of constant and worst cost of number of objects reachable below by l and r.
+	*/
+	public default fn vm_asDirty_recursiveAll(){
+		return isLeaf() ? vm_asDirty() : cp(l().vm_asDirty_recursiveAll(),r().vm_asDirty_recursiveAll());
 	}
 	
 	public default byte op6Bits(){

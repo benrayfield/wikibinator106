@@ -17,11 +17,15 @@ public class DirtyLeaf extends Leaf{
 	/** (L x (R x)) equals x, forall x, so L of a leaf is identityFunc (of same clean/dirty as the leaf), and R of a leaf is that leaf */
 	public fn l(){ return I; }
 	
-	public fn asClean(){
+	public fn vm_asClean(){
 		return CleanLeaf.instance;
 	}
 
-	public fn asDirty(){
+	public fn vm_asDirty(){
+		return this;
+	}
+
+	public fn vm_asDirty_recursiveAll(){
 		return this;
 	}
 

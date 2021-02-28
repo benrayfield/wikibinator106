@@ -34,9 +34,11 @@ public class Funcall extends AbstractFn{
 				+" that should have a pointer to the normal funcall form since it might be wasteful"
 				+" or interfere with the cbt optimization???");
 		}
-		this.func = mirror.l();
-		this.param = mirror.r();
+		func = mirror.l();
+		param = mirror.r();
 		this.mirror = mirror;
+		if(isClean() != (func.isClean()&param.isClean())) throw new RuntimeException(
+			isClean()+"==isClean() != ("+func.isClean()+"==func.isClean()&param.isClean()=="+param.isClean()+")");
 	}
 	
 	public Funcall(boolean isClean, fn func, fn param){
@@ -81,16 +83,17 @@ public class Funcall extends AbstractFn{
 		}
 	}
 
-	public fn asClean(){
+	public fn vm_asClean(){
 		if(isClean()) return this;
 		createMirrorBothDirectionsIdempotently();
 		return mirror;
 	}
 
-	public fn asDirty(){
+	public fn vm_asDirty(){
 		if(!isClean()) return this;
 		createMirrorBothDirectionsIdempotently();
 		return mirror;
 	}
+	
 
 }

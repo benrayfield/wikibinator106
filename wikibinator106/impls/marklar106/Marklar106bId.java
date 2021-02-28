@@ -5,30 +5,32 @@ import immutable.util.MathUtil;
 import immutable.util.Text;
 import wikibinator106.spec.Op;
 
-/** This kind of 256 bit id uniquely identifies a lambda function, in data at rest or p2p network.
-In this system, the lambda, instead of the bit, is the smallest unit of computing,
-and they are streamed at gaming-low-lag between many computers, GPU, CPU, etc, in theory.
-You dont need an id for a lambda just to use it, as the id is lazy evaled,
-but you do need some of the ids to cross untrusted borders, and can derive other ids on the other side.
-Ids are generated deterministicly from their 2 child ids, or the id of the leaf,
-and for every node there is a clean form and a dirty form, so theres cleanLeaf and dirtyLeaf.
-<br><br>
-UPDATE: Here's the id256 datastruct (and can derive new kinds of ids at runtime but got to start somewhere):
--- 8 bits of magic/isliteralcbt256 (if it starts with anything except 111110 then its 256 literal
-	bits that are their own id, 11111000 is normal id. the next +1 +2 +3 are id of id of id of that)
--- 1 bit containsAxof2params.
--- 1 bit isclean.
--- 6 bits of opWithBinheapIndexElse0MeansDeeplazy.
--- 1 bit containsBit1.
--- 7 bits of curriesMore.
--- 40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka 128gB, and if powOf2 sized up to 2^120 bits.
--- 192 bits of hashOrLiteral. //TODO which end of this does the literal go at?
-<br><br>
-TODO I might still reorder the parts of the id, and make small changes, as of 2021-2-25,
-but its very close to what I want and will finalize it soon, TODO,
-after which any new id type or opcodes would be
-named something other than wikibinator106 and this id type marklar106b.
-*/
+/**
+ * This kind of 256 bit id uniquely identifies a lambda function, in data at
+ * rest or p2p network. In this system, the lambda, instead of the bit, is the
+ * smallest unit of computing, and they are streamed at gaming-low-lag between
+ * many computers, GPU, CPU, etc, in theory. You dont need an id for a lambda
+ * just to use it, as the id is lazy evaled, but you do need some of the ids to
+ * cross untrusted borders, and can derive other ids on the other side. Ids are
+ * generated deterministicly from their 2 child ids, or the id of the leaf, and
+ * for every node there is a clean form and a dirty form, so theres cleanLeaf
+ * and dirtyLeaf. <br>
+ * <br>
+ * UPDATE: Here's the id256 datastruct (and can derive new kinds of ids at
+ * runtime but got to start somewhere): -- 8 bits of magic/isliteralcbt256 (if
+ * it starts with anything except 111110 then its 256 literal bits that are
+ * their own id, 11111000 is normal id. the next +1 +2 +3 are id of id of id of
+ * that) -- 1 bit containsAxconstraint. -- 1 bit isclean. -- 6 bits of
+ * opWithBinheapIndexElse0MeansDeeplazy. -- 1 bit containsBit1. -- 7 bits of
+ * curriesMore. -- 40 bits of lowBitsOfBize, so efficiently up to 1 terabit aka
+ * 128gB, and if powOf2 sized up to 2^120 bits. -- 192 bits of hashOrLiteral.
+ * //TODO which end of this does the literal go at? <br>
+ * <br>
+ * TODO I might still reorder the parts of the id, and make small changes, as of
+ * 2021-2-25, but its very close to what I want and will finalize it soon, TODO,
+ * after which any new id type or opcodes would be named something other than
+ * wikibinator106 and this id type marklar106b.
+ */
 public class Marklar106bId{
 	private Marklar106bId(){}
 	
@@ -178,7 +180,7 @@ public class Marklar106bId{
 		boolean rightIsHalted = rightCurriesMore>0;
 		byte curriesMore = (leftIsHalted&rightIsHalted) ? (byte)(leftCurriesMore-1) : (byte)0; //7 bits
 		//boolean parentIsHalted = curriesMore>0;
-		boolean containsAxof2params = containsAxConstraint(leftHeader) | containsAxConstraint(rightHeader) | isAxaOrAxb(leftHeader);
+		boolean containsAxconstraint = containsAxConstraint(leftHeader) | containsAxConstraint(rightHeader) | isAxaOrAxb(leftHeader);
 		byte leftOp6Bits = op6Bits(leftHeader);
 		byte rightOp6Bits = op6Bits(rightHeader);
 		byte op6bits = Op.nextOp6Bits(leftOp6Bits, leftCurriesMore, rightOp6Bits, rightCurriesMore);
@@ -210,18 +212,18 @@ public class Marklar106bId{
 		}else{
 			biz40 = 0; //if !isCbt or if its 1000000...000 or if its all 0s.
 		}
-		return headerOfFuncall(containsAxof2params, isClean, op6bits, containsCleanNormedBit1, curriesMore, biz40);
+		return headerOfFuncall(containsAxconstraint, isClean, op6bits, containsCleanNormedBit1, curriesMore, biz40);
 	}
 	
 	public static long headerOfFuncall(
-		boolean containsAxof2params,
+		boolean containsAxconstraint,
 		boolean isClean,
 		byte opWithBinheapIndexElse0MeansDeeplazy_6bits,
 		boolean containsCleanNormedBit1,
 		byte curriesMore_7bits,
 		long lowBitsOfBize_40bits
 	){
-		return (containsAxof2params ? maskContainsAxConstraint_ignoreIfLiteralCbt256 : 0)
+		return (containsAxconstraint ? maskContainsAxConstraint_ignoreIfLiteralCbt256 : 0)
 			| (isClean ? maskIsClean_ignoreIfLiteralCbt256 : 0)
 			| ((((long)opWithBinheapIndexElse0MeansDeeplazy_6bits)<<shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)&maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)
 			| (containsCleanNormedBit1 ? maskContainsCleanNormedBit1_ignoreIfLiteralCbt256 : 0)
