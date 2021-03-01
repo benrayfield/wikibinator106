@@ -7,7 +7,7 @@ and is designed to be GPU optimized and for gaming-low-lag sync in p2p network, 
 and has bitstrings built in up to 2^120 bits which in abstract math are padded with 10000...000 until next powOf2
 and can be sparse or dense, but in practice will store only the parts you actually need.
 
-Some people thought it impossible. Supports function.equals(function) with perfect deduplication of functions, and can map functions 1-to-1 with the integers, as in...
+Some people thought it impossible. Supports function.equals(function) with perfect deduplication of functions, and can map functions 1-to-1 with the integers, and even better it has average of constant cost (and worst case of number of childs reachable deeply), as in...
 ```
 fn funcL = func.l();
 fn w = funcL.l().r(); //fourth last param
