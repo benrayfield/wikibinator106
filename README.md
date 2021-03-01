@@ -130,7 +130,7 @@ public enum Op{
 	<br><br>
 	(one_or_zero param1 param2 ... param120 param121) -> (growinglist (one_or_zero param1 param2 ... param120) param121),
 	other than up to param120 every param is verified to be a cbt of same size else evals self on self,
-	so get a cbt twice as big.
+	so get a cbt twice as big. (UPDATE: put a nil/u first in that growinglist)
 	<br><br>
 	TODO rewrite disorganized text below...
 	<br><br>
