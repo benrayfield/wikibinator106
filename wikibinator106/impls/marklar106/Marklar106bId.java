@@ -180,7 +180,7 @@ public class Marklar106bId{
 		boolean rightIsHalted = rightCurriesMore>0;
 		byte curriesMore = (leftIsHalted&rightIsHalted) ? (byte)(leftCurriesMore-1) : (byte)0; //7 bits
 		//boolean parentIsHalted = curriesMore>0;
-		boolean containsAxconstraint = containsAxConstraint(leftHeader) | containsAxConstraint(rightHeader) | isAxaOrAxb(leftHeader);
+		boolean containsAxconstraint = containsAxConstraint(leftHeader) | containsAxConstraint(rightHeader) | isAxconstraint(leftHeader);
 		byte leftOp6Bits = op6Bits(leftHeader);
 		byte rightOp6Bits = op6Bits(rightHeader);
 		byte op6bits = Op.nextOp6Bits(leftOp6Bits, leftCurriesMore, rightOp6Bits, rightCurriesMore);
@@ -281,10 +281,6 @@ public class Marklar106bId{
 		//true if its a literal cbt256 or...
 		throw new RuntimeException("TODO");
 	}
-	
-	public static boolean isAxOf2Params(long header){
-		throw new RuntimeException("TODO check isLiteral256Bits and if op is Op.ax and curriesSoFar is 8");
-	}
 
 	public static boolean isCleanNormedBit1(long header){
 		throw new RuntimeException("TODO check isLiteral256Bits and if op is Op.one and curriesSoFar is 6");
@@ -316,7 +312,8 @@ public class Marklar106bId{
 	This is used on a left child to check if containsAxConstraint is true of parent,
 	such as while parent is being created need to compute the containsAxConstraint bit in header.
 	*/
-	public static boolean isAxaOrAxb(long header){
+	public static boolean isAxconstraint(long header){
+	//public static boolean isAxaOrAxb(long header){
 		byte o6 = op6Bits(header); 
 		return (o6==axa6Bits || o6==axb6Bits) && curriesSoFar(header)==opIsKnownAt;
 	}

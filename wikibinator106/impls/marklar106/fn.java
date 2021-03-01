@@ -40,7 +40,7 @@ public interface fn extends λ<fn>{
 	x.isClean()==(x.l().isClean()&x.r().isClean()), and (L x (R x)) equals x, forall x.
 	(L cleanLeaf) is cleanIdentityFunc. (L dirtyLeaf) is dirtyIdentityFunc.
 	(R cleanLeaf) is cleanLeaf. (R dirtyLeaf) is dirtyLeaf.
-	*/
+	*
 	public fn vm_asClean();
 	
 	/** Only to be called by a wikibinator106 VM.
@@ -49,15 +49,21 @@ public interface fn extends λ<fn>{
 	x.isClean()==(x.l().isClean()&x.r().isClean()), and (L x (R x)) equals x, forall x.
 	(L cleanLeaf) is cleanIdentityFunc. (L dirtyLeaf) is dirtyIdentityFunc.
 	(R cleanLeaf) is cleanLeaf. (R dirtyLeaf) is dirtyLeaf.
-	*/
+	*
 	public fn vm_asDirty();
 	
-	/** Only to be called by a wikibinator106 VM. The default implementation uses AxfprCache
-	so is average cost of constant and worst cost of number of objects reachable below by l and r.
-	*/
+	/** Only to be called by a wikibinator106 VM.
+	FIXME need isAllDirtyRecursively to avoid exponential cost?[[[
+		The default implementation uses AxfprCache
+		so is average cost of constant and worst cost of number of objects reachable below by l and r
+		??? but since this is only used to create a few constants in ImportStatic
+		and may require another bit in header (isAllDirtyRecursively) to do efficienty,
+		maybe its best to leave this as exponential cost and pay that for small exponential calculation those few times???
+	]]]
+	*
 	public default fn vm_asDirty_recursiveAll(){
 		return isLeaf() ? vm_asDirty() : cp(l().vm_asDirty_recursiveAll(),r().vm_asDirty_recursiveAll());
-	}
+	}*/
 	
 	public default byte op6Bits(){
 		return Marklar106bId.op6Bits(marklar106bHeader());

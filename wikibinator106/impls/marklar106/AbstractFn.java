@@ -24,8 +24,8 @@ public abstract class AbstractFn implements fn{
 		this.compiled = compiled;
 	}
 	
-	public boolean isAxOf2Params(){
-		return Marklar106bId.isAxOf2Params(marklar106bHeader);
+	public boolean isAxconstraint(){
+		return Marklar106bId.isAxconstraint(marklar106bHeader);
 	}
 
 	public boolean isCleanNormedBit1(){
@@ -47,5 +47,7 @@ public abstract class AbstractFn implements fn{
 	public fn ww(Object wrapMe){
 		return ImportStatic.ww(wrapMe);
 	}
+	
+	
 
 }

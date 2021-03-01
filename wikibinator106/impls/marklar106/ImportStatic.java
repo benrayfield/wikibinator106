@@ -124,14 +124,21 @@ public class ImportStatic{
 	
 	
 	private static final fn[] op6BitsToCleanFn;
+	private static final fn[] op6BitsToDirtyFn;
 	static{
 		op6BitsToCleanFn = new fn[64];
-		//op6BitsToCleanFn[0] is null cuz deeplazy.
+		op6BitsToDirtyFn = new fn[op6BitsToCleanFn.length];
+		//op6BitsToCleanFn[0] is null cuz deeplazy which is not clean or dirty but unknown.
+		//op6BitsToDirtyFn[0] is null cuz deeplazy which is not clean or dirty but unknown.
 		fn u = CleanLeaf.instance;
+		fn U = DirtyLeaf.instance;
 		fn uu = u.p(u);
 		op6BitsToCleanFn[1] = u;
+		op6BitsToDirtyFn[1] = U;
 		for(int i=2; i<64; i++){
-			op6BitsToCleanFn[i] = op6BitsToCleanFn[i/2].p((i&1)==0 ? u : uu);
+			fn param = (i&1)==0 ? u : uu;
+			op6BitsToCleanFn[i] = op6BitsToCleanFn[i/2].p(param);
+			op6BitsToDirtyFn[i] = op6BitsToDirtyFn[i/2].p(param);
 		}
 	}
 	
@@ -140,9 +147,19 @@ public class ImportStatic{
 		return op6BitsToCleanFn[op6Bits];
 	}
 	
+	/** param is 1..63, or 0 to get null meaning deeplazy. */
+	public static fn op6BitsToDirtyFn(byte op6Bits){
+		return op6BitsToDirtyFn[op6Bits];
+	}
+	
 	/** clean fn form of an Op */
 	public static fn op(Op o){
 		return op6BitsToCleanFn(o.op6Bits);
+	}
+	
+	/** dirty fn form of an Op */
+	public static fn Op(Op o){
+		return op6BitsToDirtyFn(o.op6Bits);
 	}
 
 	
@@ -194,27 +211,27 @@ public class ImportStatic{
 	
 	//public static final fn wiki      = bootOp(u,	u,	u,	u,	u,	u);
 	public static final fn wiki = op(Op.wiki);
-	public static final fn Wiki      = wiki.vm_asDirty_recursiveAll();
+	public static final fn Wiki = Op(Op.wiki);
 	
 	//public static final fn isleaf    = bootOp(u,	u,	u,	u,	u,	uu);
 	public static final fn isleaf = op(Op.isleaf);
-	public static final fn Isleaf    = isleaf.vm_asDirty_recursiveAll();
+	public static final fn Isleaf = Op(Op.isleaf);
 	
 	//public static final fn l         = bootOp(u,	u,	u,	u,	uu,	u);
 	public static final fn l = op(Op.getfunc);
-	public static final fn L         = l.vm_asDirty_recursiveAll();
+	public static final fn L = Op(Op.getfunc);
 	
 	//public static final fn r         = bootOp(u,	u,	u,	u,	uu,	uu);
 	public static final fn r = op(Op.getparam);
-	public static final fn R         = r.vm_asDirty_recursiveAll();
+	public static final fn R = Op(Op.getparam);
 	
 	//public static final fn t         = bootOp(u,	u,	u,	uu,	u);
 	public static final fn t = op(Op.tru);
-	public static final fn T         = t.vm_asDirty_recursiveAll();
+	public static final fn T = Op(Op.tru);
 	
 	//public static final fn f        = bootOp(u,	u,	u,	uu,	uu);
 	public static final fn f = op(Op.fal);
-	public static final fn F        = f.vm_asDirty_recursiveAll();
+	public static final fn F = Op(Op.fal);
 	
 	//public static final fn curry     = bootOp(u,	u,	uu,	u,	u);
 	//public static final fn Curry     = curry.asDirty();
@@ -227,27 +244,32 @@ public class ImportStatic{
 	//Op.trecurse
 	//public static final fn s         = bootOp(u,	u,	uu,	uu);
 	public static final fn s = op(Op.trecurse);
-	public static final fn S         = s.vm_asDirty_recursiveAll();
+	public static final fn S = Op(Op.trecurse);
 	
 	//public static final fn pair      = bootOp(u,	uu,	u,	u);
 	public static final fn pair = op(Op.pair);
-	public static final fn Pair      = pair.vm_asDirty_recursiveAll();
+	public static final fn Pair = Op(Op.pair);
 	
 	//public static final fn typeval   = bootOp(u,	uu,	u,	uu);
 	public static final fn typeval = op(Op.typeval);
-	public static final fn Typeval   = typeval.vm_asDirty_recursiveAll();
+	public static final fn Typeval = Op(Op.typeval);
 	
 	//public static final fn ax       = bootOp(u,	uu,	uu);
+	
 	public static final fn axa = op(Op.axa);
+	public static final fn Axa = Op(Op.axa);
+			
 	public static final fn axb = op(Op.axb);
-	public static final fn Axa = axa.vm_asDirty_recursiveAll();
-	public static final fn Axb = axb.vm_asDirty_recursiveAll();
+	public static final fn Axb = Op(Op.axb);
+	
+	public static final fn growinglist = op(Op.growinglist);
+	public static final fn Growinglist = Op(Op.growinglist);
 	
 	
 	
 	/** identityFunc */
 	public static final fn i       = cp(f,u);
-	public static final fn I       = i.vm_asDirty_recursiveAll();
+	public static final fn I       = cp(F,u);
 	
 	/** like cleancall except it just has 1 param, the thing to clean,
 	which forkEdits param recursively to have u as all first params of u. There are no nonnormed clean forms.
@@ -273,6 +295,7 @@ public class ImportStatic{
 	*/
 	
 	public static final fn callParamOnItself = cp(cp(s,i),i);
+	public static final fn CallParamOnItself = cp(cp(S,I),I);
 	
 	/** Called from Op.curry to get funcbody to call on [...linkedlist...] containing that funcbody and its params.
 	The last (displayed on left, as its the [] kind of linkedlist, not <> kind) is comment (which is λ by default).
@@ -294,8 +317,14 @@ public class ImportStatic{
 	public static final fn Secondlast = null; //FIXME should be secondlast.dirty(), and read comment in that about setCompiled here
 	*/
 	
-	public static fn t(fn x){ return cp(t,x); }
-	public static fn T(fn x){ return cp(T,x); }
+	public static fn t(fn x){
+		return t.e(x);
+		//return cp(t,x);
+	}
+	public static fn T(fn x){
+		return T.e(x);
+		//return cp(T,x);
+	}
 	
 	/** TODO also create lazig, which is a λfunc.λparam.λignore.(func param).
 	FIXME handle clean vs dirty.
@@ -309,8 +338,7 @@ public class ImportStatic{
 	}
 	
 	public static final fn funcThatInfloopsForAllPossibleParams = lazy(callParamOnItself,callParamOnItself);
-	
-	public static final fn FuncThatInfloopsForAllPossibleParams = funcThatInfloopsForAllPossibleParams.vm_asDirty_recursiveAll();
+	public static final fn FuncThatInfloopsForAllPossibleParams = Lazy(CallParamOnItself,CallParamOnItself);
 	
 	/** wrap just the bits in cbt, like of byte[] or double[] or String */
 	public static fn w(Object wrapMe){
@@ -320,6 +348,16 @@ public class ImportStatic{
 	/** wrap in typeval */
 	public static fn ww(Object wrapMe){
 		throw new RuntimeException("TODO");
+	}
+	
+	/** FIXME always limit cost by gas, recursively, but todo getting this working first. TODO use $<fn> recursively
+	or more efficient recursion on java stack.
+	*/
+	public static fn truncateToClean_ignoringCost(fn x){
+		if(x.isClean()) return x;
+		if(x.isLeaf()) return u; //cleanLeaf
+		//can use the faster cp(fn,fn) instead of fn.e(fn) cuz know it will halt instantly so returns same thing.
+		return cp(truncateToClean_ignoringCost(x.l()),truncateToClean_ignoringCost(x.r()));
 	}
 
 }

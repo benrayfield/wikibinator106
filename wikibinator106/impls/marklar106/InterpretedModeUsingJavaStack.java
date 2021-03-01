@@ -6,169 +6,208 @@ import wikibinator106.spec.*;
 
 public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 	
-	//FIXME code was copied here from wikibinator105 which is a different universal function, different opcodes.
-	
 	public static final InterpretedModeUsingJavaStack instance = new InterpretedModeUsingJavaStack();
 	
 	public static final EvalerChain chain = new SimpleEvalerChain(instance);
 	
-	public $<fn> Eval(long gas, fn func, fn z){
-		
-		//FIXME code was copied here from wikibinator105 which is a different universal function, different opcodes.
-		
-		/*
+	public $<fn> Eval(long gas, fn func, fn param){
 		if(gas <= 0) throw new RuntimeException("Since everything costs at least 1 gas, including calling this to check the gas, caller should not have called this. gas="+gas);
-		//if(gas == 0) throw new RuntimeException("FIXME redesign maxSpend make this easier to pay, like in occamsfuncer you just call $(number) but I like it being a param instead of stateful");
 		gas--;
 		
-		//FIXME pay 1 instantly, avoid infinite loops etc.
+		fn ret = AxfprCache.getOrNull(func, param);
+		if(ret != null) return new $<fn>(gas,ret); //return from cache. Cache never expires, unless you need the memory back.
 		
-		fn ret = AxfprCache.getOrNull(func, z);
-		if(ret != null) return new $<fn>(gas,ret);
+		byte funcCurriesMore = func.curriesMore();
+		byte paramCurriesMore = param.curriesMore();
+		boolean funcIsHalted = funcCurriesMore>0;
+		boolean paramIsHalted = paramCurriesMore>0;
 		
-		if(!z.isClean() && func.isClean()){
-			//FIXME pay gas, as this forkEdits it recursively down to u/U
-			//but TODO has average of constant cost, or instant constant cost, if create both clean/dirty forms in parallel
-			//and they have pointer to eachother. TODO choose a design.
-			z = z.asClean();
+		if(!funcIsHalted || !paramIsHalted){
+			//In this wikibinator106 VM, curriesMore>0 (1..127) is always true cuz uses java stack
+			//and doesnt create λ until that returns, but in other VMs curriesMore (0..127)could equal 0.
+			throw new RuntimeException("funcCurriesMore="+funcCurriesMore+" paramCurriesMore="+paramCurriesMore);
+		}
+		boolean funcIsClean = func.isClean();
+		if(funcIsClean && !param.isClean()){
+			//FIXME pay gas for this or require that every dirty fn, in its constructor, have ptr to its clean form
+			//so its bigO(1). For now, just get the logic working regardless of bigO that will be guaranteed later.
+			param = truncateToClean_ignoringCost(param);
 		}
 		
-		//FIXME use maxSpend recursively
-		
-		//FIXME at 6 curries past _root, instead of 7+ as usual, of (ax u x) verify (x u)->u,
-		//and verify (ax anythingY_except_u x) -> anythingZ except u.
-		
-		//TODO optimize by only calling these as needed in the switch,
-		//or create func to get the fourth, third, and second last params.
-		fn funcL = func.l();
-		fn w = funcL.l().r();
-		fn x = funcL.r();
-		fn y = func.r();
-		
-		switch(func.op()){
-		case _deeplazy:
-			throw new RuntimeException("Shouldnt be any "+Op._deeplazy+" in this prototype as it uses java stack instead");
-		case _root:
-			throw new RuntimeException("Shouldnt be any "+Op._root+" in this prototype as thats mostly for mounting it into other systems such as axiomforest");
-		case _chooser: case _Chooser:
-			throw new RuntimeException("The switch only happens at 7+ params, so this shouldnt happen");
-		case wiki:
-			ret = null; //optimization of calling (S I I (S I I)) then running out of gas. Dont cache ret if run out of gas.
-			//return funcThatInfloopsForAllPossibleParams.e(u); //(S I I (S I I))
-		break;
-		case Wiki:
-			$<fn> WikiReturned = Wiki(gas, z);
-			ret = WikiReturned.fn; //null if not enough gas, such as if dont (yet?) know what Wiki does for that param
-			gas = WikiReturned.gas;
-		case isLeaf:
-			//TODO optimize. Dont need "z = z.clean();" in this case.
-			ret = z.a() ? t : f;
-		break;
-		case IsLeaf:
-			ret = z.a() ? T : F;
-		break;
-		case getFunc: case GetFunc:
-			//TODO optimize. If "z = z.clean();" happened, should have instead only done it for z.l().clean()
-			ret = z.l();
-		break;
-		case getParam: case GetParam:
-			//TODO optimize. If "z = z.clean();" happened, should have instead only done it for z.r().clean()
-			ret = z.r();
-		break;
-		case tru: case Tru:
-			ret = y;
-		break;
-		case fal: case Fal:
-			ret = z;
-		break;
-		case pair: case Pair:
-			ret = null; //FIXME
-		break;
-		case trecurse: case Trecurse:
+		if((funcCurriesMore > 1 || func.curriesSoFar() < Marklar106bId.opIsKnownAt) & !func.isAx() & !func.isCbt()){
+			"FIXME need to check areSameSizeCbts at each curry, not just the last, similar to ax."
 			
-			//TODO xz and yz in parallel recursively (can become many threads), in some cases,
-			//but not when it takes longer due to thread switch lag.
-			//fn xz = x.e(z);
-			//fn yz = y.e(z);
-			//ret = xz.e(yz);
+			//forkEdit to append another param cuz not enough params to eval yet and nothing to eval before last param
+			ret = cp(func,param);
 			
-			$<fn> forkReturned = Fork(gas, x, y, z); //this is singleThreaded, unless a subclass multithreads it in some cases
-			ret = forkReturned.fn;
-			gas = forkReturned.gas;
-		break;
-		case blob: case Blob:
-			//(Op.blob u) is bit1, and (Op.blob (u u)) is bit0, which are both cbts of 1 bit,
-			//and cbt of n bits called on anything returns a cbt of 2*n bits,
-			//and if its param is not a cbt of same size then it returns (itself itself),m
-			//else it returns (itself param).
-			
-			//TODO blob (clean bitstring) is up to a million times faster than Blob (dirty bitstring)
-			//such as when optimized in lazycl (which uses lwjgl opencl),
-			//but should Blob still compute the same thing just that 100-1000000 times slower?
-			//Or should it eval to (S I I (S I I)) aka an infinite loop, or something like that?
-			//Dont want to break code that converts everything in a param to dirty form,
-			//though such code could be designed to check if its a blob and not convert that part.
-			
-			ret = cp(func, areSameHeight(func,z)?z:func);
-		break;
-		case isclean:
-			//func.isclean(), cuz func.op()==Op.isclean instead of Op.Isclean, so return clean tru or clean fal.
-			ret = z.isclean() ? t : f;
-		break;
-		case Isclean:
-			//!func.isclean(), cuz func.op()==Op.Isclean instead of Op.isclean, so return dirty Tru or dirty Fal.
-			ret = z.isclean() ? T : F;
-		break;
-		case curryOrInfcurOrTypeval: case CurryOrInfcurOrTypeval:
-			ret = null; //FIXME
-		break;
-		case ax:
-			//(ax u y) is halted IFF (y u)->u,
-			//and (ax anything_except_u y) is halted IFF (y u) -> anything_except_u,
-			//but that was an earlier call as this is (ax something y z).
-			fn prefix = x.a() ? t : f;
-			ret = y.e(prefix.e(z));
-		break;
-		case Ax:
-			//(Ax u y) is halted IFF (y u)->u,
-			//and (Ax anything_except_u y) is halted IFF (y u) -> anything_except_u,
-			//but that was an earlier call as this is (Ax something y z).
-			prefix = x.a() ? T : F;
-			ret = y.e(prefix.e(z));
-		break;
-		case fpr: case Fpr:
-			//TODO generate a lambda here which calls (when its called on leaf), but find more efficient way...
-			//IF.e(equals.e(x.e(y)).e(z)).e(u.tOfMe()).e(u)
-			//aka call x on y, and if what that returns equals z then return u else (u u), such as Op.ax uses.
-			//That last u generates (u u) when IF calls it on u, similar to the IF generates u when it gets (t u).
-			//For now, just do it on java stack, but even when using java stack,
-			//but I want to use java stack less and less over future versions,
-			//maybe eventually getting it like occamsfuncer callquads that completely do their own stack on heap.
-			//.equals will be derived as combos of U/universalFunc called on itself, then an Evaler instance
-			//created to call an idMaker on things recursively and compare by ids (which are cached in Axfpr),
-			//after checking == and other fast checks to detect trivial nonequality or trivial equality first,
-			//but != doesnt prove nonequality in DedupLevel.dlWeakCbtButStrongAboveIt,
-			//and != does prove nonequality if all cbt up to id size are deduped by cbt content
-			//and everything above them is deduped by hashtable using System.identityHashCode.
-			//That will do perfect dedup without most things needing an id,
-			//but its too slow to use cuz cant wrap large arrays such as int[5632453]
-			//without creating all their internal nodes as binary forest of 256 or 128 bits each
-			//and upward each internal node going into AxfprCache as (L x) called on (R x) -> x,
-			//aka (L x (R x)) equals x forall x. The eager creation of all those internal nodes,
-			//instead of lazy of it, would make it impractical to copy between GPU memory and CPU memory,
-			//screen pixels, acyclicFlow (double,double)->double ops in evolved musical instruments in double[], etc.
-			//So .equals is (TODO) lazy of generating id and comparing them
-			//(inside derived lambda which computes equals, and that being an Evaled.java optimizations of it), TODO.
-			ret = x.e(y).equals(z) ? u : uu;
+			//TODO just funcCurriesMore > 1 ?
+			//If 0..4 params has curriesAll of 5, which is when the Op is known,
+			//then curriesAll will be 1 before Op is known (at curriesSoFar==4).
+			//If instead set that to 6, which includes comment,
+			//then wouldnt need a separate check for curriesSoFar==4.
+			//Also, (func.curriesSoFar() < Marklar106bId.opIsKnownAt)==(func.op6Bits()<32),
+			//(other than maybe op6Bits==0 aka deeplazy but that never happens in this wikibinator106 VM).
+		}else{
+			//eval. funcCurriesMore==1.
+			//the high 1 bit (if exists, else is deeplazy) tells size of bitstring 0..5 bits. Get those 5 bits.
+			switch(Op.ordinalToOp(func.op6Bits()&31)){
+			case zero: case one:
+				"FIXME need to check areSameSizeCbts at each curry, not just the last, similar to ax."
+				
+				if(funcIsClean && param.isClean()){ //cbt/bitstring optimization
+					//TODO return some wrapper of bitstring like LongBlob (todo will rename that to PowOf2SizeLongArrayBlob?)
+					//or blob of non-pow-of-2-aligned size that represents a powOf2 size cbt just doesnt store the padding,
+					//in some cases. Which cases?
+					boolean areSameSizeCbts = param.isCbt() && funcCurriesMore==paramCurriesMore;
+					//A cbt called on anything is a cbt twice as big up to 2^120 bits but after that goes in growinglist.
+					ret = cp(func, areSameSizeCbts?param:func);
+					//FIXME pay gas but dont do this part cuz its bigO(1) to compute: get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+				}else{
+					throw new RuntimeException("normal callpair instead of cbt optimization");
+					//FIXME pay gas but dont do this part cuz its bigO(1) to compute: get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+				}
+			break;case fal:
+				ret = param;
+			break;case tru:
+				ret = func.r(); //second last param
+			break;case getfunc:
+				ret = param.l();
+			break;case getparam:
+				ret = param.r();
+			break;case isleaf:
+				ret = param.isLeaf() ? (funcIsClean?t:T) : (funcIsClean?f:F);
+			break;case isclean:
+				ret = param.isClean() ? (funcIsClean?t:T) : (funcIsClean?f:F); 
+			break;case wiki:
+				{
+					$<fn> wikiReturned = Wiki(gas, param);
+					ret = wikiReturned.fn;
+					gas = wikiReturned.gas;
+				}
+			break;case fpr:
+				//TODO use derived equals function instead of .equals, which will call the same thing (TODO)
+				//wrapped in an Evaler instance, but to "close the loop" of reflection/selfAwareness
+				//a wikibinator106 VM has to be implemented using only calls of λ.e(long,λ), and at
+				//user level code (made of combos of calling λ on λ) create debugStepOver and debugStepInto λs etc.
+				//but for now do this...
+				
+				//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+			break;case axa:
+				{
+					$<fn> constraintReturned = param.e(gas,u);
+					if(constraintReturned.fn == u){ //verified constraint. Return (axa param) which is the constraint.
+						//constraintReturned.fn != null && constraintReturned.fn.isCleanLeaf()
+						ret = cp(func,param); //func is axa or Axa
+					}else{ //did not verify constraint. May be proven failed failed or did not have enough gas to verify it.
+						//if returns anything except u/cleanLeaf, axa is disproven, and axb is proven.
+						//TODO should the opcodes be slightly redesigned to allow axa to return an axb?
+						boolean disprovedConstraint = constraintReturned != null;
+						if(Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
+							//disproof of [one of axa or axb] proves the other, but if nonhalting then neither can be
+							//proven and neither is true so if you're using nsat colors at a lower level than lambdas,
+							//using at least 3 colors: axa, axb, nonhalting, and maybe also color for leaf, normalcall,
+							//etc, see comments and incomplete code
+							//in earlier forks of wikibinator (such as wikibinator101..105).
+							//I'm creating Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx in case want to change that later.
+							ret = cp(funcIsClean?axb:Axb,param);
+						}else{
+							ret = null;
+						}
+					}
+					gas = constraintReturned.gas;
+				}
+			break;case axb:
+				{
+					//see comments in axa.
+					$<fn> constraintReturned = param.e(gas,u);
+					if(constraintReturned.fn == u){
+						ret = cp(func,param); //func is axb or Axb
+					}else{
+						boolean disprovedConstraint = constraintReturned != null;
+						if(Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
+							ret = cp(funcIsClean?axa:Axa,param);
+						}else{
+							ret = null;
+						}
+					}
+					gas = constraintReturned.gas;
+				}
+			break;case pair:
+				{
+					fn x = func.l().r(); //third last param
+					fn y = func.r(); //second last param
+					ret = param.e(x).e(y);
+					//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+				}
+			break;case growinglist:
+				{
+					//(growinglist x y z) -> (growinglist (growinglist x y) z).
+					fn x = func.l().r(); //third last param
+					fn y = func.r(); //second last param
+					//FIXME should the choice of Growinglist vs growinglist (clean/dirty growinglist)
+					//depend on if func is Growinglist vs growinglist?
+					//ret = growinglist.e(growinglist.e(x).e(y)).e(param);
+					fn g = funcIsClean ? growinglist : Growinglist;
+					ret = g.e(g.e(x).e(y)).e(param);
+					//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+				}
+				//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+			break;case typeval:
+				{
+					//(typeval x y z)->(y z). Normally just keep it as (typeval x y)
+					//such as (typeval "image/jpeg" ...bytesofjpgfile...) as a semantic.
+					//If you want turingComplete types, use Op.axa and Op.axb.
+					//fn type = func.l().r() //only there to be seen by reflection ops (l r isleaf isclean).
+					fn instance = func.r(); //second last param
+					ret = instance.e(param); //act like the typed instance is the instance by itself
+					//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+				}
+			break;case trecurse:
+				{
+					fn x = func.l().r(); //third last param
+					fn y = func.r(); //second last param
+					//same as [x.e(param).e(y.e(param)) except with checking gas at each step]
+					//except suggests to VM it can be threaded (considering if the overhead to start and sync
+					//threads likely costs less than doing that call single threaded). In this early
+					//prototype wikibinator106 VM, uses only 1 CPU thread for evaling, but many GPU threads
+					$<fn> forkReturned = Fork(gas, x, y, param);
+					ret = forkReturned.fn;
+					gas = forkReturned.gas;
+				}
+			break;case curry16: fn findFuncBody = func;
+			case curry15: findFuncBody = findFuncBody.l(); //dont break, go 1 deeper each curry. funcBody at param 7
+			case curry14: findFuncBody = findFuncBody.l();
+			case curry13: findFuncBody = findFuncBody.l();
+			case curry12: findFuncBody = findFuncBody.l();
+			case curry11: findFuncBody = findFuncBody.l();
+			case curry10: findFuncBody = findFuncBody.l();
+			case curry9: findFuncBody = findFuncBody.l();
+			case curry8: findFuncBody = findFuncBody.l();
+			case curry7: findFuncBody = findFuncBody.l();
+			case curry6: findFuncBody = findFuncBody.l();
+			case curry5: findFuncBody = findFuncBody.l();
+			case curry4: findFuncBody = findFuncBody.l();
+			case curry3: findFuncBody = findFuncBody.l(); //dont break, go 1 deeper each curry. funcBody at param 7
+			case curry2: findFuncBody = findFuncBody.l();
+			case curry1: findFuncBody = findFuncBody.l();
+			//FIXME does this run "findFuncBody = findFuncBody.l();" 1 too many/few times?
+			fn funcBody = findFuncBody.r();
+			//same as ret = funcBody.e(pair_or_Pair.e(func).e(param)) but faster cuz know pair always halts on 2 params,
+			fn p = funcIsClean ? pair : Pair;
+			ret = funcBody.e(cp(cp(p,func),param)); //(funcBody [allParamExceptLast lastParam])
+			//FIXME??? does [allParamExceptLast lastParam] mean Pair when either of those 2 is dirty, else means pair?
+			//	Its just syntax either way, not a problem for the universal function.
+			//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
 		}
+		//Ret may have been set to null and gas left as a large positive number
+		//cuz knew couldnt finish the requested work so did not waste the gas on it (ret==null && gas>0).
+		//Or may have run out of gas (gas==0) so set ret to null.
+		//Or may have used some gas and finished the requested work (ret!=null && gas>0).
 		if(gas == 0) ret = null;
-		if(ret != null) AxfprCache.put(func, z, ret);
+		if(ret != null) AxfprCache.put(func, param, ret);
 		//If ret == null, this means didnt have enough gas to do the requested calculation,
 		//and giving back whatever amount of gas was not used.
 		return new $(gas,ret);
-		*/
-		
-		throw new RuntimeException("TODO");
 	}
 	
 	public static boolean areBothCleanCbtsAndSameSize(fn x, fn y){

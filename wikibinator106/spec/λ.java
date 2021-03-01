@@ -63,15 +63,45 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 		return isLeaf() && !isClean();
 	}
 	
-	/** true iff deep contains any (Op.ax x y) for any x and y, but doesnt count (Op.ax x) or Op.ax by itself.
+	/** true iff deep contains any (Op.axa x) or (Op.axb x), clean or dirty form, for any x,
+	but doesnt count Op.axa or Op.axb by itself
 	Where this is false, then sync and verifying is much easier.
 	TODO implement this in subclasses using a bit in header, for constant cost instead of this exponential cost.
 	*/
 	public default boolean containsAxconstraint(){
-		return !isLeaf() && (isAxOf2Params() || l().containsAxconstraint() || r().containsAxconstraint());
+		return !isLeaf() && (isAxconstraint() || l().containsAxconstraint() || r().containsAxconstraint());
 	}
 	
-	public boolean isAxOf2Params();
+	/** is Op.axa or Op.axb (clean or dirty forms, all 4 of those being kinds of "ax") of 1 param.
+	This is important to know cuz ax evals constraint at 1 param, and evals normally at 2 params.
+	If constraint fails, then the constraint call never halts, so just seeing such a constraint means its true.
+	Example: (axa (fpr (pair "hello" "world") fal "world")) is a true constraint
+	cuz (fpr (pair "hello" "world") fal "world" u)->u meaning (pair "hello" "world" fal)->"world",
+	but (axa (fpr (pair "hello" "world") fal (pair axa axb))) infinite loops
+	cuz (fpr (pair "hello" "world") fal (pair axa axb))->(u u)
+	cuz (pair "hello" "world" fal) returns "world" instead of returns (pair axa axb).
+	Also, if first param of ax, called on u/cleanLeaf, does not halt, then the ax call does not halt either,
+	so ax constraints can only be true when the param halts when called on leaf.
+	After that halts, you get, for example, a halted (axa (fpr (pair "hello" "world") fal "world")).
+	The call and the halted form are the same, and is just a constraint to verify.
+	Its marked as verified by observing that object,
+	instead of seeing its 2 childs separately in Evaler.Eval(long,λ,λ).
+	Call it on 1 more param (second/last param of axa or axb) and it does this, for turing-complete-types:
+	(axa x y)->(x (t y)).
+	(Axa x y)->(x (T y)).
+	(axb x y)->(x (f y)).
+	(Axb x y)->(x (F y)).
+	*/
+	public default boolean isAxconstraint(){
+		byte o6 = op6Bits();
+		return (o6==Op.axa.op6Bits || o6==Op.axb.op6Bits) && curriesMore()==1;
+	}
+	
+	/** 1 less param than isAxconstraint. Is Op.axa or Op.axb (clean or dirty form) by itself */
+	public default boolean isAx(){
+		byte o6 = op6Bits();
+		return (o6==Op.axa.op6Bits || o6==Op.axb.op6Bits) && curriesMore()==2;
+	}
 	
 	/** sparse matrix optimization, and helps with computing bize when content is all 0s, to know if first bit is 1 vs 0.
 	True if contains any Op.one.
@@ -113,6 +143,10 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	/** curriesSoFar+curriesMore==curriesAll, range 0..127 */
 	public default byte curriesMore(){
 		return (byte)(curriesAll()-curriesSoFar());
+	}
+	
+	public default boolean isHalted(){
+		return curriesMore()>0;
 	}
 	
 	/** If this is a cbt, then it has 2 exponent cbtHeight() bits, and this ranges 0..120, or 121 is a nonhalted state.

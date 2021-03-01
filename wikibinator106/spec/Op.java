@@ -1,6 +1,10 @@
 package wikibinator106.spec;
 
+import static wikibinator106.impls.marklar106.ImportStatic.cp;
+
 import java.util.Arrays;
+
+import wikibinator106.impls.marklar106.Marklar106bId;
 
 /** 32 ops, each with a clean form and a dirty form, so theres actually 64 ops.
 The clean form of an op starts with a lowercase letter, and dirty form is capital, like wiki vs Wiki.
@@ -168,6 +172,21 @@ public enum Op{
 	curry9(9), curry10(10), curry11(11), curry12(12),
 	curry13(13), curry14(14), curry15(15), curry16(16);
 	
+	/** If true, then (axa x) evals to halted (axa x) if (x u)->u,
+	and evals to (axb x) if (x u) -> anything except u, where u is cleanLeaf,
+	but either way if (x u) does not halt then (axa x) does not halt,
+	and similar for (axb x).
+	If false, then instead of returning the opposite of axa/axb when disproof (proves the opposite),
+	infinite loops (halts instantly, giving up to not waste gas on known infinite loop, but not all infinite loops can be detected,
+	just those marked that way such as putting an Evaler instance to do that in (s (t (s i i)) (t (s i i))))
+	which is a function that infinite loops for all possible params, then in a deepest evaler
+	such as wikibinator106.impls.marklar106.InterpretedModeUsingJavaStack, could call (s (t (s i i)) (t (s i i)))
+	stored in some public static final λ java var, call that on u, when func is axa or axb and param is x
+	and its disproven, instead of returning cp(opposite_axa_or_axb,x)
+	which works if call that but no need to call it just return the cp(...) call pair for efficiency. 
+	*/
+	public static final boolean isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx = true;
+	
 	/** curriesAll-6. after the first 6 params (first 5 chooses op, next param is comment), then the params of the op) */
 	public final byte params;
 	
@@ -218,13 +237,34 @@ public enum Op{
 		}
 	}
 	
+	/**
+	if(funcCurriesMore > 1 || func.curriesSoFar() < Marklar106bId.opIsKnownAt){
+		//If 0..4 params has curriesAll of 5, which is when the Op is known,
+		//then curriesAll will be 1 before Op is known (at curriesSoFar==4).
+		//If instead set that to 6, which includes comment,
+		//then wouldnt need a separate check for curriesSoFar==4.
+	if(funcCurriesMore > 1){
+		//forkEdit to append another param cuz not enough params to eval yet
+		ret = cp(func,param);
+	}else{
+		//eval. funcCurriesMore==1.
+		byte funcOp6bits = func.op6Bits();
+		int ordinal = funcOp6bits&
+		Op op = Op.ordinalToOp(paramCurriesMore)
+	}
+	*/
+	//public static final byte curriesAll_beforeKnowWhichOp = (byte)127;
+	//public static final byte curriesAll_beforeKnowWhichOp = (byte)6;
+	public static final byte curriesAll_beforeKnowWhichOp = (byte)5; //opIsKnownAt==5
 	
 	private static final byte[] op6Bits_to_curriesAll;
+	private static final Op[] ordinalToOp;
 	static{
+		ordinalToOp = Op.values();
 		op6Bits_to_curriesAll = new byte[64];
 		//op6Bits_to_curriesAll[0]==0 is deeplazy
 		//At fifth param, know which Op. 6th param is comment, then params of the op.
-		for(int i=1; i<32; i++) op6Bits_to_curriesAll[i] = (byte)5;
+		for(int i=1; i<32; i++) op6Bits_to_curriesAll[i] = curriesAll_beforeKnowWhichOp;
 		for(Op o : Op.values()) op6Bits_to_curriesAll[32+o.ordinal()] = o.curriesAll;
 	}
 	
@@ -232,6 +272,13 @@ public enum Op{
 		return op6Bits_to_curriesAll[op6Bits];
 	}
 	
+	/** same as Op.values()[ordinal] but makes sure to avoid creating such an array each time,
+	since someone may modify the contents of such an array so JVM likely copies it every time,
+	unless maybe JVM knows no code writes it, but I dont want to risk JVM not looking for that optimization. 
+	*/
+	public static Op ordinalToOp(int ordinal0To31){
+		return ordinalToOp[ordinal0To31];
+	}
 
 }
 
