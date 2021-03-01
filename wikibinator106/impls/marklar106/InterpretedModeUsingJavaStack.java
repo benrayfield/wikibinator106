@@ -85,13 +85,39 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					gas = wikiReturned.gas;
 				}
 			break;case fpr:
-				//TODO use derived equals function instead of .equals, which will call the same thing (TODO)
-				//wrapped in an Evaler instance, but to "close the loop" of reflection/selfAwareness
-				//a wikibinator106 VM has to be implemented using only calls of λ.e(long,λ), and at
-				//user level code (made of combos of calling λ on λ) create debugStepOver and debugStepInto λs etc.
-				//but for now do this...
+				{
+					//TODO use derived equals function instead of .equals, which will call the same thing (TODO)
+					//wrapped in an Evaler instance, but to "close the loop" of reflection/selfAwareness
+					//a wikibinator106 VM has to be implemented using only calls of λ.e(long,λ), and at
+					//user level code (made of combos of calling λ on λ) create debugStepOver and debugStepInto λs etc.
+					//but for now do this...
+					
+					fn funcL = func.l();
+					fn w = funcL.l().r(); //fourth last param
+					fn x = funcL.r(); //third last param
+					fn y = func.r(); //second last param
+					//Ignore last param, which is only there to delay eval.
+					//axa and axb look for its first param called on u returns u vs anything except u
+					ret = w.e(x).equals(y) ? u : uu;
+					//Function equality checking costs average constant (bigO(1))
+					//and worst case number of childs reachable deeply.
+					//They say no lambda function can detect equality vs nonequality of 2 given lambda functions,
+					//but I say thats because they are not pattern-calculus functions
+					//which are a subset of lambdas, so given that we know the complement of that set
+					//is not possible here, can prove more things about it,
+					//and its not exactly the same thing cuz I'm including reflect ops (l r isleaf isclean)
+					//in function behaviors since a function can be given a pointer to itself
+					//(or already have such a pointer by being in a curry1..curry16 op)
+					//and call reflect ops on itself and vary its behaviors depending on that.
+					//For example, (S (T (S I I)) (T (S I I))) is a function that infinite loops for every possible param,
+					//and you can make a function that answers T vs F
+					//depending if its param is (S (T (S I I)) (T (S I I))) vs some other function,
+					//and such a function is (Equals (S (T (S I I)) (T (S I I)))),
+					//but todo as of 2021-3-1 I havent derived the equals function in wikibinator106 yet
+					//but have in earlier forks of it and there wont be a problem doing so after the basic testcases pass.
 				
-				//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+					//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+				}
 			break;case axa:
 				{
 					$<fn> constraintReturned = param.e(gas,u);
@@ -101,7 +127,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					}else{ //did not verify constraint. May be proven failed failed or did not have enough gas to verify it.
 						//if returns anything except u/cleanLeaf, axa is disproven, and axb is proven.
 						//TODO should the opcodes be slightly redesigned to allow axa to return an axb?
-						boolean disprovedConstraint = constraintReturned != null;
+						boolean disprovedConstraint = constraintReturned.fn != null;
 						if(Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
 							//disproof of [one of axa or axb] proves the other, but if nonhalting then neither can be
 							//proven and neither is true so if you're using nsat colors at a lower level than lambdas,
@@ -115,6 +141,8 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 						}
 					}
 					gas = constraintReturned.gas;
+								FIXME thats what to do at first param of axa/axb. at second param,
+								call first param on T/t/F/f of second param for turing complete types.
 				}
 			break;case axb:
 				{
@@ -123,7 +151,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					if(constraintReturned.fn == u){
 						ret = cp(func,param); //func is axb or Axb
 					}else{
-						boolean disprovedConstraint = constraintReturned != null;
+						boolean disprovedConstraint = constraintReturned.fn != null;
 						if(Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
 							ret = cp(funcIsClean?axa:Axa,param);
 						}else{
@@ -131,6 +159,8 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 						}
 					}
 					gas = constraintReturned.gas;
+					FIXME thats what to do at first param of axa/axb. at second param,
+					call first param on T/t/F/f of second param for turing complete types.
 				}
 			break;case pair:
 				{
