@@ -166,7 +166,7 @@ Starting testConsCarCdr. Nil is leaf/theUniversalFunction. isNil is the isLeaf o
 ### testEqq pass: testConsCarCdr_4, λ
 ### testEqq pass: isNil_nil, t
 ### testEqq pass: isNil_[list_N_A_L], f
-``
+```
 
 
 Some people thought it impossible. Supports function.equals(function) with perfect deduplication of functions, and can map functions 1-to-1 with the integers, and even better it has average of constant cost (and worst case of number of childs reachable deeply), as in...
