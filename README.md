@@ -48,6 +48,17 @@ because it is so self referencing, using Op.axa and Op.fpr and a few other thing
 but you can also say "pi is not exactly 3" (using Op.axb),
 and more importantly, you can prove it, disproving that "pi is exactly 3",
 so let the pursuit of truth solve most if not all our disagreements.
+For example, if a certain lambda is a virus, like theres little self replicating creatures in conways game of life
+and you might call them viruses, then lets just say hey theres a virus and run it in simulations if you want
+but dont give ANYTHING execute permission ever for any reason,
+because if theres a trillion new lambdas per second, and only 1 in a million of them are viruses,
+then thats a million viruses per second. The system is designed to be 100% immune to viruses IF
+the VM is correctly sandboxed, similar to viruses in a html file dont escape the browser into your private files.
+Since all objects are immutable and stateless, a virus can not modify anything to infect it.
+Nothing can modify anything ever for any reason, except to cache things for efficiency.
+Since there is no WRITE, only READ, and all viruses need to WRITE to infect, all viruses fail to infect,
+unless the wikibinator106 VM you are using does not correctly compute the exact bits
+that the universe function (a math spec) says to compute.
 
 2021-3-4 about 1/3 of the basic tests pass in
 https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
