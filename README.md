@@ -52,7 +52,8 @@ For example, if a certain lambda is a virus, like theres little self replicating
 and you might call them viruses, then lets just say hey theres a virus and run it in simulations if you want
 but dont give ANYTHING execute permission ever for any reason,
 because if theres a trillion new lambdas per second, and only 1 in a million of them are viruses,
-then thats a million viruses per second. The system is designed to be 100% immune to viruses,
+then thats a million viruses per second. The system is designed to be 100% immune to viruses
+(conditional on using a set of id types that are not ALL cracked at once),
 and to have 100% uptime even if the entire internet is destroyed and the system
 has to be computed on pen and paper or in the exchange of USB sticks offline, IF
 the VM is correctly sandboxed, similar to viruses in a html file dont escape the browser into your private files.
