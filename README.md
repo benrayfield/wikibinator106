@@ -9,7 +9,7 @@ and can be sparse or dense, but in practice will store only the parts you actual
 
 The plan is for many opensource forks of the wikibinator106 VM to run in the same p2p network
 and compute the exact same bits as defined by that universal function,
-but they will vary in what optimizations they offer such as lwjgl opencl/GPU, javassist compiling, networking, etc,
+but they will vary in what optimizations they offer such as lwjgl opencl/GPU, javassist compiling, using it in python or javascript, networking, etc,
 and they will share immutable 2-way forest objects (each a function) in realtime, contained in 32 byte ids
 which are deterministicly generated from 2 child ids down to either of the 2 leafs,
 and multiple id types can be used at once since an id maker function is any function that returns
