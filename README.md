@@ -241,6 +241,10 @@ ret = w.e(x).equals(y) ? u : uu;
 
 ```
 //A basic form of graphics will be...
+package wikibinator106.plugins.voxel_y10_x10_w6_h6_unicode20_color12;
+import java.awt.Graphics;
+import java.util.function.Consumer;
+import javax.swing.JPanel;
 public class UI extends JPanel implements Consumer<long[]>{
 	
 	/** variable size. can replace this array */
