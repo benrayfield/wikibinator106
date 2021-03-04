@@ -35,11 +35,18 @@ You can build lambdas that modify other lambdas automatically, so that would be 
 but I'm not going to suggest to people that they do or dont allow such requests to destroy what is built,
 and instead such choices are left to the individual users
 and tools we build for eachother to help evolve whatever needed processes.
+A tool is just a 256 bit (32 byte) number and the 2-way forest recursively below it.
+You dont have to use any tool that you dont want to.
+A tool is just a number, and a number cant be changed (is immutable and stateless).
+Just cuz someone says a number is changed, does not change the number that you are using.
+They are instead calling one number on another number to find/create a number, which is a separate number.
+Nobody owns the basics of math. All possible finite math statements can be written as a wikibinator106 number,
+such as there is an exact representation of pi and e as a function of integer to get which binary digit to get thaaattttt digbi
 
 2021-3-4 about 1/3 of the basic tests pass in
 https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
 and the rest are commentedout cuz havent rewritten them from earlier forks.
-The syntax will be far easier to read than this,
+The syntax will be far easier to read than this
 as you wont have to call .e (lambda call) but write things like this...
 
 ```
