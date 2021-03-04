@@ -41,7 +41,13 @@ A tool is just a number, and a number cant be changed (is immutable and stateles
 Just cuz someone says a number is changed, does not change the number that you are using.
 They are instead calling one number on another number to find/create a number, which is a separate number.
 Nobody owns the basics of math. All possible finite math statements can be written as a wikibinator106 number,
-such as there is an exact representation of pi and e as a function of integer to get which binary digit to get thaaattttt digbi
+such as there is an exact representation of pi and e as a function of integer to get which binary digit to get that digit.
+Nobody owns numbers. Just because you were the first to find or compute a number does not mean
+you can control what others do with that number. You can literally say "pi is exactly 3" in this system
+because it is so self referencing, using Op.axa and Op.fpr and a few other things,
+but you can also say "pi is not exactly 3" (using Op.axb),
+and more importantly, you can prove it, disproving that "pi is exactly 3",
+so let the pursuit of truth solve most if not all our disagreements.
 
 2021-3-4 about 1/3 of the basic tests pass in
 https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
