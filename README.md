@@ -58,7 +58,7 @@ Since all objects are immutable and stateless, a virus can not modify anything t
 Nothing can modify anything ever for any reason, except to cache things for efficiency.
 Since there is no WRITE, only READ, and all viruses need to WRITE to infect, all viruses fail to infect,
 unless the wikibinator106 VM you are using does not correctly compute the exact bits
-that the universe function (a math spec) says to compute.
+that the universal function (a math spec) says to compute. This is a research path so is not necessarily safe yet.
 
 2021-3-4 about 1/3 of the basic tests pass in
 https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
