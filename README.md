@@ -7,6 +7,168 @@ and is designed to be GPU optimized and for gaming-low-lag sync in p2p network, 
 and has bitstrings built in up to 2^120 bits which in abstract math are padded with 10000...000 until next powOf2
 and can be sparse or dense, but in practice will store only the parts you actually need.
 
+The plan is for many opensource forks of the wikibinator106 VM to run in the same p2p network
+and compute the exact same bits as defined by that universal function,
+but they will vary in what optimizations they offer such as lwjgl opencl/GPU, javassist compiling, networking, etc,
+and they will share immutable 2-way forest objects (each a function) in realtime, contained in 32 byte ids
+which are deterministicly generated from 2 child ids down to either of the 2 leafs,
+and multiple id types can be used at once since an id maker function is any function that returns
+a bitstring used as the id of its parameter, but hopefully there wont be a need for more than 1 id type. 
+At that point I will stop development of this prototype wikibinator106 VM
+and join the others in just using wikibinator106 at "user level",
+building things only using combos of calling the universal function on itself,
+and many people and computers build fun andOr useful things together,
+including AI reserach and massively multiplayer games (MMG) and music tools and mindmap software and whatever we want,
+and the parts or wholes of these tools can be built into other tools by immutable/stateless forkEdit in realtime.
+The risk of not censoring things, not anyone backdoors, etc, is spread across many wikibinator106 VM developers
+and their users. I plan to make sure that nobody, not even I, have the ability to backdoor or control the system
+but each individual user does for their own uses of it, in p2p networks and data at rest and clouds as peers.
+
+2021-3-4 about 1/3 of the basic tests pass in
+https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
+and the rest are commentedout cuz havent rewritten them from earlier forks.
+The syntax will be far easier to read than this,
+as you wont have to call .e (lambda call) but write things like this...
+
+```
+λ#u
+(u u)#uu
+(u uu u u u u u u)#Wiki
+(...)#x
+(...)#a
+(...)#t
+(...)#f
+(f u)#i
+(...)#ifButNotInS
+(...)#if
+(...)#paramN
+(...)#comment
+(...)#recur
+(...)#p0
+(...)#p2
+(...)#p3
+(...)#p4
+(...)#p5
+(...)#and
+(...)#and3
+(...)#c
+(c ,u)#c1
+(c ,,u)#c2
+(c ,,,u)#c3
+(c ,,,,u)#c4
+(c ,,,,,u)#c5
+(...)#isColorProof
+(...)#isColorDisproof
+(...)#nor
+
+/* TODO where to write comments like this? Maybe curry isnt the only place comments should have a place in? I might want them in {...} which always contains an S op,
+and maybe also in [] and <> which are made of pairs aka (pair x y) aka ((pair x) y){
+	,c2
+	"its colorNormal if its halted and neither of colorProof or colorDisproof, since colorWordsalad is (ax anything) where (anything u) does not halt so that (ax anything) does not halt. colorNormal is anything whose left child is not ax."
+	{,nor {,isColorDisproof p0
+}#isColorNormal
+*/
+{,nor isColorProof isColorDisproof}#isColorNormal
+
+{
+	,c2
+	"todo write a comment here"
+	{
+		,if
+		{,a p0}
+		{,a p1}
+		{
+			,if
+			{,a p1}
+			,,t
+			{
+				,and
+				{recur {,l p0} {,l p1}}
+				{recur {,r p0} {,r p1}}
+			}
+		}
+	}
+}#equals
+
+{,equals ,equals ,equals}#lazy_eqeqeq_callMeOnLeafAndShouldGetT
+{,equals ,"hello" ,"hi"}#lazy_eqhellohi_callMeOnLeafAndShouldGetF
+{,equals ,"hello" {,L ,"hello" {,R ,"hello"}}}#lazy_eqhellolhellorhello_callMeOnLeafAndShouldGetT
+
+(ax (fpr lazy_eqeqeq_callMeOnLeafAndShouldGetT u t))#test_lazy_eqeqeq_callMeOnLeafAndShouldGetT_todoVerifyColorIsProof
+(ax (fpr lazy_eqeqeq_callMeOnLeafAndShouldGetT u f))#testOpp_lazy_eqeqeq_callMeOnLeafAndShouldGetT_todoVerifyColorIsDisproof
+(,isColorProof ,test_lazy_eqeqeq_callMeOnLeafAndShouldGetT_todoVerifyColorIsProof)#testColorProof_shouldBeT
+```
+
+2021-3-4 Tests passing...
+
+
+```
+public static void testConsCarCdr(){
+	lg("Starting testConsCarCdr. Nil is leaf/theUniversalFunction. isNil is the isLeaf op.");
+	fn list_wiki_u_l = cons.e(wiki).e(cons.e(nil).e(cons.e(l).e(nil)));
+	testEqq("testConsCarCdr_1", car.e(list_wiki_u_l), wiki);
+	testEqq("testConsCarCdr_2", car.e(cdr.e(list_wiki_u_l)), nil);
+	testEqq("testConsCarCdr_3", car.e(cdr.e(cdr.e(list_wiki_u_l))), l);
+	testEqq("testConsCarCdr_4", cdr.e(cdr.e(cdr.e(list_wiki_u_l))), nil);
+	testEqq("isNil_nil", isnil.e(nil), t);
+	testEqq("isNil_[list_N_A_L]", isnil.e(list_wiki_u_l), f);
+}
+
+assertionsAreOn=true
+Starting testLeaf
+### testEqq pass: (l Leaf), i
+### testEqq pass: (r leaf), λ
+### testEqq pass: (l Leaf) 2, i
+### testEqq pass: (r leaf) 2, λ
+Starting testTF
+### testEqq pass: (t wiki).l()->t, t
+### testEqq pass: (t wiki).r()->wiki, w
+### testEqq pass: (t wiki u)->wiki, w
+### testEqq pass: (t wiki pair)->wiki, w
+### testEqq pass: (f wiki).l()->f, f
+### testEqq pass: (f wiki).r()->wiki, w
+### testEqq pass: (f wiki u)->u, λ
+### testEqq pass: (f wiki pair)->pair, pair
+Starting testPair
+### testEqq pass: (pair wiki) is halted, (pair w)
+### testEqq pass: (pair wiki u) is halted, ((pair w) λ)
+### testEqq pass: (pair wiki u t)->wiki, w
+### testEqq pass: (pair wiki u f)->u, λ
+Starting testIota
+iota = ((pair s) t)
+### testEqq pass: get t from iota, t
+### testEqq pass: get s from iota, s
+Tests pass: testIota
+Starting testLRQuine
+### testEqq pass: testLRQuine_λ, λ
+### testEqq pass: testLRQuine_λλ, λλ
+### testEqq pass: testLRQuine_l, l
+### testEqq pass: testLRQuine_r, r
+### testEqq pass: testLRQuine_w, w
+### testEqq pass: testLRQuine_((pair w) ((pair pair) pair)), ((pair w) ((pair pair) pair))
+Starting testIdentityFuncs
+### test pass: leaf.l()==i
+### test pass: leaf.r()==leaf
+### test pass: stt.f(i)==i
+### test pass: stt.f(t)==t
+### test pass: stt.f(f)==t
+### test pass: i.f(stt)==stt
+### test pass: i.f(t)==t
+Starting testSTLR
+### test pass: st.L()==s
+### test pass: st.R()==t
+### test pass: st.L()==s 2
+### test pass: st.R()==t 2
+Starting testConsCarCdr. Nil is leaf/theUniversalFunction. isNil is the isLeaf op.
+### testEqq pass: testConsCarCdr_1, w
+### testEqq pass: testConsCarCdr_2, λ
+### testEqq pass: testConsCarCdr_3, l
+### testEqq pass: testConsCarCdr_4, λ
+### testEqq pass: isNil_nil, t
+### testEqq pass: isNil_[list_N_A_L], f
+``
+
+
 Some people thought it impossible. Supports function.equals(function) with perfect deduplication of functions, and can map functions 1-to-1 with the integers, and even better it has average of constant cost (and worst case of number of childs reachable deeply), as in...
 ```
 fn funcL = func.l();

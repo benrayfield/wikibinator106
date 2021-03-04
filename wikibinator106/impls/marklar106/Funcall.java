@@ -43,9 +43,11 @@ public class Funcall extends AbstractFn{
 	
 	public Funcall(boolean isClean, fn func, fn param){
 		super(Marklar106bId.parentHeader(
-			isClean, func.marklar106bHeader(), func.bizb(), func.j(2), param.marklar106bHeader(), param.bizb()));
+			func.marklar106bHeader(), func.bizb(), func.j(2), param.marklar106bHeader(), param.bizb()));
 		this.func = func;
 		this.param = param;
+		//lg("end constructor of: "+this);
+		//lg("------------");
 	}
 	
 	public fn l(){

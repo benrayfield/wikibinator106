@@ -15,7 +15,10 @@ public class CleanLeaf extends Leaf{
 	public boolean isLeaf(){ return true; }
 
 	/** (L x (R x)) equals x, forall x, so L of a leaf is identityFunc (of same clean/dirty as the leaf), and R of a leaf is that leaf */
-	public fn l(){ return i; }
+	public fn l(){
+		if(i == null) throw new RuntimeException("Not booted yet. i="+i);
+		return i;
+	}
 	
 	public fn vm_asClean(){
 		return this;

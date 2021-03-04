@@ -1,6 +1,7 @@
 package wikibinator106.impls.marklar106;
 import static wikibinator106.impls.marklar106.ImportStatic.cp;
 
+import wikibinator106.spec.Op;
 import wikibinator106.spec.λ;
 
 public interface fn extends λ<fn>{

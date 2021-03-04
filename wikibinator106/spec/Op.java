@@ -14,16 +14,23 @@ then the params of that op. The total number of params of leaf is at most 127 so
 */
 public enum Op{
 	
-	zero(121),
+	/** after first 5 params, next param is comment, and to use cbt/bitstring optimizations that comment must be cleanLeaf,
+	then up to 120 params which result in a halted cbt of 2^0 to 2^120 bits, and the next param results in
+	(Op.growinglist (Op.growinglist cleanLeaf this) param)), and so on. The cleanLeaf means nil as growinglist normally starts.
+	So you can keep using cbts/bitstrings the same way, calling growinglist_cbtlike_thing on growinglist_cbtlike_thing,
+	to get a growinglist_cbtlike_thing twice as big, but its not a cbt anymore.
+	FIXME you can or cant have a comment other than cleanLeaf in clean cbt???
+	*/
+	zero(122,true),
 	
-	/** Bitstrings up to 2^120-1 bits. The last 1 bit is the first bit of padding.
+	/** See comment of Op.zero about params. Bitstrings up to 2^120-1 bits. The last 1 bit is the first bit of padding.
 	The default kind of id is a 256 bit id and stores the low 32 (UPDATE: 40) bits of bize (bitstring size),
 	so if you want an int64 or int128 bitstring size you have to compute it in interpred mode as lambdas,
 	or derive a 512 bit id that has more room for bize.
 	<br><br>
 	(one_or_zero param1 param2 ... param120 param121) -> (growinglist (one_or_zero param1 param2 ... param120) param121),
 	other than up to param120 every param is verified to be a cbt of same size else evals self on self,
-	so get a cbt twice as big.
+	so get a cbt twice as big. (UPDATE: put a nil/u f irst in that growinglist)
 	<br><br>
 	TODO rewrite disorganized text below...
 	<br><br>
@@ -52,41 +59,65 @@ public enum Op{
 	but its slower.
 	TODO what should the 127th curry do?
 	*/
-	one(121),
+	one(122,true),
 	
-	fal(2),
+	/** the lambda Lx.Ly.y. (fal u) is the normed form of cleanIdentityFunc,
+	and (Fal u) is normed dirtyIdentityFunc which is the most general but as usual can only
+	be called by other dirty funcs without truncating their param to clean before they see it.
+	*/
+	fal(2,false),
 	
-	tru(2),
+	/** the lambda Lx.Ly.x aka the K lambda of ski calculus */
+	tru(2,false),
 	
-	getfunc(1),
+	/** The reflect ops are: getfunc/l, getparam/r, isleaf, isclean.
+	aka L. (L x (R x)) equals x, forall halted x. x.l().e(x.r()).equals(x) forall halted x.
+	*/
+	getfunc(1,false),
 	
-	getparam(1),
+	/** The reflect ops are: getfunc/l, getparam/r, isleaf, isclean.
+	aka R. (L x (R x)) equals x, forall halted x. x.l().e(x.r()).equals(x) forall halted x.
+	*/
+	getparam(1,false),
 	
-	isleaf(1),
+	/** The reflect ops are: getfunc/l, getparam/r, isleaf, isclean.
+	returns Op.tru or Op.fal (or Tru or Fal if self is Dirty) depending if its param is leaf
+	(either of cleanLeaf or DirtyLeaf)
+	*/
+	isleaf(1,false),
 	
-	/** Every object is a 2-way forest with 1 bit of data at each node, that bit being isCleanVsDirty,
+	/** The reflect ops are: getfunc/l, getparam/r, isleaf, isclean.
+	Every object is a 2-way forest with 1 bit of data (UPDATE: 0 bits of data (forest shape only):
+	clean vs dirty is derived and cached, except for at the 2 leafs) at each node, that bit being isCleanVsDirty,
 	and all paths lead to cleanLeaf or dirtyLeaf, and a parent must be dirty if either of its 2 childs is dirty,
 	and if both its childs are clean then the parent can be clean or dirty,
 	and if a clean is called on a dirty then that dirty is truncateToClean (call (fal u) on it, aka clean identityFunc)
 	before the clean sees it.
+	<br><br>
+	x.isClean()==(x.l().isClean()&x.r().isClean()), and (L x (R x)) equals x, forall x.
+	(L cleanLeaf) is cleanIdentityFunc. (L dirtyLeaf) is dirtyIdentityFunc.
+	(R cleanLeaf) is cleanLeaf. (R dirtyLeaf) is dirtyLeaf.
 	*/
-	isclean(1),
+	isclean(1,false),
 	
-	/** (axa (fpr wiki x y)) means (wiki x)->y.
+	/** All nondeterminism goes here, and if clean then it infinite loops for all possible params,
+	else is decided by ax fpr statements.
+	<br><br>
+	(axa (fpr wiki x y)) means (wiki x)->y.
 	Also, there will be a few functions built in, something like
 	(curry... wiki "spend" salt maxAmountToSpendAsInt64 x) -> [amountDidNotSpend (x cleanLeaf)], or something like that.
 	(curry... wiki "wallet" salt) -> how much is left for spend calls etc, as int64, or something like that.
 	(curry... solve x) -> y where (ax (fpr x y cleanLeaf)).
 	64 bit local ids of things, actually global ids but with some prefix so nobody else would randomly choose it?
 	*/
-	wiki(1),
+	wiki(1,false),
 	
 	/** (fpr func param ret u) -> u if (func param)->ret, else -> (u u), where u is cleanLeaf.
 	Example: (axa (fpr ["hello" "world"] fal "world")) cuz (["hello" "world"] fal) -> "world".
 	Example: (axb (fpr ["hello" 235] fal "world")) cuz (["hello" 235] fal) -not-> "world" aka does not return "world",
 	so in that case (fpr ["hello" 235] fal "world" u) -> (u u).
 	*/
-	fpr(4),
+	fpr(4,false),
 	
 	/** (axA x) and (axB x) cant both exist.
 	(axA x) is halted if (x u)->u.
@@ -126,13 +157,13 @@ public enum Op{
 	and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if
 	the statement it represents (such as "(x u)->u") is not true.
 	*/
-	axa(2),
+	axa(2,true),
 	
 	/** the bloom-filter counterpart of axa */
-	axb(2),
+	axb(2,true),
 	
-	/** church-pair lambda of 3 params */
-	pair(3),
+	/** the lambda Lx.Ly.Lz.zxy. Church-pair lambda of 3 params */
+	pair(3,false),
 	
 	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
 	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
@@ -144,15 +175,16 @@ public enum Op{
 	or all possible universe states, but even then its probably better to use some other datastruct
 	cuz cbt is as deep as log of its size, which can get very deep if its very sparse.
 	*/
-	growinglist(3),
+	growinglist(3,false),
 	
 	/** (typeval x y z)->(y z). Normally just keep it as (typeval x y)
 	such as (typeval "image/jpeg" ...bytesofjpgfile...) as a semantic.
 	If you want turingComplete types, use Op.axa and Op.axb.
 	*/
-	typeval(3),
+	typeval(3,false),
 	
-	trecurse(3),
+	/** the S lambda of ski calculus: Lx.Ly.Lz.xz(yz) */
+	trecurse(3,false),
 	
 	/** Example: (curry5 comment funcBody a b c d) is halted,
 	and (curry5 comment funcBody a b c d e) -> (funcBody [(curry5 comment funcBody a b c d) e]),
@@ -167,10 +199,10 @@ public enum Op{
 	you might put a treemap of namespace in it or [salt treemapNamespace].
 	TODO should this instead be curry2 to curry17?
 	*/
-	curry1(1), curry2(2), curry3(3), curry4(4),
-	curry5(5), curry6(6), curry7(7), curry8(8),
-	curry9(9), curry10(10), curry11(11), curry12(12),
-	curry13(13), curry14(14), curry15(15), curry16(16);
+	curry1(1,false), curry2(2,false), curry3(3,false), curry4(4,false),
+	curry5(5,false), curry6(6,false), curry7(7,false), curry8(8,false),
+	curry9(9,false), curry10(10,false), curry11(11,false), curry12(12,false),
+	curry13(13,false), curry14(14,false), curry15(15,false), curry16(16,false);
 	
 	/** If true, then (axa x) evals to halted (axa x) if (x u)->u,
 	and evals to (axb x) if (x u) -> anything except u, where u is cleanLeaf,
@@ -190,6 +222,13 @@ public enum Op{
 	/** curriesAll-6. after the first 6 params (first 5 chooses op, next param is comment), then the params of the op) */
 	public final byte params;
 	
+	/** Does it eval on every curry, or just the last/curriesAll/curriesMore? False if only has 1 curry.
+	Things like axa verifying constraint on its first param, and still evaling as normal on second param,
+	and cbt checks if its param is a cbt of same size and if its not (unless is last curry) then calls self on self instead
+	so a cbt (unless max size of 2^120 bits, after which it uses Op.growinglist) called on anything is a cbt twice as big.
+	*/
+	public final boolean evalsEarly;
+	
 	/** 6+params */
 	public final byte curriesAll;
 
@@ -202,20 +241,21 @@ public enum Op{
 	*/
 	public final byte op6Bits;
 	
-	private Op(int params){
-		if(params < 1 || params > 121) throw new RuntimeException("param = "+params);
+	private Op(int params, boolean evalsEarly){
+		if(params < 1 || params > 122) throw new RuntimeException("param = "+params);
 		this.params = (byte)params;
-		this.curriesAll = (byte)(6+params);
+		this.curriesAll = (byte)(5+params);
 		this.op6Bits = (byte)(32|ordinal());
+		this.evalsEarly = evalsEarly;
 	}
 	
-	public static byte nextOp6Bits(byte leftOp6Bits, byte leftCurriesMore, byte rightOp6Bits, byte rightCurriesMore){
+	public static byte nextOp6Bits(byte leftOp6Bits, byte leftCurriesMore, byte rightOp6Bits, byte rightCurriesMore, boolean rightIsClean){
 		//FIXME did i miss a deeplazy case?
 		//FIXME did i miss a case (maybe leftCurriesMore==1 ?) when at its last param it starts to eval but keeps its op6Bits?
 		if(leftCurriesMore == 0 || rightCurriesMore == 0) return 0; //deeplazy
 		if(leftOp6Bits < 32){ //has 0..4 params so hasnt chosen an op yet at 5th param
-			boolean rightIsLeaf = rightOp6Bits==1;
-			return rightIsLeaf ? (byte)(leftOp6Bits<<1+1) : (byte)(leftOp6Bits<<1);
+			boolean rightIsCleanLeaf = (rightOp6Bits==1 && rightIsClean);
+			return rightIsCleanLeaf ? (byte)(leftOp6Bits<<1) : (byte)((leftOp6Bits<<1)+1);
 		}else{
 			return leftOp6Bits; //copy op6Bits from left child after its known at param 5
 		}
@@ -236,6 +276,8 @@ public enum Op{
 			System.out.println(op+"("+op.params+")");
 		}
 	}
+	
+	public static final boolean lgManyEvalsOnNextCurryWhenBoot = false;
 	
 	/**
 	if(funcCurriesMore > 1 || func.curriesSoFar() < Marklar106bId.opIsKnownAt){
@@ -259,13 +301,31 @@ public enum Op{
 	
 	private static final byte[] op6Bits_to_curriesAll;
 	private static final Op[] ordinalToOp;
+	private static final long op6BitsTo_evalsOnNextCurry_64Bits; //FIXME need to know curriesMore==1 in some cases
 	static{
+		long evalsOnNextCurry = 0;
 		ordinalToOp = Op.values();
 		op6Bits_to_curriesAll = new byte[64];
 		//op6Bits_to_curriesAll[0]==0 is deeplazy
 		//At fifth param, know which Op. 6th param is comment, then params of the op.
 		for(int i=1; i<32; i++) op6Bits_to_curriesAll[i] = curriesAll_beforeKnowWhichOp;
 		for(Op o : Op.values()) op6Bits_to_curriesAll[32+o.ordinal()] = o.curriesAll;
+		for(byte o6=0; o6<64; o6++){ //TODO swap big/little endian? this is confusing.
+			boolean is4CurriesOfLeaf = 16<=o6 && o6<32;
+			if(is4CurriesOfLeaf || (32<=o6 && (ordinalToOp[o6-32]).evalsEarly)){	
+				evalsOnNextCurry |= (1L<<o6);
+			}			
+		}
+		op6BitsTo_evalsOnNextCurry_64Bits = evalsOnNextCurry;
+		if(lgManyEvalsOnNextCurryWhenBoot) for(byte o6=0; o6<64; o6++){
+			for(byte curriesMore=1; curriesMore<5; curriesMore++){
+				lg("evalsOnNextCurry("+o6+","+curriesMore+")="+evalsOnNextCurry(o6,curriesMore)+" "+(o6>=32 ? ordinalToOp[o6-32] : ""));
+			}
+		}
+	}
+	
+	public static void lg(String line){
+		System.out.println(line);
 	}
 	
 	public static byte op6Bits_to_curriesAll(byte op6Bits){
@@ -278,6 +338,14 @@ public enum Op{
 	*/
 	public static Op ordinalToOp(int ordinal0To31){
 		return ordinalToOp[ordinal0To31];
+	}
+	
+	/** includes evalsEarly and curriesMore. If curriesMore==1 and curriesAll==5 then its about to choose which op,
+	so FIXME choose a design about that, does that count as evaling or not, since it always instantly changes
+	to another op and is instantly halted.
+	*/
+	public static boolean evalsOnNextCurry(byte op6Bits, byte curriesMore){
+		return curriesMore==1 || (((1L<<op6Bits)&op6BitsTo_evalsOnNextCurry_64Bits)!=0);
 	}
 
 }

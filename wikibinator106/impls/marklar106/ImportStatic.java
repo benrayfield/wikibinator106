@@ -1,10 +1,42 @@
 /** Ben F Rayfield offers this software opensource MIT license */
 package wikibinator106.impls.marklar106;
-
-import wikibinator106.spec.Op;
-import wikibinator106.spec.λ;
+import wikibinator106.spec.*;
 
 public class ImportStatic{
+	
+	/** log headers, for testing? */
+	public static final boolean lgHeader = false;
+	
+	private static boolean assertionsAreOn_;
+	public static final boolean assertionsAreOn;
+	static{
+		assert (assertionsAreOn_=true);
+		assertionsAreOn = assertionsAreOn_;
+		lg("assertionsAreOn="+assertionsAreOn);
+	}
+	
+	/** the clean universal function aka the leaf which all paths in binary forest of call pairs lead to.
+	Theres also a dirty form of it, which is a different universal function. The dirty layer is above the clean layer.
+	The clean layer is universal by itself and cant see or create dirty objects,
+	and if you call a clean on a dirty, the dirty is truncated to clean before its used,
+	but dirty can use and create clean or dirty and combos of them.
+	The difference between clean and dirty is when clean calls wiki its always nonhalting, and dirty can use Wiki,
+	which is important since Wiki is where all nondeterminism andOr nonstandard andOr hard to sync (SyncLevel.slDirty) things go,
+	and if something goes wrong, which it will trillions of times per second in the p2p network,
+	sync will fork and merge blockchain-like (but actually web of merkle forest which syncs extremely faster)
+	toward agreement of calling what on what returns what based on constraints like (L x (R x)) equals x forall x.
+	In the clean layer, there is at most 1 correct answer to every question,
+	so if something goes wrong in the dirty layer, the clean layer will keep working and can be used
+	in various new experimental ways created at runtime by people and AIs in the system to experiment with
+	what may have gone wrong and come up with theories and processes how to fix it,
+	or just retreat to the clean layer and use just that for a while or permanently.
+	*/
+	public static final fn u = CleanLeaf.instance;
+	public static final fn nil = u;
+	
+	public static final fn U = DirtyLeaf.instance;
+	
+	public static final fn uu = u.p(u);
 	
 	public static String toString(Object o){
 		return o==null ? "null" : o.toString();
@@ -17,6 +49,29 @@ public class ImportStatic{
 	public static void lg(String line){
 		System.out.println(line);
 	}
+	
+	public static fn L(fn parent){
+		return parent.l();
+	}
+	
+	public static fn R(fn parent){
+		return parent.r();
+	}
+	
+	/** TODO create e(long,fn...) a counterpart of e(fn), that limits by gas */
+	public static fn e(fn... calls){
+		//This could also be written as x = I, and loop over x = x.e(x), but avoid the extra call
+		if(calls.length == 0) return I; //FIXME I vs i?
+		fn x = calls[0];
+		for(int j=1; j<calls.length; j++) x = x.e(calls[j]);
+		return x;
+	}
+	
+	/*TODO
+	public static $<fn> e(long maxSpend, fn... calls){
+		if(calls.length == 0) return I; //FIXME I vs i?
+		$<fn> x = 
+	}*/
 	
 	/** returns a halted call pair without evaling. If you call this on something that should eval,
 	it may break lots of stuff that depends on that evalling as the func_param_return cache
@@ -130,8 +185,6 @@ public class ImportStatic{
 		op6BitsToDirtyFn = new fn[op6BitsToCleanFn.length];
 		//op6BitsToCleanFn[0] is null cuz deeplazy which is not clean or dirty but unknown.
 		//op6BitsToDirtyFn[0] is null cuz deeplazy which is not clean or dirty but unknown.
-		fn u = CleanLeaf.instance;
-		fn U = DirtyLeaf.instance;
 		fn uu = u.p(u);
 		op6BitsToCleanFn[1] = u;
 		op6BitsToDirtyFn[1] = U;
@@ -161,29 +214,6 @@ public class ImportStatic{
 	public static fn Op(Op o){
 		return op6BitsToDirtyFn(o.op6Bits);
 	}
-
-	
-	/** the clean universal function aka the leaf which all paths in binary forest of call pairs lead to.
-	Theres also a dirty form of it, which is a different universal function. The dirty layer is above the clean layer.
-	The clean layer is universal by itself and cant see or create dirty objects,
-	and if you call a clean on a dirty, the dirty is truncated to clean before its used,
-	but dirty can use and create clean or dirty and combos of them.
-	The difference between clean and dirty is when clean calls wiki its always nonhalting, and dirty can use Wiki,
-	which is important since Wiki is where all nondeterminism andOr nonstandard andOr hard to sync (SyncLevel.slDirty) things go,
-	and if something goes wrong, which it will trillions of times per second in the p2p network,
-	sync will fork and merge blockchain-like (but actually web of merkle forest which syncs extremely faster)
-	toward agreement of calling what on what returns what based on constraints like (L x (R x)) equals x forall x.
-	In the clean layer, there is at most 1 correct answer to every question,
-	so if something goes wrong in the dirty layer, the clean layer will keep working and can be used
-	in various new experimental ways created at runtime by people and AIs in the system to experiment with
-	what may have gone wrong and come up with theories and processes how to fix it,
-	or just retreat to the clean layer and use just that for a while or permanently.
-	*/
-	public static final fn u = CleanLeaf.instance;
-	//There is no dirty u.
-	
-	public static final fn uu = u.p(u);
-	//There is no dirty (u u).
 	
 	//There is no dirty u or dirty (u u), but anything else has 2 forms: clean and dirty,
 	//except FIXME what if theres a clean thing or dirty thing in first param of u other than u vs uu.
@@ -216,6 +246,8 @@ public class ImportStatic{
 	//public static final fn isleaf    = bootOp(u,	u,	u,	u,	u,	uu);
 	public static final fn isleaf = op(Op.isleaf);
 	public static final fn Isleaf = Op(Op.isleaf);
+	public static final fn isnil = isleaf; //FIXME this should be isleaf AND isclean
+	public static final fn Isnil = Isleaf;
 	
 	//public static final fn l         = bootOp(u,	u,	u,	u,	uu,	u);
 	public static final fn l = op(Op.getfunc);
@@ -265,6 +297,15 @@ public class ImportStatic{
 	public static final fn growinglist = op(Op.growinglist);
 	public static final fn Growinglist = Op(Op.growinglist);
 	
+	/** u/cleanLeaf/nil is its first param, to start a growinglist so you can reliably know where it starts,
+	such as if its first item is also a growinglist, similar to why linkedlists end with nil and <...> lists start with nil.
+	[...] and <...> are both made of Op.pair (or Op.Pair if any of their contents are dirty?)
+	and differ in which direction the list goes, prefix or suffix.
+	{...} is sCurryList. (...) is currylist, just normal callpairs. All that is the default syntax.
+	*/
+	public static final fn growinglist_u = cp(growinglist,u);
+	public static final fn Growinglist_u = cp(Growinglist,u);
+	
 	
 	
 	/** identityFunc */
@@ -296,6 +337,31 @@ public class ImportStatic{
 	
 	public static final fn callParamOnItself = cp(cp(s,i),i);
 	public static final fn CallParamOnItself = cp(cp(S,I),I);
+	
+	/** aka pair.e(s).e(t) but since its in ImportStatic dont want to call e/apply until testcases run
+	cuz it might break earlier than that. 
+	*/
+	public static final fn iota = cp(cp(pair,s),t);
+	public static final fn Iota = cp(cp(Pair,S),T);
+	
+	public static final fn cons = pair;
+	public static final fn Cons = Pair;
+	
+	
+	public static final fn tt = cp(t,t);
+	public static final fn TT = cp(T,T);
+	
+	public static final fn tf = cp(t,f);
+	public static final fn TF = cp(T,F);
+	
+	
+	/** calls its param on t, such as if its param is a pair of 2 params it gets the first */
+	public static final fn car = cp(cp(s,i),tt);
+	public static final fn Car = cp(cp(S,I),TT);
+	
+	/** calls its param on f, such as if its param is a pair of 2 params it gets the second */
+	public static final fn cdr = cp(cp(s,i),tf);
+	public static final fn Cdr = cp(cp(S,I),TF);
 	
 	/** Called from Op.curry to get funcbody to call on [...linkedlist...] containing that funcbody and its params.
 	The last (displayed on left, as its the [] kind of linkedlist, not <> kind) is comment (which is λ by default).
@@ -337,8 +403,9 @@ public class ImportStatic{
 		return cp(S,T(func),T(param));
 	}
 	
-	public static final fn funcThatInfloopsForAllPossibleParams = lazy(callParamOnItself,callParamOnItself);
-	public static final fn FuncThatInfloopsForAllPossibleParams = Lazy(CallParamOnItself,CallParamOnItself);
+	//TODO
+	//public static final fn funcThatInfloopsForAllPossibleParams = lazy(callParamOnItself,callParamOnItself);
+	//public static final fn FuncThatInfloopsForAllPossibleParams = Lazy(CallParamOnItself,CallParamOnItself);
 	
 	/** wrap just the bits in cbt, like of byte[] or double[] or String */
 	public static fn w(Object wrapMe){

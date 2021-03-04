@@ -8,6 +8,8 @@ since everything can be derived from that including the CLEAN leaf.
 public class Test{
 	
 	public static void main(String... args){
+		
+		
 		//double timeStart = Time.now();
 		//try{
 			//testBootIsT();
@@ -16,18 +18,19 @@ public class Test{
 			
 			//testFnDotIdentityfunc();
 			
-			testTF();
-			/*testPair();
-			testIota();
-			//thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger();
-			testIsHalted();
-			//testLeafAndFewOpsInternalStructures();
 			testLeafAndFewOpsInternalStructures_withFewThingsCommentedOutCuzCodeWasFromDiffUniversalFunc_todoAddSimilarTests();
-			testSTLR();
+			testTF();
+			testPair();
+			testIota();
 			testLRQuine();
 			testIdentityFuncs();
+			testSTLR();
 			testConsCarCdr();
-			testBigCallParams();
+			
+			//thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger();
+			//testIsHalted();
+			/*testLeafAndFewOpsInternalStructures_withFewThingsCommentedOutCuzCodeWasFromDiffUniversalFunc_todoAddSimilarTests();
+			testBigCallParams(); //in wikibinator106 this means curry1 .. curry16
 			
 			//testBigCallRecur1To6();
 			//TODO instead of recur1 to recur7, depending on number of params, use opcode (ops 1 - 7) to know exactly where to recur from,
@@ -101,7 +104,7 @@ public class Test{
 		if(a != b){
 			throw new Error("Test failed: "+name+" a["+a+"] b["+b+"]");
 		}
-		lg("### testEqq pass: "+name);
+		lg("### testEqq pass: "+name+", "+a);
 	}
 	
 	public static void testNotEqq(String name, Object a, Object b){
@@ -157,11 +160,24 @@ public class Test{
 		testEqq("(i p)==p", i.e(p), p);
 	}*/
 	
+	public static void testLeafAndFewOpsInternalStructures_withFewThingsCommentedOutCuzCodeWasFromDiffUniversalFunc_todoAddSimilarTests(){
+		lg("Starting testLeaf");
+		testEqq("(l Leaf)", L(u), i);
+		testEqq("(r leaf)", R(u), u);
+		//testEqq("L(F)==op0", L(F), op0);
+		//testEqq("L(L(I))==op0", L(L(I)), op0);
+		//testEqq("L(T)==op1", L(T), op1);
+		//testEqq("L(L(L))==op2", L(L(L)), op2);
+		//testEqq("L(L(R))==op3", L(L(R)), op3);
+		testEqq("(l Leaf) 2", e(l,u), i);
+		testEqq("(r leaf) 2", e(r,u), u);
+	}
+	
 	public static void testTF(){
 		lg("Starting testTF");
 		fn t_w = t.e(wiki);
-		testEqq("(t wiki).l()->T", t_w.l(), t);
-		testEqq("(t wiki).r()->N", t_w.r(), wiki);
+		testEqq("(t wiki).l()->t", t_w.l(), t);
+		testEqq("(t wiki).r()->wiki", t_w.r(), wiki);
 		testEqq("(t wiki u)->wiki", t_w.e(u), wiki);
 		testEqq("(t wiki pair)->wiki", t_w.e(pair), wiki);
 		fn f_w = f.e(wiki);
@@ -171,18 +187,19 @@ public class Test{
 		testEqq("(f wiki pair)->pair", f_w.e(pair), pair);
 	}
 	
-	/*public static void testPair(){
+	public static void testPair(){
 		lg("Starting testPair");
-		testEqq("(pair N) is halted", P.e(N), P.e(N));
-		testEqq("(pair N u) is halted", P.e(N).e(u), P.e(N).e(u));
-		fn pair_N = P.e(N);
-		fn lazy_pair_N_u = pair_N.f(u);
-		fn pair_N_u = lazy_pair_N_u.e();
-		testEqq("(pair N u T)->N", pair_N_u.e(T), N);
-		testEqq("(pair N u F)->u", pair_N_u.e(F), u);
-	}*/
+		testEqq("(pair wiki) is halted", pair.e(wiki), pair.e(wiki));
+		fn pair_wiki_u = pair.e(wiki).e(u);
+		testEqq("(pair wiki u) is halted", pair_wiki_u, pair.e(wiki).e(u));
+		fn pair_wiki = pair.e(wiki);
+		//fn lazy_pair_wiki_u = pair_wiki.f(u); lazy doesnt work that way in this wikibinator106 VM cuz evaling happens on java stack so theres no deeplazy
+		//fn pair_wiki_u = lazy_pair_wiki_u.e();
+		testEqq("(pair wiki u t)->wiki", pair_wiki_u.e(t), wiki);
+		testEqq("(pair wiki u f)->u", pair_wiki_u.e(f), u);
+	}
 	
-	/*public static void testIota(){
+	public static void testIota(){
 		lg("Starting testIota");
 		fn x = iota;
 		lg("iota = "+x);
@@ -454,12 +471,21 @@ public class Test{
 			at occamsfuncer.spec.TestSpec.testEqq(TestSpec.java:31)
 			at occamsfuncer.spec.TestSpec.testIota(TestSpec.java:282)
 			at occamsfuncer.spec.TestSpec.main(TestSpec.java:566)
-		*
+		*/
 		
-		testEqq("get T from iota", x.e(x.e(x.e(x))), T);
-		testEqq("get S from iota", x.e(x.e(x.e(x.e(x)))), S);
+		testEqq("get t from iota", x.e(x.e(x.e(x))), t);
+		testEqq("get s from iota", x.e(x.e(x.e(x.e(x)))), s);
 		lg("Tests pass: testIota");
-	}*/
+	}
+	
+	public static void testSTLR(){
+		lg("Starting testSTLR");
+		fn st = cp(s,t);
+		test("st.L()==s", L(st)==s);
+		test("st.R()==t", R(st)==t);
+		test("st.L()==s 2", e(l,st)==s);
+		test("st.R()==t 2", e(r,st)==t);
+	}
 	
 	/*public static void thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger(){
 		lg("Starting thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger");
@@ -482,73 +508,77 @@ public class Test{
 		test("isHalted should be false (remember, universalFunc always curries 15 params, so any more are lazy after that 15 returns which is also lazy) . 11params", !f(u,u,u,u,u,u,u,u,u,u,u,u,u,u,u,u,u).isHaltedAbove());
 	}*/
 	
-	
-	/*
-	public static void testLeafAndFewOpsInternalStructures_withFewThingsCommentedOutCuzCodeWasFromDiffUniversalFunc_todoAddSimilarTests(){
-		lg("Starting testLeaf");
-		testEqq("(L Leaf)", L(u), I);
-		testEqq("(R leaf)", R(u), u);
-		//testEqq("L(F)==op0", L(F), op0);
-		//testEqq("L(L(I))==op0", L(L(I)), op0);
-		//testEqq("L(T)==op1", L(T), op1);
-		//testEqq("L(L(L))==op2", L(L(L)), op2);
-		//testEqq("L(L(R))==op3", L(L(R)), op3);
-		testEqq("(L Leaf) 2", e(L,u), I);
-		testEqq("(R leaf) 2", e(R,u), u);
-	}
-	
-	public static void testSTLR(){
-		lg("Starting testSTLR");
-		fn st = f(S,T);
-		test("st.L()==S", L(st)==S);
-		test("st.R()==T", R(st)==T);
-		test("st.L()==S 2", e(L,st)==S);
-		test("st.R()==T 2", e(R,st)==T);
-	}
-	
 	public static void testLRQuine(fn x){
-		testEqq("testLRQuine_"+x, e(L,x,f(R,x)), x);
+		testEqq("testLRQuine_"+x, e(l.e(x),r.e(x)), x);
 	}
 	
 	public static void testLRQuine(){
 		lg("Starting testLRQuine");
-		fn uuNonhalted = f(u,u);
-		testEqq("step (..) becomes halted on (..)", setCacheKey(step(uuNonhalted),null), bootF(u,u));
+		//fn uuNonhalted = f(u,u);
+		//testEqq("step (..) becomes halted on (..)", setCacheKey(step(uuNonhalted),null), bootF(u,u));
 		testLRQuine(u);
 		testLRQuine(e(u,u));
-		testLRQuine(L);
-		testLRQuine(R);
-		testLRQuine(Equals());
-		testLRQuine(P.e(Equals()).e(L));
-		testLRQuine(P.e(L).e(Equals()));
-		testLRQuine(P.e(Equals().e(Equals())));
+		testLRQuine(l);
+		testLRQuine(r);
+		testLRQuine(wiki);
+		testLRQuine(pair.e(wiki).e(pair.e(pair).e(pair)));
+		//todo text growinglist later... testLRQuine(growinglist.e(wiki).e(t).e(f).e(s));
+		//todo test Dirty L later testLRQuine(L);
+		//todo test Dirty R later testLRQuine(R);
+		//todo derive equals and Equals: testLRQuine(Equals());
+		//testLRQuine(P.e(Equals()).e(L));
+		//testLRQuine(P.e(L).e(Equals()));
+		//testLRQuine(P.e(Equals().e(Equals())));
 		//TODO more calls of testLRQuine
 	}
 	
 	public static void testIdentityFuncs(){
 		lg("Starting testIdentityFuncs");
-		fn stt = e(S,T,T);
-		test("leaf.L()==I", e(L,u)==I);
-		test("leaf.R()==leaf", e(R,u)==u);
-		test("stt.f(I)==I", e(stt,I)==I);
-		test("stt.f(T)==T", e(stt,T)==T);
-		test("stt.f(F)==F", e(stt,F)==F);
-		test("I.f(stt)==stt", e(I,stt)==stt);
-		test("I.f(T)==T", e(I,T)==T);
+		fn stt = e(s,t,t);
+		test("leaf.l()==i", e(l,u)==i);
+		test("leaf.r()==leaf", e(r,u)==u);
+		test("stt.f(i)==i", e(stt,i)==i);
+		test("stt.f(t)==t", e(stt,t)==t);
+		test("stt.f(f)==t", e(stt,f)==f);
+		test("i.f(stt)==stt", e(i,stt)==stt);
+		test("i.f(t)==t", e(i,t)==t);
 	}
 	
 	public static void testConsCarCdr(){
 		lg("Starting testConsCarCdr. Nil is leaf/theUniversalFunction. isNil is the isLeaf op.");
-		fn list_N_A_L = cons.e(N).e(cons.e(A).e(cons.e(L).e(nil)));
-		testEqq("testConsCarCdr_1", car.e(list_N_A_L), N);
-		testEqq("testConsCarCdr_2", car.e(cdr.e(list_N_A_L)), A);
-		testEqq("testConsCarCdr_3", car.e(cdr.e(cdr.e(list_N_A_L))), L);
-		testEqq("testConsCarCdr_4", cdr.e(cdr.e(cdr.e(list_N_A_L))), nil);
-		testEqq("isNil_nil", isNil.e(nil), T);
-		testEqq("isNil_[list_N_A_L]", isNil.e(list_N_A_L), F);
+		fn list_wiki_u_l = cons.e(wiki).e(cons.e(nil).e(cons.e(l).e(nil)));
+		testEqq("testConsCarCdr_1", car.e(list_wiki_u_l), wiki);
+		testEqq("testConsCarCdr_2", car.e(cdr.e(list_wiki_u_l)), nil);
+		testEqq("testConsCarCdr_3", car.e(cdr.e(cdr.e(list_wiki_u_l))), l);
+		testEqq("testConsCarCdr_4", cdr.e(cdr.e(cdr.e(list_wiki_u_l))), nil);
+		testEqq("isNil_nil", isnil.e(nil), t);
+		testEqq("isNil_[list_N_A_L]", isnil.e(list_wiki_u_l), f);
 	}
 	
-	public static void testBigCallParams(){
+	/*public static void testIfElse(){
+		lg("Starting testIfElse");
+		testEqq("e(ifElse,t,i,i)", e(ifElse(),t,i,i), u);
+		testEqq("e(ifElse,t,t(wiki),t(pair))", e(ifElse(),t,t(wiki),t(pair)), wiki);
+		testEqq("e(ifElse,F,t(N),t(P))", e(ifElse(),F,t(N),t(P)), P);
+		testEqq("e(ifElse,T,I,.) -> (I .) -> .", e(ifElse(),T,I,u), u);
+		testEqq("e(ifElse,F,I,.) -> (. .)", e(ifElse(),F,I,u), e(u,u));
+		//testEqq("ifElse thenConst 1", IF(tt(T),thenT(P),thenT(N)), P);
+		//testEqq("ifElse thenConst 2", IF(tt(F),thenT(P),thenT(N)), N);
+		
+		testEqq("(tttt(u) N) -> (T (T (T u)))", e(tttt(u),N), ttt(u));
+		testEqq("ifElse T thenConst L", e(IF(t(T),thenConst(L),thenConst(R)),u), L);
+		testEqq("ifElse F thenConst R", e(IF(t(F),thenConst(L),thenConst(R)),u), R);
+		testEqq("ifElse I thenConst L cuz param of the IF is T so I gets T", e(IF(I,thenConst(L),thenConst(R)),T), L);
+		testEqq("ifElse I thenConst R cuz param of the IF is F so I gets F", e(IF(I,thenConst(L),thenConst(R)),F), R);
+		testEqq("ifElse car thenConst L cuz param of the IF is (P T F) so car gets T",
+			e(IF(car,thenConst(L),thenConst(R)),e(P,T,F)), L);
+		testEqq("ifElse car then I, car gets T which chooses then(I), and the I called on (P T F) returns (P T F)",
+			e(IF(car,then(I),thenConst(R)),e(P,T,F)), e(P,T,F));
+		testEqq("ifElse cdr then I, cdr gets F which chooses thenT(P,I,I), and the thenT(P,I,I) called on e(P,T,F) returns (P (P T F) (P T F))",
+			e(IF(cdr,then(I),thenT(P,I,I)),e(P,T,F)), e(P,e(P,T,F),e(P,T,F)));
+	}
+	
+	/*public static void testBigCallParams(){
 		lg("Starting testBigCallParams");
 		//The universalFunc always curries 15 params (more if lazy, but uses 15 at a time recursively).
 		//7 of its 16 opcodes are a lambda call on 1-7 params. The last 1-7 of those (p(9) to p(15)) are those params.
@@ -590,29 +620,6 @@ public class Test{
 		testEqq("recur2", e(Big,recur2,L,R,P,A,N,T), e(Big,recur2,L,R,P,A));
 		testEqq("recur1", e(Big,recur1,L,R,P,A,N,T), e(Big,recur1,L,R,P,A,N));
 	}*
-	
-	public static void testIfElse(){
-		lg("Starting testIfElse");
-		testEqq("e(ifElse,T,I,I)", e(ifElse(),T,I,I), u);
-		testEqq("e(ifElse,T,t(N),t(P))", e(ifElse(),T,t(N),t(P)), N);
-		testEqq("e(ifElse,F,t(N),t(P))", e(ifElse(),F,t(N),t(P)), P);
-		testEqq("e(ifElse,T,I,.) -> (I .) -> .", e(ifElse(),T,I,u), u);
-		testEqq("e(ifElse,F,I,.) -> (. .)", e(ifElse(),F,I,u), e(u,u));
-		//testEqq("ifElse thenConst 1", IF(tt(T),thenT(P),thenT(N)), P);
-		//testEqq("ifElse thenConst 2", IF(tt(F),thenT(P),thenT(N)), N);
-		
-		testEqq("(tttt(u) N) -> (T (T (T u)))", e(tttt(u),N), ttt(u));
-		testEqq("ifElse T thenConst L", e(IF(t(T),thenConst(L),thenConst(R)),u), L);
-		testEqq("ifElse F thenConst R", e(IF(t(F),thenConst(L),thenConst(R)),u), R);
-		testEqq("ifElse I thenConst L cuz param of the IF is T so I gets T", e(IF(I,thenConst(L),thenConst(R)),T), L);
-		testEqq("ifElse I thenConst R cuz param of the IF is F so I gets F", e(IF(I,thenConst(L),thenConst(R)),F), R);
-		testEqq("ifElse car thenConst L cuz param of the IF is (P T F) so car gets T",
-			e(IF(car,thenConst(L),thenConst(R)),e(P,T,F)), L);
-		testEqq("ifElse car then I, car gets T which chooses then(I), and the I called on (P T F) returns (P T F)",
-			e(IF(car,then(I),thenConst(R)),e(P,T,F)), e(P,T,F));
-		testEqq("ifElse cdr then I, cdr gets F which chooses thenT(P,I,I), and the thenT(P,I,I) called on e(P,T,F) returns (P (P T F) (P T F))",
-			e(IF(cdr,then(I),thenT(P,I,I)),e(P,T,F)), e(P,e(P,T,F),e(P,T,F)));
-	}
 	
 	/*
 	public static void testIFInBigcall(){

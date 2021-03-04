@@ -1,5 +1,6 @@
 package wikibinator106.impls.marklar106;
-
+import static wikibinator106.impls.marklar106.ImportStatic.*;
+import java.util.function.IntFunction;
 import immutable.util.HashUtil;
 import immutable.util.MathUtil;
 import immutable.util.Text;
@@ -86,6 +87,9 @@ public class Marklar106bId{
 	*/
 	public static final long maskDatastructType = 0xff00000000000000L;
 	public static final int shiftDatastructType = 56;
+	public static final byte firstByteOfAnythingThatsNotALiteralCbt256 = (byte)0xf8;
+	public static final long firstByteOfAnythingThatsNotALiteralCbt256_inLong =
+		((long)firstByteOfAnythingThatsNotALiteralCbt256)<<shiftDatastructType;
 	
 	public static final long maskContainsAxConstraint_ignoreIfLiteralCbt256 = 0x0080000000000000L;
 	
@@ -122,13 +126,37 @@ public class Marklar106bId{
 	/** Which param index is funcBody at, for all of Op.curry1 .. Op.curry16 */
 	public static final byte funcBodyAt = firstParamAt;
 	
-	public static final byte curriesMoreOfCbt1 = Op.zero.params;
+	public static final byte curriesMoreOfCbt1 = 122; //FIXME even though that should be same as Op.zero.params, get it from Op.zero.params
+	//public static final byte curriesMoreOfCbt1 = Op.zero.params;
 	public static final byte curriesMoreOfCbt256 = (byte)(curriesMoreOfCbt1-8);
 	
-	public static final byte zero6Bits = op6Bits(Op.zero);
+	/*public static final byte zero6Bits = op6Bits(Op.zero);
 	public static final byte one6Bits = op6Bits(Op.one);
 	public static final byte axa6Bits = op6Bits(Op.axa);
 	public static final byte axb6Bits = op6Bits(Op.axb);
+	*/
+	
+	public static String toDetailString(long header){
+		String[] s = new String[]{
+			("000000000000000000000000000000000000000000000000000000000000000"+Long.toUnsignedString(header,2))
+		};
+		s[0] = s[0].substring(s[0].length()-64);
+		IntFunction<String> b = (int i)->{
+			String prefix = s[0].substring(0,i);
+			s[0] = s[0].substring(i);
+			return prefix;
+		};
+		byte o6 = op6Bits(header);
+		if(isLiteral256Bits(header)) return "marklar106bId_literalCbt256StartingWith"+s[0];
+		else return "marklar106bId"
+			+"_magic"+b.apply(8)
+			+"_ax"+b.apply(1)
+			+"_clean"+b.apply(1)
+			+"_OP"+(o6>=32 ? Op.ordinalToOp(o6-32) : "")+b.apply(6)
+			+"_one"+b.apply(1)
+			+"_cur"+b.apply(7)
+			+"_bize"+b.apply(40);
+	}
 	
 	public static boolean isLiteral256BitsThatIsItsOwnId(long header){
 		return (header>>>58)!=0b111110;
@@ -159,13 +187,16 @@ public class Marklar106bId{
 	Bizb is low 8 bits of bize and is only needed for literalCbt256 since its header is literal data so doesnt contain biz40.
 	*/
 	public static long parentHeader(
-			boolean isClean,
 			long leftHeader, byte leftBizb, long leftCMayBeReturnedAsHeaderIfReturnLiteralCbt256_ignoredIfLeftIsNotACbt128,
 			long rightHeader, byte rightBizb){
+		boolean leftIsClean = isClean(leftHeader);
+		boolean rightIsClean = isClean(rightHeader);
+		if(leftIsClean & !rightIsClean) throw new RuntimeException("(clean dirty). func is clean and param is dirty, so must truncateToClean(param) before func sees it.");
+		boolean isClean = leftIsClean;
 		//FIXME this incomplete code copied from Marklar105bId
 		//FIXME consider deeplazy as op6bits==0
-		if(isClean & (!isClean(leftHeader) || !isClean(rightHeader)))
-			throw new RuntimeException("Cant be clean if either child is dirty. If both childs are clean, parent can be clean or dirty.");
+		//if(isClean & (!isClean(leftHeader) || !isClean(rightHeader)))
+		//	throw new RuntimeException("Cant be clean if either child is dirty. If both childs are clean, parent can be clean or dirty.");
 		boolean leftIsLiteralCbt128 = isLiteralCbt128(leftHeader);
 		boolean rightIsLiteralCbt128 = isLiteralCbt128(rightHeader);
 		//Cbt called on anything is cbt twice as big, by if its param is anything except a cbt of same size
@@ -178,13 +209,25 @@ public class Marklar106bId{
 		byte rightCurriesMore = curriesMore(rightHeader);
 		boolean leftIsHalted = leftCurriesMore>0;
 		boolean rightIsHalted = rightCurriesMore>0;
-		byte curriesMore = (leftIsHalted&rightIsHalted) ? (byte)(leftCurriesMore-1) : (byte)0; //7 bits
-		//boolean parentIsHalted = curriesMore>0;
-		boolean containsAxconstraint = containsAxConstraint(leftHeader) | containsAxConstraint(rightHeader) | isAxconstraint(leftHeader);
 		byte leftOp6Bits = op6Bits(leftHeader);
 		byte rightOp6Bits = op6Bits(rightHeader);
-		byte op6bits = Op.nextOp6Bits(leftOp6Bits, leftCurriesMore, rightOp6Bits, rightCurriesMore);
+		byte op6bits = Op.nextOp6Bits(leftOp6Bits, leftCurriesMore, rightOp6Bits, rightCurriesMore, rightIsClean);
+		byte curriesMore; //7 bits. boolean parentIsHalted = curriesMore>0;
+		if(leftIsHalted&rightIsHalted){
+			if(16 <= leftOp6Bits && leftOp6Bits < 32){
+				//first 5 params choose op. left has 4 curries and hasnt chosen op yet,
+				//so skip the deeplazy step (curriesMore==0) and go straight to that op.
+				curriesMore = (byte)(Op.op6Bits_to_curriesAll(op6bits)-5);
+				assert curriesMore == Op.ordinalToOp(op6bits-32).params; //FIXME when is assert turned on?
+			}else{
+				curriesMore = (byte)(leftCurriesMore-1);
+			}
+		}else{
+			curriesMore = (byte)0;
+		}
+		boolean containsAxconstraint = containsAxConstraint(leftHeader) | containsAxConstraint(rightHeader) | isAxconstraint(leftHeader);
 		//FIXME know !parentIsLiteralCbt256, but what if left or right is?
+		byte one6Bits = op6Bits(Op.one); //FIXME cache this
 		boolean containsCleanNormedBit1 = containsCleanNormedBit1_ignoreIfLiteralCbt256(leftHeader)
 			|| containsCleanNormedBit1_ignoreIfLiteralCbt256(rightHeader)
 			//check if parent is cleanNormedBit1. curriesSoFar of a cbt1 is 6 (opIsKnownAt+1) cuz it includes comment==cleanLeaf.
@@ -212,7 +255,14 @@ public class Marklar106bId{
 		}else{
 			biz40 = 0; //if !isCbt or if its 1000000...000 or if its all 0s.
 		}
-		return headerOfFuncall(containsAxconstraint, isClean, op6bits, containsCleanNormedBit1, curriesMore, biz40);
+		long ret = headerOfFuncall(containsAxconstraint, isClean, op6bits, containsCleanNormedBit1, curriesMore, biz40);
+		if(lgHeader){
+			lg("Making new header:");
+			lg("     L: "+toDetailString(leftHeader));
+			lg("     R: "+toDetailString(rightHeader));
+			lg("parent: "+toDetailString(ret));
+		}
+		return ret;
 	}
 	
 	public static long headerOfFuncall(
@@ -223,7 +273,9 @@ public class Marklar106bId{
 		byte curriesMore_7bits,
 		long lowBitsOfBize_40bits
 	){
-		return (containsAxconstraint ? maskContainsAxConstraint_ignoreIfLiteralCbt256 : 0)
+		return
+			firstByteOfAnythingThatsNotALiteralCbt256_inLong
+			| (containsAxconstraint ? maskContainsAxConstraint_ignoreIfLiteralCbt256 : 0)
 			| (isClean ? maskIsClean_ignoreIfLiteralCbt256 : 0)
 			| ((((long)opWithBinheapIndexElse0MeansDeeplazy_6bits)<<shiftOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)&maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)
 			| (containsCleanNormedBit1 ? maskContainsCleanNormedBit1_ignoreIfLiteralCbt256 : 0)
@@ -315,6 +367,8 @@ public class Marklar106bId{
 	public static boolean isAxconstraint(long header){
 	//public static boolean isAxaOrAxb(long header){
 		byte o6 = op6Bits(header); 
+		byte axa6Bits = op6Bits(Op.axa); //FIXME cache this
+		byte axb6Bits = op6Bits(Op.axb); //FIXME cache this
 		return (o6==axa6Bits || o6==axb6Bits) && curriesSoFar(header)==opIsKnownAt;
 	}
 
@@ -362,7 +416,6 @@ public class Marklar106bId{
 		//FIXME this incomplete code copied from Marklar105bId
 		
 		long header = parentHeader(
-			isClean,
 			leftHeader, lizOfId(leftHeader,leftB,leftC,leftD), leftC,
 			rightHeader, lizOfId(rightHeader,rightB,rightC,rightD)
 		);
@@ -506,6 +559,8 @@ public class Marklar106bId{
 	*/
 	public static byte op6Bits(long header){
 		if(isLiteral256Bits(header)){
+			byte one6Bits = op6Bits(Op.one); //FIXME cache this
+			byte zero6Bits = op6Bits(Op.zero); //FIXME cache this
 			return header<0 ? one6Bits : zero6Bits; //first of 256 bits
 		}else{
 			return (byte)((header&maskOpWithBinheapIndexElse0MeansDeeplazy_ignoreIfLiteralCbt256)
@@ -520,6 +575,8 @@ public class Marklar106bId{
 	public static boolean isCbt(long header){
 		//TODO optimize using a mask that ignores the 1 bit where one6Bits and zero6Bits differ
 		int op6Bits = op6Bits(header);
+		byte one6Bits = op6Bits(Op.one); //FIXME cache this
+		byte zero6Bits = op6Bits(Op.zero); //FIXME cache this
 		return op6Bits==one6Bits || op6Bits==zero6Bits;
 	}
 

@@ -1,5 +1,5 @@
 package wikibinator106.impls.marklar106;
-
+import static wikibinator106.impls.marklar106.ImportStatic.*;
 import wikibinator106.spec.$;
 
 public abstract class Leaf extends AbstractFn{
@@ -36,7 +36,9 @@ public abstract class Leaf extends AbstractFn{
 	}
 
 	public $<fn> e(long maxSpend, fn r){
-		throw new RuntimeException("TODO");
+		if(maxSpend <= 0) throw new RuntimeException("shouldnt have called it was already out");
+		if(!isClean() || r.isClean()) return new $(maxSpend-1,cp(this,r)); //FIXME cost 1 gas/maxSpend
+		throw new RuntimeException("TODO truncateToClean(r) but that costs, so maybe leave that to the default e(long,fn) function?");
 	}
 
 	public boolean containsAxconstraint(){

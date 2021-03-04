@@ -145,6 +145,15 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 		return (byte)(curriesAll()-curriesSoFar());
 	}
 	
+	/** including curriesMore and evalsEarly, since some things eval on multiple curries. See Op.evalsEarly. */
+	public default boolean evalsOnNextCurry(){
+		return Op.evalsOnNextCurry(op6Bits(),curriesMore());
+	}
+	
+	/** Can be true even if l().evalsOnNextCurry() (where r() is its next curry)
+	cuz, this wikibinator106 VM uses java stack instead of simulating the stack (see callquads in occamsfuncer),
+	and the λ isnt created until its halted, even if the evaling and halted form are the same (which is often true).
+	*/
 	public default boolean isHalted(){
 		return curriesMore()>0;
 	}

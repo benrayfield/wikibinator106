@@ -34,8 +34,9 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 			param = truncateToClean_ignoringCost(param);
 		}
 		
-		if((funcCurriesMore > 1 || func.curriesSoFar() < Marklar106bId.opIsKnownAt) & !func.isAx() & !func.isCbt()){
-			"FIXME need to check areSameSizeCbts at each curry, not just the last, similar to ax."
+		if(!func.evalsOnNextCurry()){
+		//if((funcCurriesMore > 1 || func.curriesSoFar() < Marklar106bId.opIsKnownAt) & !func.isAx() & !func.isCbt()){
+			//"FIXME need to check areSameSizeCbts at each curry, not just the last, similar to ax."
 			
 			//forkEdit to append another param cuz not enough params to eval yet and nothing to eval before last param
 			ret = cp(func,param);
@@ -50,9 +51,10 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 		}else{
 			//eval. funcCurriesMore==1.
 			//the high 1 bit (if exists, else is deeplazy) tells size of bitstring 0..5 bits. Get those 5 bits.
+			fn findFuncBody = func; //in case of curry1..curry16
 			switch(Op.ordinalToOp(func.op6Bits()&31)){
 			case zero: case one:
-				"FIXME need to check areSameSizeCbts at each curry, not just the last, similar to ax."
+				//"FIXME need to check areSameSizeCbts at each curry, not just the last, similar to ax."
 				
 				if(funcIsClean && param.isClean()){ //cbt/bitstring optimization
 					//TODO return some wrapper of bitstring like LongBlob (todo will rename that to PowOf2SizeLongArrayBlob?)
@@ -67,13 +69,13 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					//FIXME pay gas but dont do this part cuz its bigO(1) to compute: get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
 				}
 			break;case fal:
-				ret = param;
+				ret = param; //return second of 2 params
 			break;case tru:
-				ret = func.r(); //second last param
+				ret = func.r(); //second last param. return first of 2 params.
 			break;case getfunc:
-				ret = param.l();
+				ret = param.l(); //l and getfunc mean the same thing
 			break;case getparam:
-				ret = param.r();
+				ret = param.r(); //r and getparam mean the same thing
 			break;case isleaf:
 				ret = param.isLeaf() ? (funcIsClean?t:T) : (funcIsClean?f:F);
 			break;case isclean:
@@ -115,6 +117,10 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					//and such a function is (Equals (S (T (S I I)) (T (S I I)))),
 					//but todo as of 2021-3-1 I havent derived the equals function in wikibinator106 yet
 					//but have in earlier forks of it and there wont be a problem doing so after the basic testcases pass.
+					//Similarly, (Equals (Equals (S (T (S I I)) (T (S I I)))) (Equals (S (T (S I I)) (T (S I I)))))->T
+					//and (Equals Equals Equals)->T and (Equals (Equals Equals) Equals)->F,
+					//and Equals is just a word I'm using to refer to something you can build
+					//by calling the universal function on itself in various combos (and will be optimized with an instance of Evaler.java)
 				
 					//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
 				}
@@ -141,8 +147,8 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 						}
 					}
 					gas = constraintReturned.gas;
-								FIXME thats what to do at first param of axa/axb. at second param,
-								call first param on T/t/F/f of second param for turing complete types.
+								//FIXME thats what to do at first param of axa/axb. at second param,
+								//call first param on T/t/F/f of second param for turing complete types.
 				}
 			break;case axb:
 				{
@@ -159,8 +165,8 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 						}
 					}
 					gas = constraintReturned.gas;
-					FIXME thats what to do at first param of axa/axb. at second param,
-					call first param on T/t/F/f of second param for turing complete types.
+					//FIXME thats what to do at first param of axa/axb. at second param,
+					//call first param on T/t/F/f of second param for turing complete types.
 				}
 			break;case pair:
 				{
@@ -177,8 +183,12 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					//FIXME should the choice of Growinglist vs growinglist (clean/dirty growinglist)
 					//depend on if func is Growinglist vs growinglist?
 					//ret = growinglist.e(growinglist.e(x).e(y)).e(param);
-					fn g = funcIsClean ? growinglist : Growinglist;
-					ret = g.e(g.e(x).e(y)).e(param);
+					fn g = funcIsClean ? growinglist_u : Growinglist_u;
+					fn growinglistOfX = cp(g,u); //nil/u as prefix of growinglist, similar to nil as suffix of linkedlist/[]
+					fn growinglistOfXY = cp(growinglistOfX,y);
+					ret = cp(cp(g,growinglistOfXY),param); //growinglistOfXYParam
+					//ret = cp(cp(g,cp(g,cp(g,x),y)),param);
+					//causes infloop to call eval inside eval this way, so use cp instead: ret = g.e(g.e(x).e(y)).e(param);
 					//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
 				}
 				//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
@@ -204,7 +214,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					ret = forkReturned.fn;
 					gas = forkReturned.gas;
 				}
-			break;case curry16: fn findFuncBody = func;
+			break;case curry16: findFuncBody = findFuncBody.l();
 			case curry15: findFuncBody = findFuncBody.l(); //dont break, go 1 deeper each curry. funcBody at param 7
 			case curry14: findFuncBody = findFuncBody.l();
 			case curry13: findFuncBody = findFuncBody.l();
@@ -225,6 +235,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 			//same as ret = funcBody.e(pair_or_Pair.e(func).e(param)) but faster cuz know pair always halts on 2 params,
 			fn p = funcIsClean ? pair : Pair;
 			ret = funcBody.e(cp(cp(p,func),param)); //(funcBody [allParamExceptLast lastParam])
+			}
 			//FIXME??? does [allParamExceptLast lastParam] mean Pair when either of those 2 is dirty, else means pair?
 			//	Its just syntax either way, not a problem for the universal function.
 			//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
@@ -245,7 +256,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 	}
 
 	public $<fn> Wiki(long maxSpend, fn param){
-		return WikiState.bestKnownApproximationOfSparseSubsetOfWiki.apply(maxSpend,param);
+		return WikiState.e(maxSpend,param);
 	}
 
 	public fn u(boolean isClean){

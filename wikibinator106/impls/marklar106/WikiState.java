@@ -20,6 +20,7 @@ and gives those 3 ids, or some compressed form of it similar to how how s-expres
 might normally be shared efficiently, but optimized for forest of callpairs.
 */
 public class WikiState{
+	private WikiState(){}
 	
 	/** you can replace this with anything you believe is a better approximation of the Wiki.
 	This will include "wallet" and "spend" and "solve" functions, and maybe halting-vs-nonhalting related functions
@@ -45,11 +46,20 @@ public class WikiState{
 	and has an id256 (lazyevaled of course) and generates the same id256 for the same set of key/value mappings
 	regardless of order of gets and puts,
 	<br><br>
-	but other than those, things in Wiki will in general be any (Op.Ax u (Op.Fpr Op.Wiki param ret)),
-	which is more general than Wiki such as (Op.Ax u (Op.Fpr L ["abc" "def"] (pair "abc")).
+	but other than those, things in Wiki will in general be any (Op.Axa (Op.Fpr Op.Wiki param ret)),
+	which is more general than Wiki such as (Op.Axa (Op.Fpr L ["abc" "def"] (pair "abc")).
 	*/
-	public static BiFunction<Long,fn,$<fn>> bestKnownApproximationOfSparseSubsetOfWiki = (Long gas, fn param)->{
-		return new $(gas,null);
+	private static BiFunction<Long,fn,$<fn>> bestKnownApproximationOfSparseSubsetOfWiki = (Long gas, fn param)->{
+		return new $(gas,null); //Wiki contains nothing so far? Run out of gas waiting to know the return value. TODO.
 	};
+	
+	/** call the wiki, similar to λ.e(long,λ) */
+	public static $<fn> e(long gas, fn param){
+		return bestKnownApproximationOfSparseSubsetOfWiki.apply(gas, param);
+	}
+	
+	public static void setWiki(BiFunction<Long,fn,$<fn>> bestKnownApproximationOfSparseSubsetOfWiki){
+		WikiState.bestKnownApproximationOfSparseSubsetOfWiki = bestKnownApproximationOfSparseSubsetOfWiki;
+	}
 
 }

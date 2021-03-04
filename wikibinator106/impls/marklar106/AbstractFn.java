@@ -48,6 +48,8 @@ public abstract class AbstractFn implements fn{
 		return ImportStatic.ww(wrapMe);
 	}
 	
-	
+	public String toString(){
+		return Lang.toString(this);
+	}	
 
 }
