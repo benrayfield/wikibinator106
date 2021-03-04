@@ -23,6 +23,18 @@ and the parts or wholes of these tools can be built into other tools by immutabl
 The risk of not censoring things, not anyone backdoors, etc, is spread across many wikibinator106 VM developers
 and their users. I plan to make sure that nobody, not even I, have the ability to backdoor or control the system
 but each individual user does for their own uses of it, in p2p networks and data at rest and clouds as peers.
+The system is not designed to push people into breaking any laws and will make it easy for
+people to build tools to scan for any patterns of content they do or do not want to host and build on,
+but when you're creating trillions of new lambda functions per second,
+as the lambda is the core of this system like the bit is the core of other systems,
+and building lambdas made from call pairs of other lambdas very deeply and in many combos,
+you cant just let someone say, you see that lambda (which is both code and data) buried deep
+in the foundation of these 5000 new tools that were created in the last month or in the last half second,
+those are illegal and you have to delete those and all those tools have to be modified.
+You can build lambdas that modify other lambdas automatically, so that would be possible to some extent,
+but I'm not going to suggest to people that they do or dont allow such requests to destroy what is built,
+and instead such choices are left to the individual users
+and tools we build for eachother to help evolve whatever needed processes.
 
 2021-3-4 about 1/3 of the basic tests pass in
 https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
