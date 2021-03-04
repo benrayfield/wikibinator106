@@ -239,6 +239,48 @@ ret = w.e(x).equals(y) ? u : uu;
 //by calling the universal function on itself in various combos (and will be optimized with an instance of Evaler.java)
 ```
 
+```
+//A basic form of graphics will be...
+public class UI extends JPanel implements Consumer<long[]>{
+	
+	/** variable size. can replace this array */
+	public long[] voxels;
+	
+	/** 1024x1024 */
+	public int[] pixels;
+	
+	public void paint(Graphics g){
+		paint(g, voxels);
+	}
+	
+	public static void paint(Graphics g, long... voxels){
+		for(long voxel : voxels){
+			//If every pixels color is chosen individually, a 1024x1024 12 bit color image is 8mB.
+			//If you want a solid color across it all, thats 256 squares of 64x64 pixels each as a long each so 2kB.
+			//If you want a solid color background with 1000 colored circles between 1..64 radius each, thats 10kB.
+			//If you also want 1000 chars of text on screen, thats 18kB.
+			
+			//TODO between 1x1 and 1x64 and 64x1 and 64x64, per voxel.
+			//TODO theres a single 12 bit color, of (unicode20Value==0 ? perfectRectangle : a unicode text symbol/codepoint).
+			int high = (int)(voxel>>>32), low = (int)voxel;
+			int shape20 = TODO; //solid color if 0, circle/oval if 1, else unicode symbol 2..(2^20-1)
+			int colorRGB24 = TODO; //expand 12 bit color to 24 bits
+			int height = TODO; //1..64
+			int width = TODO; //1..64
+			int y10x10 = TODO; //low&0xfffff; 0..2^20-1, yStart=0..1023, xStart=0..1023
+			
+			
+			pixels[low&0xfffff] = 
+		}
+	}
+	
+	public void accept(long[] voxels){
+		this.voxels = voxels;
+		paint();
+	}
+}
+```
+
 Default security level is 96 bits cuz uses last 192 bits of SHA3-256, so to find 2 lambdas, or calls of them, which have the same id256, you'd have to store 2^96 (79228162514264337593543950336) ids and search them 2^96 times, to find 1 collision, and then we would just start using some kind of 512 bit ids or multiple id types at once will be supported as you can derive new kinds of id maker functions at runtime. They are themselves lambdas. A 2-way forest node is identified by an id256, and is a lambda or a call of them andOr cache of func_param_return. The id256 is proof of the lambda's behaviors since its like a sparse turing machine you just compute deterministicly using that to create more 2-way forest nodes. But some lambdas contain Op.axa andOr Op.axb statements, which are also lambdas but which claim that x called on y returns z or returns something other than z or various kinds of turing complete types and constraints but only constraints that can be proven in some finite time but may take infinite time to disprove (using Op.axa and Op.fpr together). So a halted lambda without any axa/axb/constraints/cache cant be faked, as long as the whole 2-way forest below it is available (each parent and its 2 childs are proven by hash). The problem comes when a lambda contains such axa/axb/constraints/cache statements (its id has a bit that says does it contain any of those or not, and is it clean vs dirty), so be very skeptical of those shared across untrusted borders (such as internet or distros of wikibinator106 or even your own harddrive if other programs have access to it). If we share only halted lambdas without axa/axb/etc, then we can each verify lambdas as fast as they come in thru the network and fast enough to do graphics and sound with them at gaming-low-lag.
 
 Cache never expires, unless you need the memory back, and cache always gives the correct answer at gaming-low-lag, since every lambda call has at most 1 correct return value, theres never a reason to invalidate a cache of func_param_return unless theres a bug in the VM or you trust VM output by someone you should not have trusted (dont need to trust halted lambdas (fast and average_bigO(1) to verify), only cached constraints, which is optional) as it was not really their VM output but something they made up. Theres turing complete challenge response using an infinite size sparse bloom filter to help verify that and toward low lag convergence of a computing process across many computers and people, but its very experimental. Even a person, or quantum computer or anything nondeterministic, if hooked in, should always give the same answer to the same lambda call since mutable systems will be wrapped in digital signatures that sign a param/return pair (a system called mutableWrapperLambda) so a publicKey can be used as a deterministic lambda function that when called on such a param it gives that return, unless someone signs 2 return values for the same param in which case the energy function of Op.axa and Op.axb (the bloom filter, which only 1 of can be true of a certain statement or neither) can help figure out which one was built on by other people recursively, such as (Op.axa (Op.fpr func param ret)) where many such func param ret triples act like constraints, trying to satisfy the most number of them, so that if (apublickey "hello")->"world" and (concat (apublickey "hello") "xyz")->"worldxyz", then apublickey cant just sign the pair of "hello" "bob" cuz then (concat (apublickey "hello") "xyz")->"bobxyz" would have to be true but the constraints already say that returns "worldxyz". That would be a very expensive calculation to verify even small combos, but the research path is there to hold the system together by turing complete constraints. Will start on smaller easier things like 2d games, parsing its own programming language syntax, simple musical instruments, etc, especially in the CLEAN part where there is no Op.wiki, searching for what publickeys signed, etc... only deterministic things, and work up from there. In theory.
