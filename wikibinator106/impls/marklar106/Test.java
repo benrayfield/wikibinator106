@@ -26,6 +26,7 @@ public class Test{
 			testIdentityFuncs();
 			testSTLR();
 			testConsCarCdr();
+			testCurry1ToCurry16();
 			
 			//thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger();
 			//testIsHalted();
@@ -553,6 +554,42 @@ public class Test{
 		testEqq("testConsCarCdr_4", cdr.e(cdr.e(cdr.e(list_wiki_u_l))), nil);
 		testEqq("isNil_nil", isnil.e(nil), t);
 		testEqq("isNil_[list_N_A_L]", isnil.e(list_wiki_u_l), f);
+	}
+	
+	public static void testCurry1ToCurry16(){
+		lg("Starting testCurry1ToCurry16");
+		for(int params=1; params<16; params++){
+			testCurryN(params);
+		}
+	}
+	
+	public static void testCurryN(int n){
+		lg("Starting testCurry"+n);
+		fn curryN = c(n);
+		lg("curry"+n+" = "+curryN);
+		//curriesMore test is first cuz thats the one stored in header64 of marklar106b ids.
+		testEqq("test curry"+n+".curriesMore is 2+numParams=="+(2+n)+" cuz its comment then funcBody then those params.",
+			curryN.curriesMore(), 2+n);
+		testEqq("test curry"+n+".curriesAll is 7+numParams=="+(7+n)+" cuz its 5 params to choose op, then comment, then funcBody, then those "+n+" param(s).",
+			curryN.curriesAll(), 7+n);
+		testEqq("test curry"+n+".curriesSoFar is 5 cuz first 5 params of leaf choose which op.",
+			curryN.curriesSoFar(), 5);
+		fn comment = u;
+		for(int getMthLastParam=0; getMthLastParam<n; getMthLastParam++){
+			fn funcBody = q(getMthLastParam);
+			lg("funcBody = "+funcBody);
+			fn x = curryN.e(comment).e(funcBody);
+			int mForward = n-1-getMthLastParam; //get mForward'th param, where 0 is funcBody
+			for(int i=0; i<n; i++){ //call it with n params that are each u. The mth last param is wiki.
+				lg("x="+x);
+				if(i==n-1){
+					lg("Before last call: "+x);
+					testEqq("testCurry"+n+"_get"+getMthLastParam+"thLastParam_verifyCurriesmoreIs1", x.curriesMore(), 1);
+				}
+				x = x.e(i==mForward ? uu : u);
+			}
+			testEqq("testCurry"+n+"_get"+getMthLastParam+"thLastParam_returned", x, uu);
+		}
 	}
 	
 	/*public static void testIfElse(){

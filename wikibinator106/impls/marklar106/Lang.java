@@ -62,6 +62,7 @@ public class Lang{
 		names.put(Axb, "Axb");
 		names.put(growinglist, "growinglist");
 		names.put(Growinglist, "Growinglist");
+		for(int i=2; i<=16; i++) names.put(c(i), "c"+i); //FIXME should start at i=1
 		//TODO all other fn fields in ImportStatic have names, and todo copy them to an immutable map there instead of here
 		StringBuilder sb = new StringBuilder();
 		toString(sb, x, (λ y)->names.get(y));
@@ -69,7 +70,8 @@ public class Lang{
 		return toStringIncludesTopHeader ? s+"_"+Marklar106bId.toDetailString(x.marklar106bHeader()) : s;
 	}
 	
-	public static final boolean toStringIncludesTopHeader = false;
+	//public static final boolean toStringIncludesTopHeader = false;
+	public static final boolean toStringIncludesTopHeader = true; //FIXME should be false
 	
 	public static void toString(StringBuilder sb, λ x, Function<λ,String> funcToNameOrNull){
 		String name = funcToNameOrNull.apply(x);

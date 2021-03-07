@@ -154,12 +154,21 @@ public enum Op{
 	axa, axb, zero, and one, are the only ops that eval before it has all its params,
 	and zero and one always halt instantly when they do that, but this may take up to infinite time (halting problem related).
 	It evals at its first param to verify constraint,
-	and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if
+	UPDATE[switches from axa to axb or from axb to axa if disproven and halts, see Evaler where that happens]
+	OLD[and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if]
 	the statement it represents (such as "(x u)->u") is not true.
 	*/
 	axa(2,true),
 	
-	/** the bloom-filter counterpart of axa */
+	/** the bloom-filter counterpart of axa. Theres also a third case, not axa or axb, where it doesnt halt,
+	but lambdas will never see that, even if they're in debugStepOver andOr debutStepInto
+	cuz sometimes it takes an infinite number of steps to know it doesnt halt,
+	while other times you could easily prove something doesnt halt such as (s i i (s i i),
+	but since the universal function has to be deterministic, and it could never be agreed on
+	where the line between can-prove-it-halts vs halting-oracle is, there is no third ax statement,
+	but there should be at an NSAT level below the lambda level if its computed such as by 3sat constraints and
+	can be computed a variety of ways (GPU, CPU, pen and paper, 3SAT, etc) and they will all get the same result.
+	*/
 	axb(2,true),
 	
 	/** the lambda Lx.Ly.Lz.zxy. Church-pair lambda of 3 params */
@@ -199,10 +208,10 @@ public enum Op{
 	you might put a treemap of namespace in it or [salt treemapNamespace].
 	TODO should this instead be curry2 to curry17?
 	*/
-	curry1(1,false), curry2(2,false), curry3(3,false), curry4(4,false),
-	curry5(5,false), curry6(6,false), curry7(7,false), curry8(8,false),
-	curry9(9,false), curry10(10,false), curry11(11,false), curry12(12,false),
-	curry13(13,false), curry14(14,false), curry15(15,false), curry16(16,false);
+	curry1(1+1,false), curry2(1+2,false), curry3(1+3,false), curry4(1+4,false),
+	curry5(1+5,false), curry6(1+6,false), curry7(1+7,false), curry8(1+8,false),
+	curry9(1+9,false), curry10(1+10,false), curry11(1+11,false), curry12(1+12,false),
+	curry13(1+13,false), curry14(1+14,false), curry15(1+15,false), curry16(1+16,false);
 	
 	/** If true, then (axa x) evals to halted (axa x) if (x u)->u,
 	and evals to (axb x) if (x u) -> anything except u, where u is cleanLeaf,

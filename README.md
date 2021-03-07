@@ -7,61 +7,11 @@ and is designed to be GPU optimized and for gaming-low-lag sync in p2p network, 
 and has bitstrings built in up to 2^120 bits which in abstract math are padded with 10000...000 until next powOf2
 and can be sparse or dense, but in practice will store only the parts you actually need.
 
-The plan is for many opensource forks of the wikibinator106 VM to run in the same p2p network
-and compute the exact same bits as defined by that universal function,
-but they will vary in what optimizations they offer such as lwjgl opencl/GPU, javassist compiling, using it in python or javascript, networking, etc,
-and they will share immutable 2-way forest objects (each a function) in realtime, contained in 32 byte ids
-which are deterministicly generated from 2 child ids down to either of the 2 leafs,
-and multiple id types can be used at once since an id maker function is any function that returns
-a bitstring used as the id of its parameter, but hopefully there wont be a need for more than 1 id type. 
-At that point I will stop development of this prototype wikibinator106 VM
-and join the others in just using wikibinator106 at "user level",
-building things only using combos of calling the universal function on itself,
-and many people and computers build fun andOr useful things together,
-including AI reserach and massively multiplayer games (MMG) and music tools and mindmap software and whatever we want,
-and the parts or wholes of these tools can be built into other tools by immutable/stateless forkEdit in realtime.
-The risk of not censoring things, not anyone backdoors, etc, is spread across many wikibinator106 VM developers
-and their users. I plan to make sure that nobody, not even I, have the ability to backdoor or control the system
-but each individual user does for their own uses of it, in p2p networks and data at rest and clouds as peers.
-The system is not designed to push people into breaking any laws and will make it easy for
-people to build tools to scan for any patterns of content they do or do not want to host and build on,
-but when you're creating trillions of new lambda functions per second,
-as the lambda is the core of this system like the bit is the core of other systems,
-and building lambdas made from call pairs of other lambdas very deeply and in many combos,
-you cant just let someone say, you see that lambda (which is both code and data) buried deep
-in the foundation of these 5000 new tools that were created in the last month or in the last half second,
-those are illegal and you have to delete those and all those tools have to be modified.
-You can build lambdas that modify other lambdas automatically, so that would be possible to some extent,
-but I'm not going to suggest to people that they do or dont allow such requests to destroy what is built,
-and instead such choices are left to the individual users
-and tools we build for eachother to help evolve whatever needed processes.
-A tool is just a 256 bit (32 byte) number and the 2-way forest recursively below it.
-You dont have to use any tool that you dont want to.
-A tool is just a number, and a number cant be changed (is immutable and stateless).
-Just cuz someone says a number is changed, does not change the number that you are using.
-They are instead calling one number on another number to find/create a number, which is a separate number.
-Nobody owns the basics of math. All possible finite math statements can be written as a wikibinator106 number,
-such as there is an exact representation of pi and e as a function of integer to get which binary digit to get that digit.
-Nobody owns numbers. Just because you were the first to find or compute a number does not mean
-you can control what others do with that number. You can literally say "pi is exactly 3" in this system
-because it is so self referencing, using Op.axa and Op.fpr and a few other things,
-but you can also say "pi is not exactly 3" (using Op.axb),
-and more importantly, you can prove it, disproving that "pi is exactly 3",
-so let the pursuit of truth solve most if not all our disagreements.
-For example, if a certain lambda is a virus, like theres little self replicating creatures in conways game of life
-and you might call them viruses, then lets just say hey theres a virus and run it in simulations if you want
-but dont give ANYTHING execute permission ever for any reason,
-because if theres a trillion new lambdas per second, and only 1 in a million of them are viruses,
-then thats a million viruses per second. The system is designed to be 100% immune to viruses
-(conditional on using a set of id types that are not ALL cracked at once),
-and to have 100% uptime even if the entire internet is destroyed and the system
-has to be computed on pen and paper or in the exchange of USB sticks offline, IF
-the VM is correctly sandboxed, similar to viruses in a html file dont escape the browser into your private files.
-Since all objects are immutable and stateless, a virus can not modify anything to infect it.
-Nothing can modify anything ever for any reason, except to cache things for efficiency.
-Since there is no WRITE, only READ, and all viruses need to WRITE to infect, all viruses fail to infect,
-unless the wikibinator106 VM you are using does not correctly compute the exact bits
-that the universal function (a math spec) says to compute. This is a research path so is not necessarily safe yet.
+The graphics will look like this, with a code editor and games all in the same 2d, 3d, or n dimensional space, using this voxel system.
+Each voxel is 64 bits and will be generated by lambdas, and can be a single pixel, rectangle, oval, line at an angle, or char of simple text (no unicode yet, todo).
+For example, that checkbox in the pic is made of 7 voxels: 1 for background square, 4 for its borders, and 2 for the X, so a checkbox is 56 bytes.
+The smooth colors in top left are 1 voxel per pixel, 64k of them. The blue curve is made of circles.
+<img src=https://github.com/benrayfield/wikibinator106/blob/main/data/wikibinator106/pics/voxels_2021-3-7.png>
 
 2021-3-4 about 1/3 of the basic tests pass in
 https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
@@ -206,6 +156,64 @@ Starting testConsCarCdr. Nil is leaf/theUniversalFunction. isNil is the isLeaf o
 ### testEqq pass: isNil_nil, t
 ### testEqq pass: isNil_[list_N_A_L], f
 ```
+
+
+The plan is for many opensource forks of the wikibinator106 VM to run in the same p2p network
+and compute the exact same bits as defined by that universal function,
+but they will vary in what optimizations they offer such as lwjgl opencl/GPU, javassist compiling, using it in python or javascript, networking, etc,
+and they will share immutable 2-way forest objects (each a function) in realtime, contained in 32 byte ids
+which are deterministicly generated from 2 child ids down to either of the 2 leafs,
+and multiple id types can be used at once since an id maker function is any function that returns
+a bitstring used as the id of its parameter, but hopefully there wont be a need for more than 1 id type. 
+At that point I will stop development of this prototype wikibinator106 VM
+and join the others in just using wikibinator106 at "user level",
+building things only using combos of calling the universal function on itself,
+and many people and computers build fun andOr useful things together,
+including AI reserach and massively multiplayer games (MMG) and music tools and mindmap software and whatever we want,
+and the parts or wholes of these tools can be built into other tools by immutable/stateless forkEdit in realtime.
+The risk of not censoring things, not anyone backdoors, etc, is spread across many wikibinator106 VM developers
+and their users. I plan to make sure that nobody, not even I, have the ability to backdoor or control the system
+but each individual user does for their own uses of it, in p2p networks and data at rest and clouds as peers.
+The system is not designed to push people into breaking any laws and will make it easy for
+people to build tools to scan for any patterns of content they do or do not want to host and build on,
+but when you're creating trillions of new lambda functions per second,
+as the lambda is the core of this system like the bit is the core of other systems,
+and building lambdas made from call pairs of other lambdas very deeply and in many combos,
+you cant just let someone say, you see that lambda (which is both code and data) buried deep
+in the foundation of these 5000 new tools that were created in the last month or in the last half second,
+those are illegal and you have to delete those and all those tools have to be modified.
+You can build lambdas that modify other lambdas automatically, so that would be possible to some extent,
+but I'm not going to suggest to people that they do or dont allow such requests to destroy what is built,
+and instead such choices are left to the individual users
+and tools we build for eachother to help evolve whatever needed processes.
+A tool is just a 256 bit (32 byte) number and the 2-way forest recursively below it.
+You dont have to use any tool that you dont want to.
+A tool is just a number, and a number cant be changed (is immutable and stateless).
+Just cuz someone says a number is changed, does not change the number that you are using.
+They are instead calling one number on another number to find/create a number, which is a separate number.
+Nobody owns the basics of math. All possible finite math statements can be written as a wikibinator106 number,
+such as there is an exact representation of pi and e as a function of integer to get which binary digit to get that digit.
+Nobody owns numbers. Just because you were the first to find or compute a number does not mean
+you can control what others do with that number. You can literally say "pi is exactly 3" in this system
+because it is so self referencing, using Op.axa and Op.fpr and a few other things,
+but you can also say "pi is not exactly 3" (using Op.axb),
+and more importantly, you can prove it, disproving that "pi is exactly 3",
+so let the pursuit of truth solve most if not all our disagreements.
+For example, if a certain lambda is a virus, like theres little self replicating creatures in conways game of life
+and you might call them viruses, then lets just say hey theres a virus and run it in simulations if you want
+but dont give ANYTHING execute permission ever for any reason,
+because if theres a trillion new lambdas per second, and only 1 in a million of them are viruses,
+then thats a million viruses per second. The system is designed to be 100% immune to viruses
+(conditional on using a set of id types that are not ALL cracked at once),
+and to have 100% uptime even if the entire internet is destroyed and the system
+has to be computed on pen and paper or in the exchange of USB sticks offline, IF
+the VM is correctly sandboxed, similar to viruses in a html file dont escape the browser into your private files.
+Since all objects are immutable and stateless, a virus can not modify anything to infect it.
+Nothing can modify anything ever for any reason, except to cache things for efficiency.
+Since there is no WRITE, only READ, and all viruses need to WRITE to infect, all viruses fail to infect,
+unless the wikibinator106 VM you are using does not correctly compute the exact bits
+that the universal function (a math spec) says to compute. This is a research path so is not necessarily safe yet.
+
 
 
 Some people thought it impossible. Supports function.equals(function) with perfect deduplication of functions, and can map functions 1-to-1 with the integers, and even better it has average of constant cost (and worst case of number of childs reachable deeply), as in...
