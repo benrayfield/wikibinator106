@@ -13,9 +13,9 @@ For example, that checkbox in the pic is made of 7 voxels: 1 for background squa
 The smooth colors in top left are 1 voxel per pixel, 64k of them. The blue curve is made of circles. The 64 bits are divided this way: 11 bits for xStart, yStart, xEnd, yEnd (a rectangle/oval or lines 2 ends), so up to 2048x2048 resolution. 12 bit color, so 16 brightnesses of red, 16 of green, and 16 of blue. Line thickness ranges 1-128 pixels, and thats the negative byte values. Byte value 0 is rectangle. 1 is oval. 2-127 is text (todo unicode, but need bigger voxels than 64 bits later). This will be enough to create huge massively multiplayer 3d worlds, kind of cartoony but its more about the gameplay which you can (todo) modify while playing it to evolve or design millions of new games per second all within the same endless space of endless number of dimensions, branching and merging how they fit together with other peoples creations smoothly.
 <img src=https://github.com/benrayfield/wikibinator106/blob/main/data/wikibinator106/pics/voxels_2021-3-7.png>
 
-As of 2021-3-10, the equals function is nearly finished (a lambda that can detect equality of any 2 given lambdas, in a pattern-calculus way that allows reflection ops to see the internal 2-way forest shape which is all its really comparing),
+As of 2021-3-10, the equals function is nearly finished (a lambda that can detect equality of any 2 given lambdas, in a pattern-calculus way that allows reflection ops to see the internal 2-way forest shape which is all its really comparing), and these testcases are working, and the rest are commentedout cuz havent rewritten them from earlier forks.
 
-and these testcases are working, and the rest are commentedout cuz havent rewritten them from earlier forks.
+Test cases https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
 testLeafAndFewOpsInternalStructures_withFewThingsCommentedOutCuzCodeWasFromDiffUniversalFunc_todoAddSimilarTests();
 testTF();
 testPair();
