@@ -21,7 +21,7 @@ public enum Op{
 	to get a growinglist_cbtlike_thing twice as big, but its not a cbt anymore.
 	FIXME you can or cant have a comment other than cleanLeaf in clean cbt???
 	*/
-	zero(122,true),
+	zero(5+1+121,true),
 	
 	/** See comment of Op.zero about params. Bitstrings up to 2^120-1 bits. The last 1 bit is the first bit of padding.
 	The default kind of id is a 256 bit id and stores the low 32 (UPDATE: 40) bits of bize (bitstring size),
@@ -59,32 +59,32 @@ public enum Op{
 	but its slower.
 	TODO what should the 127th curry do?
 	*/
-	one(122,true),
+	one(5+1+121,true),
 	
 	/** the lambda Lx.Ly.y. (fal u) is the normed form of cleanIdentityFunc,
 	and (Fal u) is normed dirtyIdentityFunc which is the most general but as usual can only
 	be called by other dirty funcs without truncating their param to clean before they see it.
 	*/
-	fal(2,false),
+	fal(5+1+2,false),
 	
 	/** the lambda Lx.Ly.x aka the K lambda of ski calculus */
-	tru(2,false),
+	tru(5+1+2,false),
 	
 	/** The reflect ops are: getfunc/l, getparam/r, isleaf, isclean.
 	aka L. (L x (R x)) equals x, forall halted x. x.l().e(x.r()).equals(x) forall halted x.
 	*/
-	getfunc(1,false),
+	getfunc(5+1+1,false),
 	
 	/** The reflect ops are: getfunc/l, getparam/r, isleaf, isclean.
 	aka R. (L x (R x)) equals x, forall halted x. x.l().e(x.r()).equals(x) forall halted x.
 	*/
-	getparam(1,false),
+	getparam(5+1+1,false),
 	
 	/** The reflect ops are: getfunc/l, getparam/r, isleaf, isclean.
 	returns Op.tru or Op.fal (or Tru or Fal if self is Dirty) depending if its param is leaf
 	(either of cleanLeaf or DirtyLeaf)
 	*/
-	isleaf(1,false),
+	isleaf(5+1+1,false),
 	
 	/** The reflect ops are: getfunc/l, getparam/r, isleaf, isclean.
 	Every object is a 2-way forest with 1 bit of data (UPDATE: 0 bits of data (forest shape only):
@@ -98,7 +98,7 @@ public enum Op{
 	(L cleanLeaf) is cleanIdentityFunc. (L dirtyLeaf) is dirtyIdentityFunc.
 	(R cleanLeaf) is cleanLeaf. (R dirtyLeaf) is dirtyLeaf.
 	*/
-	isclean(1,false),
+	isclean(5+1+1,false),
 	
 	/** All nondeterminism goes here, and if clean then it infinite loops for all possible params,
 	else is decided by ax fpr statements.
@@ -110,14 +110,14 @@ public enum Op{
 	(curry... solve x) -> y where (ax (fpr x y cleanLeaf)).
 	64 bit local ids of things, actually global ids but with some prefix so nobody else would randomly choose it?
 	*/
-	wiki(1,false),
+	wiki(5+1+1,false),
 	
 	/** (fpr func param ret u) -> u if (func param)->ret, else -> (u u), where u is cleanLeaf.
 	Example: (axa (fpr ["hello" "world"] fal "world")) cuz (["hello" "world"] fal) -> "world".
 	Example: (axb (fpr ["hello" 235] fal "world")) cuz (["hello" 235] fal) -not-> "world" aka does not return "world",
 	so in that case (fpr ["hello" 235] fal "world" u) -> (u u).
 	*/
-	fpr(4,false),
+	fpr(5+1+4,false),
 	
 	/** (axA x) and (axB x) cant both exist.
 	(axA x) is halted if (x u)->u.
@@ -158,7 +158,7 @@ public enum Op{
 	OLD[and if not verified then it infinite loops (evals to (S I I (S I I))) so it cant exist if]
 	the statement it represents (such as "(x u)->u") is not true.
 	*/
-	axa(2,true),
+	axa(5+1+2,true),
 	
 	/** the bloom-filter counterpart of axa. Theres also a third case, not axa or axb, where it doesnt halt,
 	but lambdas will never see that, even if they're in debugStepOver andOr debutStepInto
@@ -169,10 +169,10 @@ public enum Op{
 	but there should be at an NSAT level below the lambda level if its computed such as by 3sat constraints and
 	can be computed a variety of ways (GPU, CPU, pen and paper, 3SAT, etc) and they will all get the same result.
 	*/
-	axb(2,true),
+	axb(5+1+2,true),
 	
 	/** the lambda Lx.Ly.Lz.zxy. Church-pair lambda of 3 params */
-	pair(3,false),
+	pair(5+1+3,false),
 	
 	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
 	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
@@ -184,16 +184,16 @@ public enum Op{
 	or all possible universe states, but even then its probably better to use some other datastruct
 	cuz cbt is as deep as log of its size, which can get very deep if its very sparse.
 	*/
-	growinglist(3,false),
+	growinglist(5+1+3,false),
 	
 	/** (typeval x y z)->(y z). Normally just keep it as (typeval x y)
 	such as (typeval "image/jpeg" ...bytesofjpgfile...) as a semantic.
 	If you want turingComplete types, use Op.axa and Op.axb.
 	*/
-	typeval(3,false),
+	typeval(5+1+3,false),
 	
 	/** the S lambda of ski calculus: Lx.Ly.Lz.xz(yz) */
-	trecurse(3,false),
+	trecurse(5+1+3,false),
 	
 	/** Example: (curry5 comment funcBody a b c d) is halted,
 	and (curry5 comment funcBody a b c d e) -> (funcBody [(curry5 comment funcBody a b c d) e]),
@@ -208,28 +208,14 @@ public enum Op{
 	you might put a treemap of namespace in it or [salt treemapNamespace].
 	TODO should this instead be curry2 to curry17?
 	*/
-	curry1(1+1,false), curry2(1+2,false), curry3(1+3,false), curry4(1+4,false),
-	curry5(1+5,false), curry6(1+6,false), curry7(1+7,false), curry8(1+8,false),
-	curry9(1+9,false), curry10(1+10,false), curry11(1+11,false), curry12(1+12,false),
-	curry13(1+13,false), curry14(1+14,false), curry15(1+15,false), curry16(1+16,false);
+	curry1(5+1+1+1,false), curry2(5+1+1+2,false), curry3(5+1+1+3,false), curry4(5+1+1+4,false),
+	curry5(5+1+1+5,false), curry6(5+1+1+6,false), curry7(5+1+1+7,false), curry8(5+1+1+8,false),
+	curry9(5+1+1+9,false), curry10(5+1+1+10,false), curry11(5+1+1+11,false), curry12(5+1+1+12,false),
+	curry13(5+1+1+13,false), curry14(5+1+1+14,false), curry15(5+1+1+15,false), curry16(5+1+1+16,false);
 	
-	/** If true, then (axa x) evals to halted (axa x) if (x u)->u,
-	and evals to (axb x) if (x u) -> anything except u, where u is cleanLeaf,
-	but either way if (x u) does not halt then (axa x) does not halt,
-	and similar for (axb x).
-	If false, then instead of returning the opposite of axa/axb when disproof (proves the opposite),
-	infinite loops (halts instantly, giving up to not waste gas on known infinite loop, but not all infinite loops can be detected,
-	just those marked that way such as putting an Evaler instance to do that in (s (t (s i i)) (t (s i i))))
-	which is a function that infinite loops for all possible params, then in a deepest evaler
-	such as wikibinator106.impls.marklar106.InterpretedModeUsingJavaStack, could call (s (t (s i i)) (t (s i i)))
-	stored in some public static final λ java var, call that on u, when func is axa or axb and param is x
-	and its disproven, instead of returning cp(opposite_axa_or_axb,x)
-	which works if call that but no need to call it just return the cp(...) call pair for efficiency. 
-	*/
-	public static final boolean isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx = true;
-	
-	/** curriesAll-6. after the first 6 params (first 5 chooses op, next param is comment), then the params of the op) */
+	/** curriesAll-6. after the first 6 params (first 5 chooses op, next param is comment), then the params of the op) *
 	public final byte params;
+	*/
 	
 	/** Does it eval on every curry, or just the last/curriesAll/curriesMore? False if only has 1 curry.
 	Things like axa verifying constraint on its first param, and still evaling as normal on second param,
@@ -250,12 +236,11 @@ public enum Op{
 	*/
 	public final byte op6Bits;
 	
-	private Op(int params, boolean evalsEarly){
-		if(params < 1 || params > 122) throw new RuntimeException("param = "+params);
-		this.params = (byte)params;
-		this.curriesAll = (byte)(5+params);
-		this.op6Bits = (byte)(32|ordinal());
+	private Op(int curriesAll, boolean evalsEarly){
+		if(curriesAll < 6 || curriesAll > 127) throw new RuntimeException("curriesAll = "+curriesAll);
+		this.curriesAll = (byte)curriesAll;
 		this.evalsEarly = evalsEarly;
+		this.op6Bits = (byte)(32|ordinal());
 	}
 	
 	public static byte nextOp6Bits(byte leftOp6Bits, byte leftCurriesMore, byte rightOp6Bits, byte rightCurriesMore, boolean rightIsClean){
@@ -282,7 +267,7 @@ public enum Op{
 	public static void main(String[] args){
 		if(Op.values().length != 32) throw new RuntimeException("Must be exactly 32 ops but is "+Op.values().length);
 		for(Op op : Op.values()){
-			System.out.println(op+"("+op.params+")");
+			System.out.println(op+"("+op.curriesAll+") aka 5+1+"+(op.curriesAll-6));
 		}
 	}
 	

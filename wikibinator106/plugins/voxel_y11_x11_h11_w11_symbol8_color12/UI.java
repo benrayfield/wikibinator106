@@ -7,12 +7,19 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import com.sun.jdi.Value;
+
+import mutable.util.Var;
+import wikibinator106.spec.λ;
 
 /** UPDATE: symbol8 is 0 for rect/pixel, 1 for oval, -128..-1 for that thickness of line, else ascii,
 and while I do plan to add unicode support later, this is a very basic UI for lambdas
@@ -40,20 +47,118 @@ Or a checkbox is 5 rectangles for the main square and its borders and 2 diagonal
 */
 public class UI extends JPanel implements Consumer<long[]>{
 	
+	/*TODO[
+	    see treemapDesignDoc.txt
+		(mapPair minChild maxChild)
+		(mapSingle key val)
+		mapEmpty
+		???
+		This way makes it more humanReadable such as...
+		(m2 (m2 (m1 "abc" "def") (m1 "hello" "world")) (m1 3 5)) //a map size 3
+		m0 //emptyMap
+		???
+		but it might be too slow cuz uses fpr cache to get minKey and maxKey at every get call, log number of times.
+		Try it anyways.
+	]
+	
+	Controls go in the context treemap (in a "controls" key -> inner treemap),
+	which is normally first param of every curry op,
+	and "salt" goes in root of that treemap, and maybe also a "this" in some cases,
+	or maybe put it all as 1 flat map so its simpler to optimize in progn/loops/ifelse/etc.
+	In dirty nodes, will normally forkEdit salt using 1 of 2 unitary transforms
+	so its deterministic after the top level call which gives it a random salt,
+	so calls in Wiki can be retried such as calling wallet (local var, not crypocurrency)
+	multiple times doesnt get cached to return the same number ever time,
+	but does get cached in places you want it cached by not changing salt there,
+	cuz otherwise you wouldnt be able to call a forest of Op.trecurse/s
+	such as to get the wallet value and divide it by 3,
+	then to divide that same wallet value by 5, so those have a known ratio when salt is the same,
+	but when salt differs, its 2 different calls of wallet. similar for spend call,
+	you can try to spend on a call but if it fails (due to not enough gas/wallet)
+	then you can try it again with different salt,
+	cuz otherwise (with same salt) it would not try again (unless cache was cleared).
+	Similar will use fulleconacyc and zapeconacyc and maybe recursiveExpireTime,
+	to help choose what to keep and what to let become garbcolable (garbage collectible)
+	due to forest of pointers preventing big things from garbcol.
+	..
+	In 1 run of wikibinator106, the UI window opens,
+	and its state is a treemap, which contains functions, controls, cbt of long voxels,
+	sound buffers (1 per channel? or all together?), etc,
+	and "nextState" (or what string?) is a key in that treemap whose value is a function
+	that takes such a treemap as param and returns a treemap, the next state of the system (on this computer).
+	UI will put controls (such as "VK_A" for the keyboard button A, or "myusername345.VK_A" etc,
+	and map that to a double (or int16? or float?) thats 1 when key down, and 0 when key up,
+	and similar for "myusername345.mouseX" etc, but maybe those should go in a "controls" treemap
+	where everything maps to the same value type such as double int16 or float?
+	It will also have a "time" key that maps to double utc seconds, used for sound buffer timing and dates etc,
+	and maybe somewhere else will have a value of cbt32k for the most recent sound buffer ending at that time etc,
+	and have a "whoami" key so will know what prefix to use in "myusername345.mouseX" etc
+	as you might want a copy of other users controls,
+	only those which they choose to broadcast (and maybe sign by ed25519),
+	if they are playing a game together and you are a server or multiple peers controlling parts of the game etc,
+	and they would want a copy of some of your key/value pairs, etc (also ed25519 sign those maybe).
+	These treemaps would be sparse, containing only whats maybe relevant to the local calculation,
+	and they're also similar to a VM like how linux has certain standard dirs /opt /dev /var etc.
+	A treemap takes a key as param and returns the value,
+	so for treemap tr, if it has a "put" key, you could call (tr "put" tr "hello" "world")
+	which would return a treemap with "hello" mapped to "world",
+	so (tr "put" tr "hello" "world" "hello") returns "world" if (tr "put") returns a treemapPut func
+	which might be true of the outer treemap but would not be true of most treemaps,
+	since otherwise for different kinds of maps you might not know which put function to use.
+	Similarly, (tr "whoami") might return "myusername345" or a pubkey or a base58 encoding of it etc.
+	Similarly, (tr "nextState" tr) would return the next state, considering (tr "controls") etc,
+	and (tr "screens_voxel_y11_x11_h11_w11_symbol8_color12" (tr "whoami")) would return a cbt of myusername345's voxels,
+	and (tr "soundStreams_varSizeInt16Arrays" "someNameOfASoundStream") would return a cbt of the recent sound samples.
+	Privacy exists where you dont publish certain things, or not tell it to automatically publish certain patterns of things,
+	but once a function (and all data are functions, such as a bitstring or fibonacci function)...
+	once a function is out there, anyone may copy it to anyone else,
+	similar to the general truth of "the internet never forgets" so be careful what you publish.
+	
+	TODO dragAndDrop into and out of java window using Const.contentTypePlr and 3 ids (parent left right),
+	as you get a dataUrl when dragging it out (not deep, just those 3 ids), and things dragged in
+	have to be either a dataUrl or λ/fn. Maybe create local ids for them?
+	
+	/*TODO??? allocate 8 of the 128 symbols for line width 1-8 pixels? Or do I need really big lines
+	like if you zoom in near a checkbox and it looks huge on screen?
+	..
+	Cuz I want the sign bit of long to choose between sound/buttons/joysticks vs graphics.
+	If not graphics, then its:
+	-- 31 bits of time in units of 2^-16 seconds, so can handle sound and keyboard and joysticks, for 9 hours.
+	-- 16 bits of whichChannel, which can mount multiple speakers, microphones, many keyboards, joysticks, mouse, etc.
+	-- 16 bits of value per channel. It stays that value until changed.
+	If graphics, then its the usual voxels, except need 1 of the bits to choose between that vs the other parts.
+	..
+	I could go down to 2048x1024 to get that bit (actually get 2 bits from that).
+	
+	Or, put that kind of thing in a treemap outside the voxel system?
+	*/
+	
 	//public int visiblePixelsY0To1023
 	//public int visiblePixelsX0To1023 //range in pixels[(y<<10)|x], derived from getWidth() but not equal to it more of an inverse etc
 	
-	/** variable size. can replace this array */
+	/** variable size. can replace this array. TODO move all fields other than "Var<λ> state" into forkedits of "Var<λ> state". */
 	public long[] voxels;
 	
-	/** 2048x2048 */
+	/** 2048x2048. TODO move all fields other than "Var<λ> state" into forkedits of "Var<λ> state". */
 	public final int[] pixelsARGB = new int[1<<22];
 	
+	/** TODO move all fields other than "Var<λ> state" into forkedits of "Var<λ> state". */
 	int mouseY, mouseX;
 	
-	public UI(){
+	public final Var<λ> state;
+	
+	protected Consumer<Var> listener;
+	
+	public UI(Var<λ> state){
+		this.state = state;
+		if(state != null){ //it should never be null, but code is very incomplete
+			this.listener = (Var v)->{ onStateChange(); };
+			this.state.startListening(this.listener);
+		}
 		addMouseMotionListener(new MouseMotionListener(){
 			public void mouseMoved(MouseEvent e){
+				//TODO move all fields other than "Var<λ> state" into forkedits of "Var<λ> state",
+				//so state.changer(λ->...) 
 				mouseY = e.getY();
 				mouseX = e.getX();
 				repaint();
@@ -62,6 +167,32 @@ public class UI extends JPanel implements Consumer<long[]>{
 				mouseMoved(e);
 			}
 		});
+		addKeyListener(new KeyListener() {
+			public void keyTyped(KeyEvent e){}
+			public void keyReleased(KeyEvent e){
+				//TODO move all fields other than "Var<λ> state" into forkedits of "Var<λ> state",
+				//so state.changer(λ->...)
+			}
+			public void keyPressed(KeyEvent e){
+				//TODO move all fields other than "Var<λ> state" into forkedits of "Var<λ> state",
+				//so state.changer(λ->...)
+			}
+		});
+		//TODO tr.sound tr.screen tr.vms tr.controls tr.whoami tr.time etc
+	}
+	
+	public void onStateChange(){
+		if(state != null){ //it should never be null, but code is very incomplete
+			System.out.println("onStateChange state="+state.get());
+			repaint();
+		}
+	}
+	
+	protected void finalize(){
+		if(state != null){ //it should never be null, but code is very incomplete
+			if(listener != null) state.stopListening(listener);
+			listener = null;
+		}
 	}
 	
 	public static int colorObjectTo12Bits(Color c){
@@ -327,7 +458,7 @@ public class UI extends JPanel implements Consumer<long[]>{
 	
 	public static void main(String[] args){
 		JFrame window = new JFrame();
-		UI ui = new UI();
+		UI ui = new UI(null);
 		long[] individualPixels = new long[1<<16];
 		for(int i=0; i<individualPixels.length; i++){
 			individualPixels[i] = pixel(i&0xff, i>>8, i);

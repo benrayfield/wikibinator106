@@ -13,11 +13,45 @@ For example, that checkbox in the pic is made of 7 voxels: 1 for background squa
 The smooth colors in top left are 1 voxel per pixel, 64k of them. The blue curve is made of circles. The 64 bits are divided this way: 11 bits for xStart, yStart, xEnd, yEnd (a rectangle/oval or lines 2 ends), so up to 2048x2048 resolution. 12 bit color, so 16 brightnesses of red, 16 of green, and 16 of blue. Line thickness ranges 1-128 pixels, and thats the negative byte values. Byte value 0 is rectangle. 1 is oval. 2-127 is text (todo unicode, but need bigger voxels than 64 bits later). This will be enough to create huge massively multiplayer 3d worlds, kind of cartoony but its more about the gameplay which you can (todo) modify while playing it to evolve or design millions of new games per second all within the same endless space of endless number of dimensions, branching and merging how they fit together with other peoples creations smoothly.
 <img src=https://github.com/benrayfield/wikibinator106/blob/main/data/wikibinator106/pics/voxels_2021-3-7.png>
 
-2021-3-4 about 1/3 of the basic tests pass in
-https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
-and the rest are commentedout cuz havent rewritten them from earlier forks.
-The syntax will be far easier to read than this
-as you wont have to call .e (lambda call) but write things like this...
+As of 2021-3-10, the equals function is nearly finished (a lambda that can detect equality of any 2 given lambdas, in a pattern-calculus way that allows reflection ops to see the internal 2-way forest shape which is all its really comparing),
+
+and these testcases are working, and the rest are commentedout cuz havent rewritten them from earlier forks.
+testLeafAndFewOpsInternalStructures_withFewThingsCommentedOutCuzCodeWasFromDiffUniversalFunc_todoAddSimilarTests();
+testTF();
+testPair();
+testIota();
+testLRQuine();
+testIdentityFuncs();
+testSTLR();
+testConsCarCdr();
+testProgn();
+testCurry1ToCurry16();
+testLazig();
+testIfElse();
+
+q3 (aka getter of 3th last param given curryDatastruct) = {,r {,l {,l {,r l}}}}
+q4 (aka getter of 4th last param given curryDatastruct) = {,r {,l {,l {,l {,r l}}}}}
+q5 (aka getter of 5th last param given curryDatastruct) = {,r {,l {,l {,l {,l {,r l}}}}}}
+
+{,r {,r l}}} i (pair t f))) (c3 {,r {,l {,r l}} {,r {,r l}}} ,r (pair t f))))
+evaling. op=curry3. funcBody = {,r {,l {,r l}} {,r {,r l}}}
+evaling. op=curry3.     func = (c3 {,r {,l {,r l}} {,r {,r l}}} i (pair t f))
+evaling. op=curry3     param = λ
+curryDatastruct = (pair (c3 {,r {,l {,r l}} {,r {,r l}}} i (pair t f)) λ), about to call funcBody on it
+About to call ({,r {,l {,r l}} {,r {,r l}}} (pair (c3 {,r {,l {,r l}} {,r {,r l}}} i (pair t f)) λ))
+### testEqq pass: ifElse car then I, car gets T which chooses then(I), and the I called on (P T F) returns (P T F), (pair t f)
+evaling. op=curry3. funcBody = {,pair {,r {,r l}} r {,r {,l {,r l}}} ,λ}
+evaling. op=curry3.     func = (c3 {,pair {,r {,r l}} r {,r {,l {,r l}}} ,λ} f (c3 {,r {,l {,r l}} {,r {,r l}}} i (pair t f)))
+evaling. op=curry3     param = (c3 {,r {,l {,r l}} {,r {,r l}}} {,pair i i} (pair t f))
+curryDatastruct = (pair (c3 {,pair {,r {,r l}} r {,r {,l {,r l}}} ,λ} f (c3 {,r {,l {,r l}} {,r {,r l}}} i (pair t f))) (c3 {,r {,l {,r l}} {,r {,r l}}} {,pair i i} (pair t f))), about to call funcBody on it
+About to call ({,pair {,r {,r l}} r {,r {,l {,r l}}} ,λ} (pair (c3 {,pair {,r {,r l}} r {,r {,l {,r l}}} ,λ} f (c3 {,r {,l {,r l}} {,r {,r l}}} i (pair t f))) (c3 {,r {,l {,r l}} {,r {,r l}}} {,pair i i} (pair t f))))
+evaling. op=curry3. funcBody = {,r {,l {,r l}} {,r {,r l}}}
+evaling. op=curry3.     func = (c3 {,r {,l {,r l}} {,r {,r l}}} {,pair i i} (pair t f))
+evaling. op=curry3     param = λ
+curryDatastruct = (pair (c3 {,r {,l {,r l}} {,r {,r l}}} {,pair i i} (pair t f)) λ), about to call funcBody on it
+About to call ({,r {,l {,r l}} {,r {,r l}}} (pair (c3 {,r {,l {,r l}} {,r {,r l}}} {,pair i i} (pair t f)) λ))
+### testEqq pass: ifElse cdr then I, cdr gets F which chooses thenT(P,I,I), and the thenT(P,I,I) called on e(P,T,F) returns (P (P T F) (P T F)), (pair (pair t f) (pair t f))
+
 
 ```
 λ#u

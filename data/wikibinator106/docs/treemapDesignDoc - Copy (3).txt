@@ -1,0 +1,107 @@
+(mapPair minMapSingle minMapPair maxMapPair maxMapSingle)
+(mapSingle key val)
+mapEmpty
+
+
+
+/*
+(curry7 funcBody marklar106bIdMaker childB childC minKey maxKey valueOfMaxKey getValueOfThisKey)
+
+(curry7 funcBody marklar106bIdMaker)#map
+
+(curry7 funcBody marklar106bIdMaker u u)#keyval
+
+(keyval "hello" "hello" "world")
+
+(map childMapA childMapB minKey maxKey valueOfMaxKey)
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+
+(...)#marklar106bIdMaker
+
+(
+	curry5
+	"(treemap keyMaker minKey maxKey minChild maxChild getValueOfThisKey)->val, or something like that"
+	(...funcbody...)
+	marklar106bIdMaker
+)#tm
+
+(tm minkeyA childTmB childTmC maxKeyD)
+
+TODO how to represent emptyMap, map of size 1, and map of 2 child maps?
+Could put long size as 1 of the params, and check if it equals 0, 1, or is bigger.
+
+(tm minkeyA maxKeyD longSize childTmB childTmC)
+
+(tm theKey theKey 1L theVal theVal) ?
+(tm childTmB childTmC minkeyA maxKeyD longSize minValIfNonempty)
+
+
+Or could use fpr cache to get min and max keys so its much smaller (only 3 params after idMaker)...
+(tm longSize childTmB_or_onlyKey childTmC_or_onlyVal)
+
+(tmPair childTmB childTmC)
+(tmSingle onlyKey onlyVal)
+tmEmpty
+
+(tm minKey maxKey longSize childTmB_or_onlyKey childTmC_or_onlyVal)
+???
+
+This one seems simplest to think about, but I dont like how many params it has:
+(tm minkeyA childTmB childTmC maxKeyD longSize minValIfNonempty)
+
+
+These 3 could be used together:
+(tmPair childTmB childTmC)
+(tmSingle onlyKey onlyVal)
+tmEmpty
+
+
+Could technically use pairs as treemap internal nodes, if there was separate get and put funcs that take such a pair forest, and if there was some way to know where it reaches a map of size 1.
+
+
+
+
+Use this one, to get started...
+(tm longSize childTmB_or_onlyKey childTmC_or_onlyVal)
+Example: (tm 0L u u) is empty map.
+Example: (tm 1L "hello" "world") is a map of "hello" to "world".
+Example: (tm 2L (tm 1L "hello" "world") (tm 1L 55.3 67.8)) is a map of 2 things but may be in the wrong order depending on which idMaker is (R tm).
+
+(
+	curry5
+	"(treemap keyMaker longSize childTmB_or_onlyKey childTmC_or_onlyVal getValueOfThisKey)->val"
+	(...funcbody...)
+)#tmWithoutIdmaker
+
+(tmWithoutIdmaker marklar106bIdMaker)#map
+(map 2L (map 1L "hello" "world") (map 1L 55.3 67.8))
+Notice that (map 1L) is used twice, so theres only actually 2 params stored for a map thats the same size as any other map, plus an extra param for the group.
+
+Do I want to include mapPut behavior in the map func itself, vs that be a separate func?
+Like, (map 1L "hello" "world" "put" "x" "y")-> a map of size 2 where hello->world and x->y?
+
+Do I want to use the axa turingCompleteTypeSystem, where map would be a call of axa that proves its childs are also maps of the same idMaker and is correctly trie sorted etc? It would be slower. You could make such an axa wrapper around any existing datastruct, so no need to build it into the map func itself. You could have map func and provenMap func which wraps a map instance.
+
+(map 2L (map 1L "hello" "world") (map 1L 55.3 67.8))
+
+
+(map234 childB childC minKey maxKey valueOfMaxKey)
+*/

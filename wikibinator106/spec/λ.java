@@ -346,5 +346,9 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	since (todo choose a design?) only halted nodes are allowed.
 	*/
 	public Subclass p(Subclass r);
+	
+	/*public default String toDataUrl(fn idMaker){
+		throw new RuntimeException("TODO concat data:"+Const.contentTypePlr+" base64 something, then call idMaker on this, on this.l(), on this.r()... Or just define a dataUrl as a kind of id, so given an idMaker (such as marklar106b idMaker), the dataUrlIdMaker would do this. Want this for dragAndDrop into and out of java window");
+	}*/
 
 }

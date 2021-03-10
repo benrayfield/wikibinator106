@@ -218,7 +218,7 @@ public class Marklar106bId{
 				//first 5 params choose op. left has 4 curries and hasnt chosen op yet,
 				//so skip the deeplazy step (curriesMore==0) and go straight to that op.
 				curriesMore = (byte)(Op.op6Bits_to_curriesAll(op6bits)-5);
-				assert curriesMore == Op.ordinalToOp(op6bits-32).params; //FIXME when is assert turned on?
+				assert curriesMore == Op.ordinalToOp(op6bits-32).curriesAll-5; //FIXME when is assert turned on?
 			}else{
 				curriesMore = (byte)(leftCurriesMore-1);
 			}

@@ -1,7 +1,6 @@
 /** Ben F Rayfield offers this software opensource MIT license */
 package wikibinator106.impls.marklar106;
 import java.util.Arrays;
-
 import wikibinator106.spec.*;
 
 public class ImportStatic{
@@ -101,13 +100,19 @@ public class ImportStatic{
 	}
 	
 	/** s(a,b,c,d) is s(s(s(a,b),c),d). s(a,b) is cp(cp(s,a),b). */
-	public static fn ss(fn metafunc, fn... metaparams){
-		for(fn metaparam : metaparams) metafunc = s(metafunc,metaparam);
-		return metafunc;
+	public static fn ss(fn... funcs){
+		if(funcs.length == 0) throw new RuntimeException("No params");
+		fn func = funcs[0];
+		for(int i=1; i<funcs.length; i++) func = s(func,funcs[i]);
+		return func;
 	}
 	
-	public static fn st(fn metafunc, fn... metaparams){
-		return ss(t(metafunc),metaparams);
+	public static fn st(fn... funcs){
+		if(funcs.length == 0) throw new RuntimeException("No params");
+		fn func = t(funcs[0]);
+		for(int i=1; i<funcs.length; i++) func = s(func,funcs[i]);
+		return func;
+		//return ss(t(metafunc),metaparams);
 	}
 	
 	public static fn cp(boolean isClean, fn func, fn param){
@@ -237,6 +242,16 @@ public class ImportStatic{
 		return op6BitsToDirtyFn(o.op6Bits);
 	}
 	
+	/* clean op with comment of u/cleanLeaf (the default comment) */
+	public static fn opu(Op o){
+		return cp(op(o),u);
+	}
+	
+	/* dirty Op with comment of u/cleanLeaf (the default comment) */
+	public static fn Opu(Op o){
+		return cp(Op(o),u);
+	}
+	
 	//There is no dirty u or dirty (u u), but anything else has 2 forms: clean and dirty,
 	//except FIXME what if theres a clean thing or dirty thing in first param of u other than u vs uu.
 	//I dont plan to put anything but u or uu in first param of u, but it will happen in dovetailing
@@ -262,30 +277,30 @@ public class ImportStatic{
 	//FIXME 2021-2-28 these ops were recently copied from wikibinator105 so are the wrong way to derive those...
 	
 	//public static final fn wiki      = bootOp(u,	u,	u,	u,	u,	u);
-	public static final fn wiki = op(Op.wiki);
-	public static final fn Wiki = Op(Op.wiki);
+	public static final fn wiki = opu(Op.wiki);
+	public static final fn Wiki = Opu(Op.wiki);
 	
 	//public static final fn isleaf    = bootOp(u,	u,	u,	u,	u,	uu);
-	public static final fn isleaf = op(Op.isleaf);
-	public static final fn Isleaf = Op(Op.isleaf);
+	public static final fn isleaf = opu(Op.isleaf);
+	public static final fn Isleaf = Opu(Op.isleaf);
 	public static final fn isnil = isleaf; //FIXME this should be isleaf AND isclean
 	public static final fn Isnil = Isleaf;
 	
 	//public static final fn l         = bootOp(u,	u,	u,	u,	uu,	u);
-	public static final fn l = op(Op.getfunc);
-	public static final fn L = Op(Op.getfunc);
+	public static final fn l = opu(Op.getfunc);
+	public static final fn L = Opu(Op.getfunc);
 	
 	//public static final fn r         = bootOp(u,	u,	u,	u,	uu,	uu);
-	public static final fn r = op(Op.getparam);
-	public static final fn R = Op(Op.getparam);
+	public static final fn r = opu(Op.getparam);
+	public static final fn R = Opu(Op.getparam);
 	
 	//public static final fn t         = bootOp(u,	u,	u,	uu,	u);
-	public static final fn t = op(Op.tru);
-	public static final fn T = Op(Op.tru);
+	public static final fn t = opu(Op.tru);
+	public static final fn T = Opu(Op.tru);
 	
 	//public static final fn f        = bootOp(u,	u,	u,	uu,	uu);
-	public static final fn f = op(Op.fal);
-	public static final fn F = Op(Op.fal);
+	public static final fn f = opu(Op.fal);
+	public static final fn F = Opu(Op.fal);
 	
 	//public static final fn curry     = bootOp(u,	u,	uu,	u,	u);
 	//public static final fn Curry     = curry.asDirty();
@@ -297,27 +312,27 @@ public class ImportStatic{
 	
 	//Op.trecurse
 	//public static final fn s         = bootOp(u,	u,	uu,	uu);
-	public static final fn s = op(Op.trecurse);
-	public static final fn S = Op(Op.trecurse);
+	public static final fn s = opu(Op.trecurse);
+	public static final fn S = Opu(Op.trecurse);
 	
 	//public static final fn pair      = bootOp(u,	uu,	u,	u);
-	public static final fn pair = op(Op.pair);
-	public static final fn Pair = Op(Op.pair);
+	public static final fn pair = opu(Op.pair);
+	public static final fn Pair = Opu(Op.pair);
 	
 	//public static final fn typeval   = bootOp(u,	uu,	u,	uu);
-	public static final fn typeval = op(Op.typeval);
-	public static final fn Typeval = Op(Op.typeval);
+	public static final fn typeval = opu(Op.typeval);
+	public static final fn Typeval = Opu(Op.typeval);
 	
 	//public static final fn ax       = bootOp(u,	uu,	uu);
 	
-	public static final fn axa = op(Op.axa);
-	public static final fn Axa = Op(Op.axa);
+	public static final fn axa = opu(Op.axa);
+	public static final fn Axa = Opu(Op.axa);
 			
-	public static final fn axb = op(Op.axb);
-	public static final fn Axb = Op(Op.axb);
+	public static final fn axb = opu(Op.axb);
+	public static final fn Axb = Opu(Op.axb);
 	
-	public static final fn growinglist = op(Op.growinglist);
-	public static final fn Growinglist = Op(Op.growinglist);
+	public static final fn growinglist = opu(Op.growinglist);
+	public static final fn Growinglist = Opu(Op.growinglist);
 	
 	/** u/cleanLeaf/nil is its first param, to start a growinglist so you can reliably know where it starts,
 	such as if its first item is also a growinglist, similar to why linkedlists end with nil and <...> lists start with nil.
@@ -404,7 +419,20 @@ public class ImportStatic{
 		for(int n=1; n<q.length; n++){
 			//progn(l,r) gets all curries except last. r gets last.
 			//Curry puts those 2 things in a pair and calls funcBody on it.
-			fn[] prognParams = new fn[2+n+1]; //Example: q(4) returns progn(l,r,l,l,l,l,r)
+			
+			//q(0) returns r aka progn(r) which gets lastParam from (funcBody [allParamsExceptLast lastParam])
+			//q(1) returns progn(l,r,r) which gets secondLastParam from (funcBody [(allParamsExceptLast2 secondLast) lastParam])
+			//q(2) returns progn(l,r,l,r) which gets thirdLastParam from (funcBody [(allParamsExceptLast3 thirdLast secondLast) lastParam])
+			//q(3) returns progn(l,r,l,l,r)
+			//q(4) returns progn(l,r,l,l,l,r)
+			//Theres always a l and r of everything, even if its u/cleanLeaf its l is i/identityFunc and its r is u/cleanLeaf,
+			//cuz forall halted x: (L x (R x)) equals x, which is https://en.wikipedia.org/wiki/Pattern_calculus
+			//L is dirty. l is clean. R is dirty. r is clean. Capital first letter normally means dirty, lowercase clean.
+			//If a clean is called on a dirty, the dirty is truncated to clean recursively before the clean sees it as param.
+			//If a dirty is called on clean or dirty, it sees it with no changes. Thats why its (L x (R x)) instead of (l x (r x)),
+			//cuz L and R are the most general, and (R x) will be truncated to clean if (L x) returns a clean.
+
+			fn[] prognParams = new fn[2+n];
 			Arrays.fill(prognParams,l);
 			prognParams[1] = prognParams[prognParams.length-1] = r;
 			q[n] = progn(prognParams);
@@ -423,10 +451,10 @@ public class ImportStatic{
 		q9=q(9), q8=q(8), q7=q(7), q6=q(6), q5=q(5), q4=q(4), q3=q(3), q2=q(2), q1=q(1), q0=q(0);
 	
 	private static final fn[] c = new fn[]{
-		op(Op.curry1), op(Op.curry2), op(Op.curry3), op(Op.curry4),
-		op(Op.curry5), op(Op.curry6), op(Op.curry7), op(Op.curry8),
-		op(Op.curry9), op(Op.curry10), op(Op.curry11), op(Op.curry12),
-		op(Op.curry13), op(Op.curry14), op(Op.curry15), op(Op.curry16),
+		opu(Op.curry1), opu(Op.curry2), opu(Op.curry3), opu(Op.curry4),
+		opu(Op.curry5), opu(Op.curry6), opu(Op.curry7), opu(Op.curry8),
+		opu(Op.curry9), opu(Op.curry10), opu(Op.curry11), opu(Op.curry12),
+		opu(Op.curry13), opu(Op.curry14), opu(Op.curry15), opu(Op.curry16),
 	};
 	
 	/** get 1 of the 16 curry ops, each followed by comment, funcBody, then 1..16 params,
@@ -458,12 +486,24 @@ public class ImportStatic{
 	*/
 	
 	public static fn t(fn x){
-		return t.e(x);
-		//return cp(t,x);
+		//return t.e(x);
+		return cp(t,x); //same as t.e(x) cuz know t takes more params
 	}
 	public static fn T(fn x){
 		return T.e(x);
 		//return cp(T,x);
+	}
+	
+	public static fn tt(fn x){
+		return cp(t,cp(t,x)); //same as t.e(t.e(x)) cuz know t takes more params (than 1)
+	}
+	
+	public static fn ttt(fn x){
+		return cp(t,cp(t,cp(t,x))); //same as t.e(t.e(t.e(x))) cuz know t takes more params (than 1)
+	}
+	
+	public static fn tttt(fn x){
+		return cp(t,cp(t,cp(t,cp(t,x)))); //same as t.e(t.e(t.e(t.e(x)))) cuz know t takes more params (than 1)
 	}
 	
 	/** TODO also create lazig, which is a λfunc.λparam.λignore.(func param).
@@ -504,11 +544,251 @@ public class ImportStatic{
 	/** output of one is input to the next. */
 	public static fn progn(fn... sequence){
 		if(sequence.length == 0) return i;
-		fn x = sequence[sequence.length-1];
-		for(int i=sequence.length-2; i>=0; i--){
-			x = st(x,sequence[i]);
+		fn x = sequence[0];
+		for(int i=1; i<sequence.length; i++){
+			x = st(sequence[i],x);
 		}
 		return x;
+	}
+	
+	/** TODO rewrite these comments copied from occamsfuncer:
+	(ifElse condition ifTrue ifFalse) evals to (ifTrue leaf) if condition==T and evals to (ifFalse leaf) if condition==F, for example.
+	Normally used with lazig and S. See Example.equals() andOr ImportStatic.IF(fn,fn,fn) in ocfn2.
+	TODO setComment to "ifElse" after create setComment func and use typeval for it being a string or a certain key "//" in comment being a map.
+	*/
+	public static final fn ifElse =
+		c(3).e(st(
+			pair,
+			q(1), //getIfTrue - second last param
+			q(0), //getIfFalse - last param
+			q(2), //getCondition - third last param
+			t(u)
+		));
+	
+	/** λx.λy.λz.xy which is a kind of LAZyeval of (x y) that IGnores z and just waits on z to trigger eval */
+	public static final fn lazig = c(3).e(s(q2,q1));
+	
+	public static fn IF(fn condition, fn ifTrue, fn ifFalse){
+		return st(ifElse, condition, ifTrue, ifFalse);
+	}
+	
+	//TODO are thenConst and thenT the same if its 1 param?
+	
+	public static fn thenConst(fn constant){
+		return cp(lazig,t(constant));
+	}
+	
+	/**TODO when wrapping objects is working...
+	
+	FIXME This text and code copied from occamsfuncer:
+	
+	the ST form of then(...). ST just does t(...) to its first param
+	and other than that is the same as S(...).
+	*
+	public static fn thenT(Object... obs){
+		return f(lazig,st(obs));
+	}*/
+	
+	public static fn thenT(fn... obs){
+		return cp(lazig,st(obs));
+	}
+	
+	/*public static fn then(Object... obs){
+		return f(lazig,s(obs));
+	}*/
+	
+	public static fn then(fn... obs){
+		return cp(lazig,ss(obs));
+	}
+	
+	/** FIXME this text and code was copied from occamsfuncer, and modifying...
+	 
+	 
+	like linPlusTwoscomplement except takes 1 param and adds 1 without carrying past the highest digit near the end.
+	Example: (linPlusOneTwoscomplement (T (F u))) -> (F (T u)) //01 -> 10
+	Example: (linPlusOneTwoscomplement (F (T u))) -> (T (T u)) //10 -> 11
+	Example: (linPlusOneTwoscomplement (T (T u))) -> (F (F u)) //11 -> 00, wraps
+	Example: (linPlusOneTwoscomplement (T (T (T u)))) -> (F (F (F u))) //111 -> 000, wraps
+	Example: (linPlusOneTwoscomplement u) -> u //number with no digits wraps to itself
+	*
+	public static fn linPlusOneTwoscomplement =
+		c(1).e(IF(
+			st(isleaf,p(15)), //if param is leaf/u aka number with no digits, which normally happens just after the highest digit
+			thenConst(u), //then return leaf/u
+			then(IF( //else its supposed to be like (T (T (F (F (T u)))))
+				st(L,p(15)), //lowest bit in param
+				thenT( //lowest bit is T, THEN, Change lowest T to F and carry above that.
+					F, //new lowest bit
+					S(
+						recur2(), //linPlusOneTwoscomplement. lambda(1 is used with recur2 cuz that doesnt include the context param. FIXME rename cuz thats confusing.
+						p(14), //Copy p(14) which is a context (like defaultContext)
+						ST(R,p(15)) //shift param down 1
+					)
+				),
+				thenT(T,ST(R,p(15))) //lowest bit is F, so ELSE replace first bit with T and keep the rest as it is
+				
+			)) //lowest bit is F, so ELSE
+		));
+	
+	
+	/** FIXME this text and code was copied from occamsfuncer, and modifying...
+
+	private static fn linPlusTwoscomplement;
+	/** Only for 2 lin params of equal size, for example as generated from cbt32 to lin form to compute float32 multiply then back to cbt32.
+	lin is a number whose digits are T/1 or F/0 similar to a linkedlist (except no pairs) like (T (T (F (T .)))) is 1011.
+	Low digits are first cuz they're modified most often, so less objects created.
+	For twosComplement here, the 2 params must be the same length (or TODO auto insert F F F... near the end aka the high digits being 0),
+	and it does not carry past the top digit. So if they are both 2 32 bit numbers, they will stay 32 bit.
+	In that way, does twosComplement plus of whatever size numbers you have, such as 2 int337s.
+	<br><br>
+	TODO in the faster implementation, create a Compiled.java instance that uses hardware int32 plus and int64 plus etc,
+	and use int32 plus and bit shifts etc to derive int32 multiply,
+	then create Compiled.java instance for int32 multiply that uses hardware optimization,
+	then use ints to derive floats and doubles, then Compiled.java for those using hardware optimization.
+	*
+	public static fn linPlusTwoscomplement(){
+		//If they're not equal size, then its caller's fault.
+		if(linPlusTwoscomplement == null){
+			fn x = ST(
+				recur3(),
+				p(13), //copy context
+				ST(R,p(14)), //shift first param down 1
+				ST(R,p(15)) //shift second param down 1
+			);
+			linPlusTwoscomplement = lambda(2,IF(
+				//if first of 2 params is leaf/u aka number with no digits (other should be same len),
+				//which normally happens just after the highest digit.
+				ST(A,p(14)),
+				thenConst(u), //number with no digits
+				then(IF( //else the 2 params should have at least a digit each
+					ST(L,p(14)), //low digit of first param
+					then(IF( //low digit of first param is T
+						ST(L,p(15)), //low digit of second param
+						thenT(F,ST(linPlusOneTwoscomplement(),x)), //both low digits are T, so becomes F and carry.
+						thenT(T,x) //a F and a T, so low digit becomes T and no carry
+					)),
+					then(IF( //low digit of first param is F
+						ST(L,p(15)), //low digit of second param
+						thenT(T,x), //a F and a T, so low digit becomes T and no carry
+						thenT(F,x) //2 Fs, so low digit becomes F and no carry
+					))
+				))
+			));
+		}
+		return linPlusTwoscomplement;
+	}
+	*/
+	
+	
+
+	/** something like this, todo get the syntax working...
+	{
+	,c2
+	"todo write a comment here"
+	{
+		,if
+		{,a p0}
+		{,a p1}
+		{
+			,if
+			{,a p1}
+			,,t
+			{
+				,and
+				{recur {,l p0} {,l p1}}
+				{recur {,r p0} {,r p1}}
+			}
+		}
+	}
+	*
+	public static final fn equals =
+		c(2).e(s(
+			
+		))
+		
+		private static fn and;
+	/** https://en.wikipedia.org/wiki/Church_encoding says and = Lp.Lq.pqp * *
+	public static fn and(){
+		if(and == null) and = lambda(2,S(p(14),p(15),p(14)));
+		return and;
+	}
+	
+	private static fn or;
+	/** https://en.wikipedia.org/wiki/Church_encoding says and = Lp.Lq.ppq *
+	public static fn or(){
+		if(or == null) or = lambda(2,S(p(14),p(14),p(15)));
+		return or;
+	}
+	
+	private static fn not;
+	public static fn not(){
+		if(not == null) not = P.e(F).e(T);
+		return not;
+	}
+	
+	private static fn xor;
+	/** TODO there must be a more efficient form *
+	public static fn xor(){
+		if(xor == null) xor = lambda(2,ST(
+			or(),
+			ST(and(),p(14),ST(not(),p(15))),
+			ST(and(),ST(not(),p(14)),p(15))
+		));
+		return xor;
+	}
+	
+	private static fn xor3;
+	public static fn xor3(){
+		if(xor3 == null) xor3 = lambda(3,ST(
+			xor(),
+			p(13),
+			ST(xor, p(14), p(15))
+		));
+		return xor3;
+	}
+	
+	private static fn xor4;
+	public static fn xor4(){
+		if(xor4 == null) xor4 = lambda(4,ST(
+			xor(),
+			ST(xor(), p(12), p(13)),
+			ST(xor(), p(14), p(15))
+		));
+		return xor4;
+	}
+	
+	private static fn nand;
+	public static fn nand(){
+		if(nand == null) nand = lambda(2,ST(not(),ST(and(),p(14),p(15))));
+		return nand;
+	}
+	
+	private static fn nor;
+	public static fn nor(){
+		if(nor == null) nor = lambda(2,ST(not(),ST(or(),p(14),p(15))));
+		return nor;
+	}
+	
+	private static fn minorityBit;
+	/** a universal logic operator on 3 bits to 1 bit that returns T half the time. TODO there must be a more efficient form *
+	public static fn minorityBit(){
+		if(minorityBit == null) minorityBit = lambda(3,ST(
+			xor4(),
+			t(T),
+			ST(and(),p(13),p(14)),
+			ST(and(),p(14),p(15)),
+			ST(and(),p(15),p(13))
+		));
+		return minorityBit;
+	}
+	*/
+	
+	
+	
+	static{
+		for(int n=0; n<q.length; n++) {
+			lg("q"+n+" (aka getter of "+n+"th last param given curryDatastruct) = "+q(n));
+		}
 	}
 
 }

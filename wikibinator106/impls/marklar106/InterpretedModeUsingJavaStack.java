@@ -52,7 +52,8 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 			//eval. funcCurriesMore==1.
 			//the high 1 bit (if exists, else is deeplazy) tells size of bitstring 0..5 bits. Get those 5 bits.
 			fn findFuncBody = func; //in case of curry1..curry16
-			switch(Op.ordinalToOp(func.op6Bits()&31)){
+			Op op = Op.ordinalToOp(func.op6Bits()&31);
+			switch(op){
 			case zero: case one:
 				//"FIXME need to check areSameSizeCbts at each curry, not just the last, similar to ax."
 				
@@ -134,7 +135,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 						//if returns anything except u/cleanLeaf, axa is disproven, and axb is proven.
 						//TODO should the opcodes be slightly redesigned to allow axa to return an axb?
 						boolean disprovedConstraint = constraintReturned.fn != null;
-						if(Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
+						if(Const.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
 							//disproof of [one of axa or axb] proves the other, but if nonhalting then neither can be
 							//proven and neither is true so if you're using nsat colors at a lower level than lambdas,
 							//using at least 3 colors: axa, axb, nonhalting, and maybe also color for leaf, normalcall,
@@ -158,7 +159,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 						ret = cp(func,param); //func is axb or Axb
 					}else{
 						boolean disprovedConstraint = constraintReturned.fn != null;
-						if(Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
+						if(Const.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
 							ret = cp(funcIsClean?axa:Axa,param);
 						}else{
 							ret = null;
@@ -229,12 +230,18 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 			case curry4: findFuncBody = findFuncBody.l();
 			case curry3: findFuncBody = findFuncBody.l(); //dont break, go 1 deeper each curry. funcBody at param 7
 			case curry2: findFuncBody = findFuncBody.l();
-			case curry1: findFuncBody = findFuncBody.l();
+			case curry1: //1 less findFuncBody = findFuncBody.l() for all of them
 			//FIXME does this run "findFuncBody = findFuncBody.l();" 1 too many/few times?
 			fn funcBody = findFuncBody.r();
+			lg("evaling. op="+op+". funcBody = "+funcBody);
+			lg("evaling. op="+op+".     func = "+func);
+			lg("evaling. op="+op+"     param = "+param);
 			//same as ret = funcBody.e(pair_or_Pair.e(func).e(param)) but faster cuz know pair always halts on 2 params,
 			fn p = funcIsClean ? pair : Pair;
-			ret = funcBody.e(cp(cp(p,func),param)); //(funcBody [allParamExceptLast lastParam])
+			fn curryDatastruct = cp(cp(p,func),param);
+			lg("curryDatastruct = "+curryDatastruct+", about to call funcBody on it");
+			lg("About to call ("+funcBody+" "+curryDatastruct+")");
+			ret = funcBody.e(curryDatastruct); //(funcBody [allParamExceptLast lastParam])
 			}
 			//FIXME??? does [allParamExceptLast lastParam] mean Pair when either of those 2 is dirty, else means pair?
 			//	Its just syntax either way, not a problem for the universal function.
