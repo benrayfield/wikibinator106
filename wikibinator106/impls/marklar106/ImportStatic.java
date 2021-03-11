@@ -450,6 +450,13 @@ public class ImportStatic{
 		q17=q(17), q16=q(16), q15=q(15), q14=q(14), q13=q(13), q12=q(12), q11=q(11), q10=q(10),
 		q9=q(9), q8=q(8), q7=q(7), q6=q(6), q5=q(5), q4=q(4), q3=q(3), q2=q(2), q1=q(1), q0=q(0);
 	
+	/** a function of 2 params calls itself recursively,
+	such as in equals function calling itself twice to navigate a tree.
+	TODO create general recur function that keeps going to left child until curriesSoFar==7
+	which is just after funcBody is defined, so its the same recur for curry1..curry16.
+	*/
+	public static final fn funcOf2ParamsCallsItselfRecursively = progn(l,r,l);
+	
 	private static final fn[] c = new fn[]{
 		opu(Op.curry1), opu(Op.curry2), opu(Op.curry3), opu(Op.curry4),
 		opu(Op.curry5), opu(Op.curry6), opu(Op.curry7), opu(Op.curry8),
@@ -557,7 +564,7 @@ public class ImportStatic{
 	TODO setComment to "ifElse" after create setComment func and use typeval for it being a string or a certain key "//" in comment being a map.
 	*/
 	public static final fn ifElse =
-		c(3).e(st(
+		c(3).p(st(
 			pair,
 			q(1), //getIfTrue - second last param
 			q(0), //getIfFalse - last param
@@ -568,7 +575,7 @@ public class ImportStatic{
 	/** λx.λy.λz.xy which is a kind of LAZyeval of (x y) that IGnores z and just waits on z to trigger eval */
 	public static final fn lazig = c(3).e(s(q2,q1));
 	
-	public static fn IF(fn condition, fn ifTrue, fn ifFalse){
+	public static fn iF(fn condition, fn ifTrue, fn ifFalse){
 		return st(ifElse, condition, ifTrue, ifFalse);
 	}
 	
@@ -680,8 +687,41 @@ public class ImportStatic{
 	*/
 	
 	
-
-	/** something like this, todo get the syntax working...
+	/** https://en.wikipedia.org/wiki/Church_encoding says and = Lp.Lq.pqp * */
+	public static final fn and = c(2).p(ss(q1,q0,q1));
+	
+	/** https://en.wikipedia.org/wiki/Church_encoding says and = Lp.Lq.ppq */
+	public static final fn or = c(2).p(ss(q1,q1,q0));
+	
+	public static final fn not = pair.p(f).p(t);
+	
+	/** TODO there must be a more efficient form */
+	public static final fn xor = c(2).p(st(
+		or,
+		st(and,q1,st(not,q0)),
+		st(and,st(not,q1),q0)
+	));
+	
+	public static final fn xor3 = c(3).p(st( xor, q2, st(xor, q1, q0) ));
+	
+	public static final fn xor4 = c(4).p(st( xor, st(xor, q3, q2), st(xor, q1, q0) ));
+	
+	public static final fn nand = c(2).p(st( not, st(and,q1,q2)) );
+	
+	public static final fn nor = c(2).p(st( not, st(or, q1, q0) ));
+	
+	/** a universal logic operator on 3 bits to 1 bit that returns T half the time. TODO there must be a more efficient form */
+	public static final fn minorityBit = c(3).p(st(
+		xor4,
+		t(t),
+		st(and,q2,q1),
+		st(and,q1,q0),
+		st(and,q0,q2)
+	));
+	
+	/** compares 2 lambda functions for equality, returning t or f, by their 2-way forest shape.
+	
+	Something like this, todo get the syntax working...
 	{
 	,c2
 	"todo write a comment here"
@@ -701,88 +741,33 @@ public class ImportStatic{
 		}
 	}
 	*
-	public static final fn equals =
-		c(2).e(s(
-			
-		))
-		
-		private static fn and;
-	/** https://en.wikipedia.org/wiki/Church_encoding says and = Lp.Lq.pqp * *
-	public static fn and(){
-		if(and == null) and = lambda(2,S(p(14),p(15),p(14)));
-		return and;
-	}
-	
-	private static fn or;
-	/** https://en.wikipedia.org/wiki/Church_encoding says and = Lp.Lq.ppq *
-	public static fn or(){
-		if(or == null) or = lambda(2,S(p(14),p(14),p(15)));
-		return or;
-	}
-	
-	private static fn not;
-	public static fn not(){
-		if(not == null) not = P.e(F).e(T);
-		return not;
-	}
-	
-	private static fn xor;
-	/** TODO there must be a more efficient form *
-	public static fn xor(){
-		if(xor == null) xor = lambda(2,ST(
-			or(),
-			ST(and(),p(14),ST(not(),p(15))),
-			ST(and(),ST(not(),p(14)),p(15))
-		));
-		return xor;
-	}
-	
-	private static fn xor3;
-	public static fn xor3(){
-		if(xor3 == null) xor3 = lambda(3,ST(
-			xor(),
-			p(13),
-			ST(xor, p(14), p(15))
-		));
-		return xor3;
-	}
-	
-	private static fn xor4;
-	public static fn xor4(){
-		if(xor4 == null) xor4 = lambda(4,ST(
-			xor(),
-			ST(xor(), p(12), p(13)),
-			ST(xor(), p(14), p(15))
-		));
-		return xor4;
-	}
-	
-	private static fn nand;
-	public static fn nand(){
-		if(nand == null) nand = lambda(2,ST(not(),ST(and(),p(14),p(15))));
-		return nand;
-	}
-	
-	private static fn nor;
-	public static fn nor(){
-		if(nor == null) nor = lambda(2,ST(not(),ST(or(),p(14),p(15))));
-		return nor;
-	}
-	
-	private static fn minorityBit;
-	/** a universal logic operator on 3 bits to 1 bit that returns T half the time. TODO there must be a more efficient form *
-	public static fn minorityBit(){
-		if(minorityBit == null) minorityBit = lambda(3,ST(
-			xor4(),
-			t(T),
-			ST(and(),p(13),p(14)),
-			ST(and(),p(14),p(15)),
-			ST(and(),p(15),p(13))
-		));
-		return minorityBit;
-	}
+	public static final fn equals = c(2).p(iF(
+		st(isleaf, q0),
+		st(isleaf, q1),
+		iF(
+			st(isleaf,q1),
+			tt(t),
+			st(
+				and,
+				st(funcOf2ParamsCallsItselfRecursively, st(l,q0), st(l,q1)),
+				st(funcOf2ParamsCallsItselfRecursively, st(r,q0), st(r,q1))
+			)
+		)
+	));
 	*/
-	
+	public static final fn equals = c(2).p(iF(
+		st(isleaf,q1), //if p9 is leaf
+		thenT(isleaf,q0), //then return: p10 is leaf?
+		then(iF( //else if
+			st(isleaf,q1), //if p10 is leaf?
+			thenConst(f), //then return f
+			thenT( //else return AND of recurse 2 times on the left of both params and right of both params
+				and,
+				ss(funcOf2ParamsCallsItselfRecursively, st(l,q1), st(l,q0) ),
+				ss(funcOf2ParamsCallsItselfRecursively, st(r,q1), st(r,q0) )
+			)
+		))
+	));
 	
 	
 	static{

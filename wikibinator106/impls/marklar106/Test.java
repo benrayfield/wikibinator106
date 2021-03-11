@@ -30,6 +30,8 @@ public class Test{
 			testCurry1ToCurry16();
 			testLazig();
 			testIfElse();
+			testLogic();
+			testEquals();
 			
 			//thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger();
 			//testIsHalted();
@@ -39,11 +41,6 @@ public class Test{
 			//testBigCallRecur1To6();
 			//TODO instead of recur1 to recur7, depending on number of params, use opcode (ops 1 - 7) to know exactly where to recur from,
 			//which will in other implementations (than this spec) be cached in every node what is its op and number of curries.
-			
-			testLazig();
-			testIfElse();
-			testLogic();
-			testEquals();
 			
 			test_linPlusOneTwoscomplement();
 			*/
@@ -630,16 +627,16 @@ public class Test{
 		//testEqq("ifElse thenConst 2", IF(tt(F),thenT(P),thenT(N)), N);
 		
 		testEqq("(,,,,u wiki) -> ,,,u", e(tttt(u),wiki), ttt(u));
-		testEqq("ifElse T thenConst L", e(IF(t(t),thenConst(l),thenConst(r)),u), l);
-		testEqq("ifElse F thenConst R", e(IF(t(f),thenConst(l),thenConst(r)),u), r);
-		testEqq("ifElse I thenConst L cuz param of the IF is T so I gets T", e(IF(i,thenConst(l),thenConst(r)),t), l);
-		testEqq("ifElse I thenConst R cuz param of the IF is F so I gets F", e(IF(i,thenConst(l),thenConst(r)),f), r);
+		testEqq("ifElse T thenConst L", e(iF(t(t),thenConst(l),thenConst(r)),u), l);
+		testEqq("ifElse F thenConst R", e(iF(t(f),thenConst(l),thenConst(r)),u), r);
+		testEqq("ifElse I thenConst L cuz param of the IF is T so I gets T", e(iF(i,thenConst(l),thenConst(r)),t), l);
+		testEqq("ifElse I thenConst R cuz param of the IF is F so I gets F", e(iF(i,thenConst(l),thenConst(r)),f), r);
 		testEqq("ifElse car thenConst L cuz param of the IF is (P T F) so car gets T",
-			e(IF(car,thenConst(l),thenConst(r)),e(pair,t,f)), l);
+			e(iF(car,thenConst(l),thenConst(r)),e(pair,t,f)), l);
 		testEqq("ifElse car then I, car gets T which chooses then(I), and the I called on (P T F) returns (P T F)",
-			e(IF(car,then(i),thenConst(r)),e(pair,t,F)), e(pair,t,f));
+			e(iF(car,then(i),thenConst(r)),e(pair,t,F)), e(pair,t,f));
 		testEqq("ifElse cdr then I, cdr gets F which chooses thenT(P,I,I), and the thenT(P,I,I) called on e(P,T,F) returns (P (P T F) (P T F))",
-			e(IF(cdr,then(i),thenT(pair,i,i)),e(pair,t,f)), e(pair,e(pair,t,f),e(pair,t,f)));
+			e(iF(cdr,then(i),thenT(pair,i,i)),e(pair,t,f)), e(pair,e(pair,t,f),e(pair,t,f)));
 	}
 	
 	/*public static void testBigCallParams(){
@@ -695,34 +692,34 @@ public class Test{
 		);
 		testEqq("testIFInBigcall 1", e(x,T,A,N), A);
 		testEqq("testIFInBigcall 2", e(x,F,A,N), N);
-	}*
+	}*/
 	
 	public static void testLogic(){
 		lg("Starting testLogic");
-		testEqq("and F F", e(and(),F,F), F);
-		testEqq("and F T", e(and(),F,T), F);
-		testEqq("and T F", e(and(),T,F), F);
-		testEqq("and T T", e(and(),T,T), T);
-		testEqq("or F F", e(or(),F,F), F);
-		testEqq("or F T", e(or(),F,T), T);
-		testEqq("or T F", e(or(),T,F), T);
-		testEqq("or T T", e(or(),T,T), T);
-		testEqq("xor F F", e(xor(),F,F), F);
-		testEqq("xor F T", e(xor(),F,T), T);
-		testEqq("xor T F", e(xor(),T,F), T);
-		testEqq("xor T T", e(xor(),T,T), F);
+		testEqq("and f f", e(and,f,f), f);
+		testEqq("and f t", e(and,f,t), f);
+		testEqq("and t f", e(and,t,f), f);
+		testEqq("and t t", e(and,t,t), t);
+		testEqq("or f f", e(or,f,f), f);
+		testEqq("or f t", e(or,f,t), t);
+		testEqq("or t f", e(or,t,f), t);
+		testEqq("or t t", e(or,t,t), t);
+		testEqq("xor f f", e(xor,f,f), f);
+		testEqq("xor f t", e(xor,f,t), t);
+		testEqq("xor t f", e(xor,t,f), t);
+		testEqq("xor t t", e(xor,t,t), f);
 		//minorityBit, in this very unoptimized math model, is probably being exponentially slow cuz I implemented it using 4 xors and 3 ands
-		//and multiple Big calls. Its time to get CacheFuncParamReturn working.
-		//if(1<2) throw new Error("too slow past here. must get CacheFuncParamReturn working first");
-		testEqq("minorityBit F F F", e(minorityBit(),F,F,F), T);
-		testEqq("minorityBit F F T", e(minorityBit(),F,F,T), T);
-		testEqq("minorityBit F T F", e(minorityBit(),F,T,F), T);
-		testEqq("minorityBit F T T", e(minorityBit(),F,T,T), F);
-		testEqq("minorityBit T F F", e(minorityBit(),T,F,F), T);
-		testEqq("minorityBit T F T", e(minorityBit(),T,F,T), F);
-		testEqq("minorityBit T T F", e(minorityBit(),T,T,F), F);
-		testEqq("minorityBit T T T", e(minorityBit(),T,T,T), F);
-		//verify this fails: testEqq("minorityBit T T T", e(minorityBit,T,T,T), T);
+		//and multiple Big calls. Its time to get CachefuncParamReturn working.
+		//if(1<2) throw new Error("too slow past here. must get CachefuncParamReturn working first");
+		testEqq("minorityBit f f f", e(minorityBit,f,f,f), t);
+		testEqq("minorityBit f f t", e(minorityBit,f,f,t), t);
+		testEqq("minorityBit f t f", e(minorityBit,f,t,f), t);
+		testEqq("minorityBit f t t", e(minorityBit,f,t,t), f);
+		testEqq("minorityBit t f f", e(minorityBit,t,f,f), t);
+		testEqq("minorityBit t f t", e(minorityBit,t,f,t), f);
+		testEqq("minorityBit t t f", e(minorityBit,t,t,f), f);
+		testEqq("minorityBit t t t", e(minorityBit,t,t,t), f);
+		//verify this fails: testEqq("minorityBit t t t", e(minorityBit,t,t,t), t);
 	}
 	
 	/** lin aka linkedList number, is a simpler kind of linkedlist that doesnt use pair,
@@ -768,25 +765,26 @@ public class Test{
 	public static void testLinFibonacciSoDeepThatIfCacheFuncParamReturnIsntWorkingThenItWillTakeTrillionsOfYearsElseNearInstant(){
 		lg("Starting testLinFibonacciSoDeepThatIfCacheFuncParamReturnIsntWorkingThenItWillTakeTrillionsOfYearsElseNearInstant");
 		throw new Error("TODO");
-	}*
+	}*/
 	
 	public static void testEquals(){
-		lg("Starting testEquals - The universalFunc being a patternCalculusFunc allows it to do this which lambdaFuncs cant cuz its a subset of possible lambdaFuncs thats a universal subset but also a subset that allows it to know patternCalculus things that it couldnt know outside that subset cuz it wouldnt know which are in or not in the subset, except that in this system its always in that subset. Its important to understand that the equals func is implemented as a pure sparse turing machine and does not use any implementing system's == or .equals operators etc except other implementations can do that as an optimization as long as it always gets the exact same result as the sparse turing machine.");
-		testEqq("(equals . .)", e(Equals(),u,u), T);
-		testEqq("(equals . (..))", e(Equals(),u,e(u,u)), F);
-		testEqq("(equals (..) .)", e(Equals(),e(u,u),u), F);
-		testEqq("(equals (..) (..))", e(Equals(),e(u,u),e(u,u)), T);
-		testEqq("(equals ((..).) ((..).))", e( Equals(), e(e(u,u),u), e(e(u,u),u) ), T);
-		testEqq("(equals (.(..)) (.(..)))", e( Equals(), e(u,e(u,u)), e(u,e(u,u)) ), T);
-		testEqq("(equals ((..)(..)) ((..)(..)))", e( Equals(), e(e(u,u),e(u,u)), e(e(u,u),e(u,u)) ), T);
-		testEqq("(equals (..) ((..).))", e( Equals(), e(u,u), e(e(u,u),u) ), F);
-		testEqq("(equals ((..).) (..))", e( Equals(), e(e(u,u),u), e(u,u) ), F);
-		testEqq("(equals car car)", e(Equals(),car,car), T);
-		testEqq("(equals car cdr)", e(Equals(),car,cdr), F);
-		testEqq("(equals equals equals)", e(Equals(),Equals(),Equals()), T);
-		testEqq("(equals car equals)", e(Equals(),car,Equals()), F);
-		testEqq("(equals (equals equals) equals)", e(Equals(),e(Equals(),Equals()),Equals()), F);
-		testEqq("(equals (equals equals) (equals equals))", e(Equals(),e(Equals(),Equals()),e(Equals(),Equals())), T);
+		lg("Starting testEquals - The universalfunc being a patternCalculusfunc allows it to do this which lambdafuncs cant cuz its a subset of possible lambdafuncs thats a universal subset but also a subset that allows it to know patternCalculus things that it couldnt know outside that subset cuz it wouldnt know which are in or not in the subset, except that in this system its always in that subset. Its important to understand that the equals func is implemented as a pure sparse turing machine and does not use any implementing system's == or .equals operators etc except other implementations can do that as an optimization as long as it always gets the exact same result as the sparse turing machine.");
+		lg("equals = "+equals);
+		testEqq("(equals . .)", e(equals,u,u), t);
+		testEqq("(equals . (..))", e(equals,u,e(u,u)), f);
+		testEqq("(equals (..) .)", e(equals,e(u,u),u), f);
+		testEqq("(equals (..) (..))", e(equals,e(u,u),e(u,u)), t);
+		testEqq("(equals ((..).) ((..).))", e( equals, e(e(u,u),u), e(e(u,u),u) ), t);
+		testEqq("(equals (.(..)) (.(..)))", e( equals, e(u,e(u,u)), e(u,e(u,u)) ), t);
+		testEqq("(equals ((..)(..)) ((..)(..)))", e( equals, e(e(u,u),e(u,u)), e(e(u,u),e(u,u)) ), t);
+		testEqq("(equals (..) ((..).))", e( equals, e(u,u), e(e(u,u),u) ), f);
+		testEqq("(equals ((..).) (..))", e( equals, e(e(u,u),u), e(u,u) ), f);
+		testEqq("(equals car car)", e(equals,car,car), t);
+		testEqq("(equals car cdr)", e(equals,car,cdr), f);
+		testEqq("(equals equals equals)", e(equals,equals,equals), t);
+		testEqq("(equals car equals)", e(equals,car,equals), f);
+		testEqq("(equals (equals equals) equals)", e(equals,e(equals,equals),equals), f);
+		testEqq("(equals (equals equals) (equals equals))", e(equals,e(equals,equals),e(equals,equals)), t);
 	}
 	
 	/** (lazig x y z) returns (x y), a kind of lazyeval of (x y) that ignores z */

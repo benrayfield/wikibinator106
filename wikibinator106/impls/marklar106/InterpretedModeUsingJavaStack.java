@@ -10,7 +10,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 	
 	public static final EvalerChain chain = new SimpleEvalerChain(instance);
 	
-	public $<fn> Eval(long gas, fn func, fn param){
+	public $<fn> eval(long gas, fn func, fn param){
 		if(gas <= 0) throw new RuntimeException("Since everything costs at least 1 gas, including calling this to check the gas, caller should not have called this. gas="+gas);
 		gas--;
 		
@@ -83,7 +83,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 				ret = param.isClean() ? (funcIsClean?t:T) : (funcIsClean?f:F); 
 			break;case wiki:
 				{
-					$<fn> wikiReturned = Wiki(gas, param);
+					$<fn> wikiReturned = wiki(gas, param);
 					ret = wikiReturned.fn;
 					gas = wikiReturned.gas;
 				}
@@ -211,7 +211,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					//except suggests to VM it can be threaded (considering if the overhead to start and sync
 					//threads likely costs less than doing that call single threaded). In this early
 					//prototype wikibinator106 VM, uses only 1 CPU thread for evaling, but many GPU threads
-					$<fn> forkReturned = Fork(gas, x, y, param);
+					$<fn> forkReturned = fork(gas, x, y, param);
 					ret = forkReturned.fn;
 					gas = forkReturned.gas;
 				}
@@ -262,7 +262,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 		return x.isCleanCbt() && y.isCleanCbt() && x.curriesMore()==y.curriesMore();
 	}
 
-	public $<fn> Wiki(long maxSpend, fn param){
+	public $<fn> wiki(long maxSpend, fn param){
 		return WikiState.e(maxSpend,param);
 	}
 

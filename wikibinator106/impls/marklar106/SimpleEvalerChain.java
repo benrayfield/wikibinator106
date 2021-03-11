@@ -20,16 +20,16 @@ public class SimpleEvalerChain implements EvalerChain<fn>{
 	}
 
 	/** todo optimize by extending SimpleCompiled directly and overriding this apply func, consistent with setOn and prev etc? */
-	public $<fn> Eval(long maxSpend, fn func, fn param){
-		return (on?wrapMe:prevOrNull).Eval(maxSpend, func, param);
+	public $<fn> eval(long maxSpend, fn func, fn param){
+		return (on?wrapMe:prevOrNull).eval(maxSpend, func, param);
 	}
 	
-	public $<fn> Fork(long maxSpend, fn funcA, fn funcB, fn param){
-		return (on?wrapMe:prevOrNull).Fork(maxSpend, funcA, funcB, param);
+	public $<fn> fork(long maxSpend, fn funcA, fn funcB, fn param){
+		return (on?wrapMe:prevOrNull).fork(maxSpend, funcA, funcB, param);
 	}
 	
-	public $<fn> Wiki(long maxSpend, fn param){
-		return (on?wrapMe:prevOrNull).Wiki(maxSpend, param);
+	public $<fn> wiki(long maxSpend, fn param){
+		return (on?wrapMe:prevOrNull).wiki(maxSpend, param);
 	}
 
 	public void setOn(boolean on){

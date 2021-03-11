@@ -3,7 +3,7 @@ package wikibinator106.spec;
 
 public interface Evaler<T extends λ>{
 	
-	public $<T> Eval(long maxSpend, T func, T param);
+	public $<T> eval(long maxSpend, T func, T param);
 	
 	/** same as these 3 evals, ((funcA param) (funcB param)) aka (S funcA funcB param), aka Op.Trecurse,
 	but may differ in number of threads or which gets how much gas,
@@ -33,7 +33,7 @@ public interface Evaler<T extends λ>{
 	to finish with gas left over, instead of failing, wait for the more gas to come in,
 	or something like that.
 	*/
-	public default $<T> Fork(long maxSpend, T funcA, T funcB, T param){
+	public default $<T> fork(long maxSpend, T funcA, T funcB, T param){
 		//single threaded
 		$<T> ap = funcA.e(maxSpend,param);
 		if(ap.fn == null) return ap;
@@ -45,8 +45,8 @@ public interface Evaler<T extends λ>{
 	/** See Op.Wiki. All nondeterminism goes here, and in dirty ops (start with capital letter like Op.Trecurse vs Op.trecurse)
 	which can call this Op.Wiki without truncateToClean happening automatically (cuz clean can only see and create clean).
 	*/
-	public default $<T> Wiki(long maxSpend, T param){
-		return Eval(maxSpend, op(false,Op.wiki), param);
+	public default $<T> wiki(long maxSpend, T param){
+		return eval(maxSpend, op(false,Op.wiki), param);
 	}
 	
 	/** cleanLeaf or dirtyLeaf */

@@ -38,7 +38,7 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	}
 	
 	public default $<Subclass> e(long maxSpend, Subclass param){
-		return compiled().Eval(maxSpend, this, param);
+		return compiled().eval(maxSpend, this, param);
 	}
 	
 	/** UnaryOperator does lambda call */
