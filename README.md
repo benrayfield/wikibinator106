@@ -4,7 +4,7 @@
 Example code of a lambda that returns t/true or f/false for if its 2 params equal (are same 2-way forest shape),
 given some names (such as ifElse is q0) of lambdas defined similarly elsewhere, but
 its all derived from the universal function if you for example look into (l ifElse) and (r ifElse) and (l (l ifElse)) to see what its made of.
-That {,ifElse {,isleaf q1}}#n17 should not 
+Notice it deduplicated the "iF(st(isleaf,q1)" by naming it n17.
 
 ```
 (
