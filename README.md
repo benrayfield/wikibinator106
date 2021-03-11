@@ -4,8 +4,48 @@
 Example code of a lambda that returns t/true or f/false for if its 2 params equal (are same 2-way forest shape),
 given some names (such as ifElse is q0) of lambdas defined similarly elsewhere, but
 its all derived from the universal function if you for example look into (l ifElse) and (r ifElse) and (l (l ifElse)) to see what its made of.
+That {,ifElse {,isleaf q1}}#n17 should not 
 
-(c2 {{,ifElse {,isleaf q1}}#n17 (lazig {,isleaf q0}) (lazig {n17 (lazig ,f) (lazig {,and {funcOf2ParamsCallsItselfRecursively {,l q1} {,l q0}} {funcOf2ParamsCallsItselfRecursively {,r q1} {,r q0}}})})})#equals
+```
+(
+	c2
+	{
+		{,ifElse {,isleaf q1}}#n17
+		(lazig {,isleaf q0})
+		(
+			lazig
+			{
+				n17
+				(lazig ,f)
+				(
+					lazig
+					{
+						,and
+						{funcOf2ParamsCallsItselfRecursively {,l q1} {,l q0}}
+						{funcOf2ParamsCallsItselfRecursively {,r q1} {,r q0}}
+					}
+				)
+			}
+		)
+	}
+)#equals
+
+The java code which generated the equals lambda is
+in https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/ImportStatic.java
+public static final fn equals = c(2).p(iF(
+	st(isleaf,q1), //if p9 is leaf
+	thenT(isleaf,q0), //then return: p10 is leaf?
+	then(iF( //else if
+		st(isleaf,q1), //if p10 is leaf?
+		thenConst(f), //then return f
+		thenT( //else return AND of recurse 2 times on the left of both params and right of both params
+			and,
+			ss(funcOf2ParamsCallsItselfRecursively, st(l,q1), st(l,q0) ),
+			ss(funcOf2ParamsCallsItselfRecursively, st(r,q1), st(r,q0) )
+		)
+	))
+));
+```
 
 A universal function of 7..127 params,
 which is a combinator, universal lambda, and pattern calculus function,
