@@ -2,7 +2,7 @@
 (TODO) A deterministic way for millions of people and AIs to build and play together in p2p, safely sandboxed but not dumbed-down, a very simple kind of self-aware living number, where 2 numbers combine to create or find another number, and so on, and a number can be anything such a word, video, game, simulation, publicKey, GPU optimization, music tools, way to use multiple clouds together, etc.
 
 Example code of a lambda that returns t/true or f/false for if its 2 params equal (are same 2-way forest shape),
-given some names (such as ifElse <condition ifTrue ifFalse> evals to (ifTrue u) or (ifFalse u) and q0 (gets last param) and q1 (gets second last param)) of lambdas defined similarly elsewhere, but its all derived from the universal function if you for example look into (l ifElse) and (r ifElse) and (l (l ifElse)) to see what its made of.
+given some names (such as (ifElse condition ifTrue ifFalse) evals to (ifTrue u) or (ifFalse u) and q0 (gets last param) and q1 (gets second last param)) of lambdas defined similarly elsewhere, but its all derived from the universal function if you for example look into (l ifElse) and (r ifElse) and (l (l ifElse)) to see what its made of.
 Notice it deduplicated the "iF(st(isleaf,q1)" by naming it n17.
 
 ```
