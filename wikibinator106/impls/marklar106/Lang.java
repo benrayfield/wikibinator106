@@ -35,12 +35,10 @@ public class Lang{
 		final Map<λ,String> names = new HashMap();
 		long count = 0;
 		boolean goPastLeaf = false; //FIXME true, but wait until get more things working cuz CleanLeaf.l() is seeing ImportStatic.i==null
-		for(λ y : whichNeedNames(x,goPastLeaf)){
-			names.put(y, "n"+(count++));
-		}
 		names.put(u, "λ"); //cleanLeaf
 		names.put(U, "Λ"); //dirtyLeaf
 		names.put(uu, "λλ");
+		names.put(isleaf, "isleaf");
 		names.put(i, "i");
 		names.put(I, "I");
 		names.put(l, "l");
@@ -63,48 +61,117 @@ public class Lang{
 		names.put(Axb, "Axb");
 		names.put(growinglist, "growinglist");
 		names.put(Growinglist, "Growinglist");
+		names.put(funcOf2ParamsCallsItselfRecursively, "funcOf2ParamsCallsItselfRecursively");
+		names.put(lazig, "lazig");
+		names.put(and, "and");
+		names.put(or, "or");
+		names.put(xor, "xor");
+		names.put(not, "not");
+		names.put(ifElse, "ifElse");
+		Set<λ> needNamesCuzOccurMultipleTimes_mutable = new HashSet(whichNeedNames(x,goPastLeaf));
+		needNamesCuzOccurMultipleTimes_mutable.removeAll(names.values());
+		
+		needNamesCuzOccurMultipleTimes_mutable.clear(); //FIXME remove this line but its generating the wrong code like equals function starts with (i instead of (c2
+		
+		//names map gets first priority, but if it doesnt have a name then use this
+		Map<λ,String> everythingGetsAName = new HashMap();
+		
+		//for(λ y : needNamesCuzOccurMultipleTimes_mutable){
+		for(λ y : reachableFrom(x,goPastLeaf)){
+			everythingGetsAName.put(y, "n"+(count++));
+			//if(!names.containsKey(y)){
+			//	names.put(y, "n"+(count++));
+			//}
+		}
 		for(int i=2; i<=16; i++) names.put(c(i), "c"+i); //FIXME should start at i=1
+		
+		for(int i=0; i<=ImportStatic.maxQ; i++) names.put(q(i), "q"+i);
 		//TODO all other fn fields in ImportStatic have names, and todo copy them to an immutable map there instead of here
 		StringBuilder sb = new StringBuilder();
-		toString(false, false, sb, x, (λ y)->names.get(y));
+		Set<λ> rememberWhatWasDisplayedTwice = new HashSet();
+		
+		toString(false, false, sb, x, needNamesCuzOccurMultipleTimes_mutable, (λ y)->names.get(y), everythingGetsAName, new HashSet(), rememberWhatWasDisplayedTwice);
+		sb.setLength(0);
+		//ugly hack to call toString twice, first to fill rememberWhatWasDisplayedTwice where everything gets a name,
+		//then to do it again where only things that needed a name (have more than 1 incoming pointer) display that name.
+		Map<λ,String> someThingsGetAName = new HashMap();
+		for(λ z : rememberWhatWasDisplayedTwice) someThingsGetAName.put(z, everythingGetsAName.get(z));
+		toString(false, false, sb, x, needNamesCuzOccurMultipleTimes_mutable, (λ y)->names.get(y), someThingsGetAName, new HashSet(), new HashSet());
+		
+		
 		String s = sb.toString();
 		//s = removeSomeParens(s);
 		return Options.funcTostringIncludesHeader ? s+"_"+Marklar106bId.toDetailString(x.marklar106bHeader()) : s;
 	}
 	
 	/** displayAsLeftChild causes (((a b) c) d) to appear as (a b c d). its true for left child, false for right.
+	Removes from needNamesCuzOccurMultipleTimes_mutable after displaying each the first time,
+	and after that uses its name.
+	Things that have a name but are not in needNamesCuzOccurMultipleTimes_mutable use the name every time.
 	*/
-	public static void toString(boolean inSSyntax, boolean displayAsLeftChild, StringBuilder sb, λ x, Function<λ,String> funcToNameOrNull){
+	public static void toString(boolean inSSyntax, boolean displayAsLeftChild, StringBuilder sb, λ x,
+			Set<λ> needNamesCuzOccurMultipleTimes_mutable, Function<λ,String> funcToNameOrNull,
+			Map<λ,String> everythingGetsAName, Set<λ> rememberWhatWasDisplayed, Set<λ> rememberWhatWasDisplayedTwice){
 		String name = funcToNameOrNull.apply(x);
-		if(name != null){
+		boolean wasIn_needNamesCuzOccurMultipleTimes_mutable = needNamesCuzOccurMultipleTimes_mutable.remove(x);
+		if(name != null /*&& !wasIn_needNamesCuzOccurMultipleTimes_mutable*/){
 			sb.append(name);
 		}else{
-			if(x.l() == t){ //display (t (t (t x))) as ,,,x
-				sb.append(",");
-				toString(false, false, sb, x.r(), funcToNameOrNull);
-			}else if(x.l().l() == s){ //display (s a (s b c)) as {a {b c}}
-				//op6Bits() == Op.trecurse.op6Bits && x.isHalted() && x.isClean().
-				//TODO !isClean form has a syntax too, prefix all dirty thigns with some char?
-				if(!displayAsLeftChild) {
-					sb.append('{');
-				}
-				toString(true, true, sb, x.l().r(), funcToNameOrNull); //a in (s a b)
-				sb.append(' ');
-				toString(true, false, sb, x.r(), funcToNameOrNull); //b in (s a b)
-				if(!displayAsLeftChild) {
-					sb.append('}');
-				}
-			}else{
-				if(!displayAsLeftChild || inSSyntax){ //check for inSSyntax so {(a b) c} doesnt display as {a b c} meaning {{a b} c}.
-					sb.append('(');
-				}
-				toString(false, true, sb, x.l(), funcToNameOrNull);
-				sb.append(' ');
-				toString(false, false, sb, x.r(), funcToNameOrNull);
-				if(!displayAsLeftChild || inSSyntax){
-					sb.append(')');
-				}	
+			name = everythingGetsAName.get(x);
+			
+			boolean displayName = name != null;
+			boolean displayName_is_false_cuz_uglyHackT = false;
+			if(x.l()==t && funcToNameOrNull.apply(x.r())!=null){
+				//Example: instead of (t l)#n48 display it as ,l
+				displayName = false;
+				displayName_is_false_cuz_uglyHackT = true;
 			}
+			
+			if(displayName) displayAsLeftChild = false; //avoid multiple names appearing consecutively not separated by () or {}
+			
+			if(rememberWhatWasDisplayed.contains(x)){
+				sb.append(name);
+				rememberWhatWasDisplayedTwice.add(x);
+			}else{
+				if(x.l() == t && !displayName){ //display (t (t (t x))) as ,,,x
+					//FIXME ,l#n35 should appear as (t l)#n35 but without a name ,l is ok.
+					sb.append(",");
+					toString(false, false, sb, x.r(), needNamesCuzOccurMultipleTimes_mutable, funcToNameOrNull, everythingGetsAName, rememberWhatWasDisplayed, rememberWhatWasDisplayedTwice);
+				}else if(x.l().l() == s){ //display (s a (s b c)) as {a {b c}}
+					//op6Bits() == Op.trecurse.op6Bits && x.isHalted() && x.isClean().
+					//TODO !isClean form has a syntax too, prefix all dirty thigns with some char?
+					if(!displayAsLeftChild){
+						sb.append('{');
+					}
+					toString(true, true, sb, x.l().r(), needNamesCuzOccurMultipleTimes_mutable, funcToNameOrNull, everythingGetsAName, rememberWhatWasDisplayed, rememberWhatWasDisplayedTwice); //a in (s a b)
+					sb.append(' ');
+					toString(true, false, sb, x.r(), needNamesCuzOccurMultipleTimes_mutable, funcToNameOrNull, everythingGetsAName, rememberWhatWasDisplayed, rememberWhatWasDisplayedTwice); //b in (s a b)
+					if(!displayAsLeftChild) {
+						sb.append('}');
+					}
+				}else{
+					if(!displayAsLeftChild || inSSyntax){ //check for inSSyntax so {(a b) c} doesnt display as {a b c} meaning {{a b} c}.
+						sb.append('(');
+					}
+					toString(false, true, sb, x.l(), needNamesCuzOccurMultipleTimes_mutable, funcToNameOrNull, everythingGetsAName, rememberWhatWasDisplayed, rememberWhatWasDisplayedTwice);
+					sb.append(' ');
+					toString(false, false, sb, x.r(), needNamesCuzOccurMultipleTimes_mutable, funcToNameOrNull, everythingGetsAName, rememberWhatWasDisplayed, rememberWhatWasDisplayedTwice);
+					if(!displayAsLeftChild || inSSyntax){
+						sb.append(')');
+					}	
+				}
+				if(displayName){
+					sb.append("#"+name);
+				}
+				if(!displayName_is_false_cuz_uglyHackT){
+					rememberWhatWasDisplayed.add(x);
+				}
+			}
+			
+			/*if(wasIn_needNamesCuzOccurMultipleTimes_mutable){
+				if(name == null) throw new RuntimeException("Was in needNamesCuzOccurMultipleTimes_mutable but had no name");
+				sb.append('#').append(name);
+			}*/
 		}
 	}
 	
@@ -156,9 +223,11 @@ public class Lang{
 		Set<λ> all = reachableFrom(x,goPastLeaf);
 		Set<λ> foundOnce = new HashSet();
 		Set<λ> foundMoreThanOnce = new HashSet();
-		for(λ y : reachableFrom(x,goPastLeaf)) {
-			if(foundOnce.contains(y)) foundMoreThanOnce.add(y);
-			else foundOnce.add(y);
+		for(λ y : all){
+			if(foundOnce.contains(y.l())) foundMoreThanOnce.add(y.l());
+			else foundOnce.add(y.l());
+			if(foundOnce.contains(y.r())) foundMoreThanOnce.add(y.r());
+			else foundOnce.add(y.r());
 		}
 		return Collections.unmodifiableSet(foundMoreThanOnce);
 	}
@@ -171,7 +240,7 @@ public class Lang{
 	
 	public static void reachableFrom(λ x, Set<λ> fillMe, boolean goPastLeaf){
 		fillMe.add(x);
-		if(!goPastLeaf) return;
+		if(!goPastLeaf && x.isLeaf()) return;
 		if(!fillMe.contains(x.l())) reachableFrom(x.l(),fillMe,goPastLeaf); //also gets identityFunc which is child of leaf
 		if(!fillMe.contains(x.r())) reachableFrom(x.r(),fillMe,goPastLeaf);
 	}
