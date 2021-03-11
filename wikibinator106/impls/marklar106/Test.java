@@ -777,6 +777,7 @@ public class Test{
 	public static void testEquals(){
 		lg("Starting testEquals - The universalfunc being a patternCalculusfunc allows it to do this which lambdafuncs cant cuz its a subset of possible lambdafuncs thats a universal subset but also a subset that allows it to know patternCalculus things that it couldnt know outside that subset cuz it wouldnt know which are in or not in the subset, except that in this system its always in that subset. Its important to understand that the equals func is implemented as a pure sparse turing machine and does not use any implementing system's == or .equals operators etc except other implementations can do that as an optimization as long as it always gets the exact same result as the sparse turing machine.");
 		lg("equals = "+equals);
+		lg("equals (displayed as 2-way forest) = "+Lang.toStringCallpairsOnly(equals));
 		testEqq("(equals . .)", e(equals,u,u), t);
 		testEqq("(equals . (..))", e(equals,u,e(u,u)), f);
 		testEqq("(equals (..) .)", e(equals,e(u,u),u), f);

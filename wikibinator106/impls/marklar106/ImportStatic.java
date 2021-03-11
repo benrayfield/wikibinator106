@@ -518,8 +518,8 @@ public class ImportStatic{
 		return cp(t,x); //same as t.e(x) cuz know t takes more params
 	}
 	public static fn T(fn x){
-		return T.e(x);
-		//return cp(T,x);
+		//return T.e(x);
+		return cp(T,x);
 	}
 	
 	public static fn tt(fn x){
@@ -594,7 +594,7 @@ public class ImportStatic{
 		));
 	
 	/** λx.λy.λz.xy which is a kind of LAZyeval of (x y) that IGnores z and just waits on z to trigger eval */
-	public static final fn lazig = c(3).e(s(q2,q1));
+	public static final fn lazig = c(3).p(s(q2,q1));
 	
 	public static fn iF(fn condition, fn ifTrue, fn ifFalse){
 		return st(ifElse, condition, ifTrue, ifFalse);
@@ -777,10 +777,10 @@ public class ImportStatic{
 	));
 	*/
 	public static final fn equals = c(2).p(iF(
-		st(isleaf,q1), //if p9 is leaf
-		thenT(isleaf,q0), //then return: p10 is leaf?
+		st(isleaf,q1), //if second last param is leaf
+		thenT(isleaf,q0), //then return: last param is leaf?
 		then(iF( //else if
-			st(isleaf,q1), //if p10 is leaf?
+			st(isleaf,q1), //if second last param is leaf?
 			thenConst(f), //then return f
 			thenT( //else return AND of recurse 2 times on the left of both params and right of both params
 				and,

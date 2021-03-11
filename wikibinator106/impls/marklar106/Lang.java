@@ -104,6 +104,39 @@ public class Lang{
 		return Options.funcTostringIncludesHeader ? s+"_"+Marklar106bId.toDetailString(x.marklar106bHeader()) : s;
 	}
 	
+	/** exponential size and not human readable, but very simple. useful to show how complex syntaxes
+	refer to a 2-way forest of calls of the universal function.
+	*/
+	public static String toStringCallpairsOnly(fn x){
+		StringBuilder sb = new StringBuilder();
+		toStringCallpairsOnly(
+			x,
+			sb,
+			(fn y)->{
+				if(y.isCleanLeaf()) return "λ";
+				if(y.isDirtyLeaf()) return "Λ";
+				return null;
+			}
+		);
+		return sb.toString();
+	}
+	
+	static void toStringCallpairsOnly(fn x, StringBuilder sb, Function<fn,String> names){
+		String name = names.apply(x);
+		if(name == null){ //recurse
+			sb.append('(');
+			toStringCallpairsOnly(x.l(), sb, names);
+			sb.append(' ');
+			toStringCallpairsOnly(x.r(), sb, names);
+			sb.append(')');
+		}else{
+			sb.append(name);
+		}
+		
+	}
+	
+	
+	
 	/** displayAsLeftChild causes (((a b) c) d) to appear as (a b c d). its true for left child, false for right.
 	Removes from needNamesCuzOccurMultipleTimes_mutable after displaying each the first time,
 	and after that uses its name.
