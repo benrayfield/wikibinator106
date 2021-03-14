@@ -4,18 +4,41 @@ import static wikibinator106.impls.marklar106.ImportStatic.*;
 import wikibinator106.impls.marklar106.*;
 import wikibinator106.spec.*;
 
+/** Works for all calls if you have enough memory and compute time. Is the least efficient,
+compared to (TODO) optimizations by lwjgl opencl / GPU and javassist etc.
+Those optimizations will retreat to lesser optimizations (such as just float double int long math in CPU)
+or this where they dont know how to optimize a certain lambda call.
+Even the multiply of 2 ints is expensive in interpreted mode
+since it has to compute every bit as lambdas and could literally be
+a billion times slower than a GPU optimization of the same lambdas,
+so optimizations are very important to hook in by λ.setCompiled(EvalerChain).
+Only lambda calls in very regular patterns (such as matrix multiply) can be GPU optimized.
+More lambda calls can be CPU optimized (such as using javassist). Some wont be optimized
+but will be so few they are not the bottleneck, and those use interpreted mode.
+*/
 public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 	
 	public static final InterpretedModeUsingJavaStack instance = new InterpretedModeUsingJavaStack();
 	
 	public static final EvalerChain chain = new SimpleEvalerChain(instance);
 	
+	protected long howManyTimesReturnedFromCache;
+	
+	protected long howManyTimesPutInCache;
+	
 	public $<fn> eval(long gas, fn func, fn param){
 		if(gas <= 0) throw new RuntimeException("Since everything costs at least 1 gas, including calling this to check the gas, caller should not have called this. gas="+gas);
 		gas--;
 		
 		fn ret = AxfprCache.getOrNull(func, param);
-		if(ret != null) return new $<fn>(gas,ret); //return from cache. Cache never expires, unless you need the memory back.
+		if(ret != null){
+			if(lgCacheStatsEveryTime){
+				howManyTimesReturnedFromCache++;
+				lg("howManyTimesReturnedFromCache="+howManyTimesReturnedFromCache+" howManyTimesPutInCache="+howManyTimesPutInCache
+					+" ret/put="+((double)howManyTimesReturnedFromCache/howManyTimesPutInCache));
+			}
+			return new $<fn>(gas,ret); //return from cache. Cache never expires, unless you need the memory back.
+		}
 		
 		byte funcCurriesMore = func.curriesMore();
 		byte paramCurriesMore = param.curriesMore();
@@ -252,7 +275,10 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 		//Or may have run out of gas (gas==0) so set ret to null.
 		//Or may have used some gas and finished the requested work (ret!=null && gas>0).
 		if(gas == 0) ret = null;
-		if(ret != null) AxfprCache.put(func, param, ret);
+		if(ret != null){
+			AxfprCache.put(func, param, ret);
+			if(lgCacheStatsEveryTime) howManyTimesPutInCache++;
+		}
 		//If ret == null, this means didnt have enough gas to do the requested calculation,
 		//and giving back whatever amount of gas was not used.
 		return new $(gas,ret);

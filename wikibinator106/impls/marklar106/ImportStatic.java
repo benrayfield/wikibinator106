@@ -1,12 +1,21 @@
 /** Ben F Rayfield offers this software opensource MIT license */
 package wikibinator106.impls.marklar106;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.WeakHashMap;
+import java.util.function.Supplier;
+
 import wikibinator106.spec.*;
 
 public class ImportStatic{
 	
 	/** log headers, for testing? */
 	public static final boolean lgHeader = false;
+	
+	/** example: makes InterpretedModeUsingJavaStack display this every time it returns from cache:
+	howManyTimesReturnedFromCache=193818 howManyTimesPutInCache=51895 ret/put=3.7348106754022545
+	*/
+	public static final boolean lgCacheStatsEveryTime = false;
 	
 	private static boolean assertionsAreOn_;
 	public static final boolean assertionsAreOn;
@@ -302,6 +311,12 @@ public class ImportStatic{
 	public static final fn f = opu(Op.fal);
 	public static final fn F = Opu(Op.fal);
 	
+	public static final fn zero = opu(Op.zero);
+	public static final fn Zero = Opu(Op.zero);
+	
+	public static final fn one = opu(Op.one);
+	public static final fn One = Opu(Op.one);
+	
 	//public static final fn curry     = bootOp(u,	u,	uu,	u,	u);
 	//public static final fn Curry     = curry.asDirty();
 	
@@ -471,12 +486,114 @@ public class ImportStatic{
 		q17=q(17), q16=q(16), q15=q(15), q14=q(14), q13=q(13), q12=q(12), q11=q(11), q10=q(10),
 		q9=q(9), q8=q(8), q7=q(7), q6=q(6), q5=q(5), q4=q(4), q3=q(3), q2=q(2), q1=q(1), q0=q(0);
 	
-	/** a function of 2 params calls itself recursively,
+	/** string with "text/plain" type.
+	Usually multiple calls give the same object cuz of rawBitsWrapperCache on the bits of the content string
+	and cuz of axfpr cache (remembers return value for (func param)) of (textPlainType bitsOfString).
+	If you need perfect dedup, do it by id.
+	*/
+	public static final fn str(String content){
+		return ty("text/plain").p(rawBitsWrap(content));
+	}
+	
+	private static final WeakHashMap<Object,fn> rawBitsWrapperCache = new WeakHashMap();
+	
+	/** uses rawBitsWrapperCache */
+	public static final fn rawBitsWrap(String s){
+		fn x = rawBitsWrapperCache.get(s);
+		if(x == null){
+			x = cbt(strToBytes(s));
+			rawBitsWrapperCache.put(s, x);
+		}
+		return x;
+	}
+	
+	/** does not dedup until get id (which is always perfect dedup),
+	but everything above it is deduped as if this is checked for equality by == instead of content
+	so that will avoid exponential cost (instead the same average cost of constant/bigO(1))
+	where just some bitstrings are not deduped but all combos of them are deduped pairs.
+	*/
+	public static final fn cbt(byte[] bits){
+		if(!isPowOf2(bits.length)) bits = pad(bits);
+		return new PowOf2SizeBytesBlob(bits);
+	}
+	
+	public static boolean isPowOf2(int i){
+		return (i&(i-1))==0;
+	}
+	
+	/** https://en.wikipedia.org/wiki/Media_type such as (Op.typeval "image/jpeg")
+	whose next param is content bytes (such as bytes of a jpg file),
+	or "text/plain" then utf8 text.
+	*/
+	public static final fn ty(String type){
+		return typeval.p(type);
+	}
+	
+	public static final byte[] strToBytes(String s){
+		try{
+			return s.getBytes("UTF-8");
+		}catch (UnsupportedEncodingException e){
+			throw new RuntimeException();
+		}
+	}
+	
+	/** pad with 10000..0000 until next powOf2 size (which is wasteful, but todo it the right way later).
+	Returned array is at least 1 byte bigger cuz must append a 1 bit.
+	Max return is byte[1<<30],
+	even though the universal function can handle up to 2^120 bits (2^117 bytes), especially sparsely,
+	and the default kind of id (marklar106b) stores 40 bits of bize so up to 2^40 bits (128gB) per bitstring,
+	but this is for a single java array whose length is a powOf2 and length fits in int.
+	Could for example use a sparse byte[1<<30][1<<30] with masks and shift if you want a bigger array.
+	*/
+	public static final byte[] pad(byte[] b){
+		byte[] ret = new byte[nextPowOf2(b.length+1)];
+		System.arraycopy(b, 0, ret, 0, b.length);
+		ret[b.length] = -128; //pad
+		return ret;
+	}
+	
+	/** returns 1..(2pow30), or throws if i > 2pow30 */
+	public static int nextPowOf2(int i){
+		if(i == 0) return 1; //2^0 is 1
+		int j = Integer.highestOneBit(i);
+		if(j < i) j <<= 1;
+		if(j < 0) throw new RuntimeException("Doesnt fit in int for "+i);
+		return j;
+	}
+	
+	/** a curry1 function of 1 param calls itself recursively */
+	public static final fn recur1 = progn(l,r);
+	//TODO public static final fn recur1 = setComment(progn,(l,r),"recur1");
+	
+	/** a curry2 function of 2 params calls itself recursively,
 	such as in equals function calling itself twice to navigate a tree.
 	TODO create general recur function that keeps going to left child until curriesSoFar==7
 	which is just after funcBody is defined, so its the same recur for curry1..curry16.
 	*/
-	public static final fn funcOf2ParamsCallsItselfRecursively = progn(l,r,l);
+	public static final fn recur2 = progn(l,r,l);
+	//public static final fn funcOf2ParamsCallsItselfRecursively = progn(l,r,l);
+	
+	/** a curry3 function of 3 params calls itself recursively */
+	public static final fn recur3 = progn(l,r,l,l);
+	public static final fn recur4 = progn(l,r,l,l,l);
+	public static final fn recur5 = progn(l,r,l,l,l,l);
+	public static final fn recur6 = progn(l,r,l,l,l,l,l);
+	public static final fn recur7 = progn(l,r,l,l,l,l,l,l);
+	public static final fn recur8 = progn(l,r,l,l,l,l,l,l,l);
+	public static final fn recur9 = progn(l,r,l,l,l,l,l,l,l,l);
+	public static final fn recur10 = progn(l,r,l,l,l,l,l,l,l,l,l);
+	public static final fn recur11 = progn(l,r,l,l,l,l,l,l,l,l,l,l);
+	public static final fn recur12 = progn(l,r,l,l,l,l,l,l,l,l,l,l,l);
+	public static final fn recur13 = progn(l,r,l,l,l,l,l,l,l,l,l,l,l,l);
+	public static final fn recur14 = progn(l,r,l,l,l,l,l,l,l,l,l,l,l,l,l);
+	public static final fn recur15 = progn(l,r,l,l,l,l,l,l,l,l,l,l,l,l,l,l);
+	public static final fn recur16 = progn(l,r,l,l,l,l,l,l,l,l,l,l,l,l,l,l,l);
+	
+	/** FIXME dont be null. This will return the same as recur1..recur16, by checking if its curry1..curry16,
+	and will be optimized (create an Evaler instance for it) to call λ.op6Bits() to check which of curry1..16 it is,
+	or if its not a curry call at all then infloop (long gas param will give up, preferably right away if knows infloop).
+	*/
+	public static final fn recur = null;
 	
 	private static final fn[] c = new fn[]{
 		opu(Op.curry1), opu(Op.curry2), opu(Op.curry3), opu(Op.curry4),
@@ -512,6 +629,11 @@ public class ImportStatic{
 	public static final fn secondlast = null;
 	public static final fn Secondlast = null; //FIXME should be secondlast.dirty(), and read comment in that about setCompiled here
 	*/
+	
+	public static fn f(fn x){
+		//return f.e(x);
+		return cp(f,x); //same as f.e(x) cuz know f takes more params
+	}
 	
 	public static fn t(fn x){
 		//return t.e(x);
@@ -784,12 +906,165 @@ public class ImportStatic{
 			thenConst(f), //then return f
 			thenT( //else return AND of recurse 2 times on the left of both params and right of both params
 				and,
-				ss(funcOf2ParamsCallsItselfRecursively, st(l,q1), st(l,q0) ),
-				ss(funcOf2ParamsCallsItselfRecursively, st(r,q1), st(r,q0) )
+				ss(recur2, st(l,q1), st(l,q0) ),
+				ss(recur2, st(r,q1), st(r,q0) )
 			)
 		))
 	));
+
+	/** context/cx is the first param after funcBody in curry1..curry16 (so 0..15 params), used in functions
+	that want a namespace etc to pass to calls higher on stack recursively, forkEditing it as needed.
+	*/
+	public static final fn cxLinPlusOnetwoscomplement = c(2).p(iF(
+		st(isleaf,q0), //if param is leaf/u aka number with no digits, which normally happens just after the highest digit
+		thenConst(u), //then return leaf/u
+		then(iF( //else its supposed to be like (T (T (F (F (T u)))))
+			st(l,q0), //lowest bit in param
+			thenT( //lowest bit is T, THEN, Change lowest T to F and carry above that.
+				f, //new lowest bit
+				ss(
+					recur2, //linPlusOneTwoscomplement. lambda(1 is used with recur2 cuz that doesnt include the context param. FIXME rename cuz thats confusing.
+					q1, //Copy p(14) which is a context (like defaultContext)
+					st(r,q0) //shift param down 1
+				)
+			),
+			thenT(t,st(r,q0)) //lowest bit is F, so ELSE replace first bit with T and keep the rest as it is
+		)) //lowest bit is F, so ELSE
+	));
 	
+	/** context/cx is the first param after funcBody in curry1..curry16 (so 0..15 params), used in functions
+	that want a namespace etc to pass to calls higher on stack recursively, forkEditing it as needed.
+	*/
+	public static final fn cxLinPlusTwoscomplement;
+	static{
+		//TODO rewrite comments to use t and f instead of T and F, cuz capital means dirty and lowercase means clean.
+		fn getCx = q2;
+		fn recurLowerDigitsWithoutCarry = ss(
+			recur3,
+			getCx, //copy context/cx
+			st(r,q1), //shift secondlast param down 1
+			st(r,q0) //shift last param down 1
+		);
+		cxLinPlusTwoscomplement = c(3).p(iF(
+			//if first of 2 params is leaf/u aka number with no digits (other should be same len),
+			//which normally happens just after the highest digit.
+			st(isleaf,q1),
+			thenConst(u), //number with no digits. both numbers should have same number of digits.
+			then(iF( //else the 2 params should have at least a digit each
+				st(l,q1), //low digit of secondlast param
+				then(iF( //low digit of secondlast param is T
+					st(l,q0), //low digit of last param
+					thenT(f,st(cxLinPlusOnetwoscomplement,getCx,recurLowerDigitsWithoutCarry)), //both low digits are T, so becomes F and carry.
+					thenT(t,recurLowerDigitsWithoutCarry) //a F and a T, so low digit becomes T and no carry
+				)),
+				then(iF( //low digit of secondlast param is F
+					st(l,q0), //low digit of last param
+					thenT(t,recurLowerDigitsWithoutCarry), //a F and a T, so low digit becomes T and no carry
+					thenT(f,recurLowerDigitsWithoutCarry) //2 Fs, so low digit becomes F and no carry
+				))
+			))
+		));
+	}
+	
+	/** using a lin, such as (t (t (f (t u)))), get that path from otherParam: (l (l (r (l otherParam)))),
+	similar to how addressing works in urbit.
+	(linget (pair a b) u) -> (pair a b).
+	(linget (pair a b) (t u)) -> (pair a).
+	(linget (pair a b) (t (t u))) -> pair.
+	(linget (pair a b) (t (f u))) -> a.
+	(linget (pair a b) (f u)) -> b.
+	*/
+	public static final fn linget = c(2).p(iF(
+		//(linget x lin)
+		st(isleaf,q0), //(linget x u)->x
+		then(q1), //return x
+		then(
+			recur2,
+			st( //left or right child of x
+				e(pair,l,r),
+				st(l,q0), //low digit of the lin (t or f) gets l or r from the pair
+				q1 //call the l or r on x
+			),
+			st(r,q0) //all digits of lin except the first
+		)
+	));
+	
+	/** counterpart of linget. (linput x lin valToPut) -> x forkEdited so that (linget x lin)->valToPut.
+	(linput ((00)(00)) (t (f u)) 1)->((01)(00)).
+	<br><br>
+	TODO 2021-3-14+ Will use this to convert between lin and cbt, then derive int and long math on lin, then convert that to cbt,
+	then optimize the cbt form of int and long math (create an Evaler and setCompiled(EvalerChain) on those),
+	then use int and long math to derive float and double math, then create Evalers to optimize those,
+	then similarly optimize for acyclicFlow, SP and IP assembly-like language, lwjgl GPU optimizations, etc,
+	so the optimized forms will in some cases be a billion times faster
+	than interpreted mode aka near equally fast as other number crunching software but far lower lag.
+	*/
+	public static final fn linput = c(3).p(iF(
+		//(linput x lin valToPut)
+		st(isleaf,q1), //(linput x u valToPut)->valToPut
+		then(q0), //return valToPut
+		then(iF(
+			st(l,q1), //low digit of the lin (t or f)
+			then( //low digit of the lin is t (or T) so recurse into l of x
+				ss(
+					recur3,
+					st(l,q2), //l of x
+					st(r,q1), //all digits of lin except the first
+					q0 //valToPut
+				),
+				st(r,q2) //keep r of x as it is
+			),
+			then( //low digit of the lin is f (or F) so recurse into r of x
+				st(l,q2), //keep l of x as it is
+				ss(
+					recur3,
+					st(r,q2), //r of x
+					st(r,q1), //all digits of lin except the first
+					q0 //valToPut
+				)
+			)
+		))
+	));
+	/*public static final fn linput = c(3).p(iF(
+		//(linput x lin valToPut)
+		st(isleaf,q1), //(linput x u valToPut)->valToPut
+		then(q0), //return valToPut
+		then(
+			st(
+				e(pair,r,l),
+				st(l,q1), //OPPOSITE of low digit of the lin (t or f) gets l or r from the pair),
+				NO THIS WAY ISNT GOING TO WORK, CUZ NEED TO CALL THE RECUR BEFORE OR AFTER KEEPING THE OTHER CHILD OF X AS IT IS.
+			),
+			ss(
+				recur3,
+				st( //left or right child of x. Even if this recurses into child of u/leaf it still works cuz (L y (R y))->y forall y.
+					e(pair,l,r),
+					st(l,q1), //low digit of the lin (t or f) gets l or r from the pair
+					q2 //call the l or r on x
+				),
+				st(r,q1), //all digits of lin except the first
+				q0 //valToPut
+			)
+		)
+	));*/
+	
+	/** (cbt32ToLin32 0xffff0000) ->
+	(t (t (t (t (t (t (t (t (t (t (t (t (t (t (t (t (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f u))))))))))))))))))))))))))))))))
+	*
+	public static final fn cbt32ToLin32;
+	static{
+		fn cbt32ToLin32_ = st();
+		cbt32ToLin32 = st(
+			cbt32ToLin32_,
+			
+		);
+	};*/
+	
+	//public static final fn lin32ToCbt32 = TODO;
+	
+	//public static final fn lin64ToCbt64 = TODO;
+	
+	//public static final fn cbt64ToLin64 = TODO;
 	
 	static{
 		for(int n=0; n<q.length; n++) {

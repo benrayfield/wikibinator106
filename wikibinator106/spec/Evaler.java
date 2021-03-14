@@ -3,6 +3,10 @@ package wikibinator106.spec;
 
 public interface Evaler<T extends λ>{
 	
+	/** returns amount not spent, and if finished the calculation then the result of calling func on param.
+	If did not finish, then eval(long,T,T).fn == null, and .gas may still be a big long
+	if it knew it could not do the requested work with at most that amount of gas so did not waste the gas.
+	*/
 	public $<T> eval(long maxSpend, T func, T param);
 	
 	/** same as these 3 evals, ((funcA param) (funcB param)) aka (S funcA funcB param), aka Op.Trecurse,

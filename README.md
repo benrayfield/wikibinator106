@@ -1,6 +1,8 @@
 # wikibinator106
 (TODO) A deterministic way for millions of people and AIs to build and play together in p2p, safely sandboxed but not dumbed-down, a very simple kind of self-aware living number, where 2 numbers combine to create or find another number, and so on, and a number can be anything such a word, video, game, simulation, publicKey, GPU optimization, music tools, way to use multiple clouds together, etc.
 
+Latest progress 2021-3-14 [ test_cxLinPlusOnetwoscomplement works, and am about to derive int, long, float, and double math, then optimize it using an Evaler.java instance which will read 32 or 64 bits from 2 param cbts and return another 32 or 64 bit cbt, such as (dmul 3.45 10.)->34.5 ]
+
 A universal function of 7..127 params,
 which is a combinator, universal lambda, and pattern calculus function,
 and is designed to be GPU optimized and for gaming-low-lag sync in p2p network, graphics, sound, etc,

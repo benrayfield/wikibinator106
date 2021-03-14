@@ -511,6 +511,43 @@ public class Marklar106bId{
 		return 0;
 	}
 	
+	/** returns index of last 1 bit, or returns 0 if there is no 1 bit. Its correct bize either way. */
+	public static long bizeOfContent(byte... literal){
+		for(int i=literal.length-1; i>=0; i--){
+			byte j = literal[i];
+			if(j != 0){
+				return (i*8L)+7-numberOfTrailingZeros(j);
+			}
+		}
+		return 0;
+	}
+	
+	public static byte numberOfTrailingZeros(byte b){
+		if(b == 0) return 8;
+		return (byte)Integer.numberOfTrailingZeros(b); //TODO optimize. dont need to check all 32 bits
+	}
+	
+	public static long headerForPowOf2SizeContent(byte... content){
+		if((content.length&(content.length-1)) != 0) throw new RuntimeException("Not a powOf2 number of bytes: "+content.length);
+		boolean containsAxconstraint = false;
+		boolean isClean = true;
+		boolean firstBitIs1 = content[0]<0;
+		byte o6 = (firstBitIs1 ? Op.one : Op.zero).op6Bits;
+		long cbtSize = content.length*8L;
+		byte cbtHeight = log2OfNumberThatsAPowOf2(cbtSize);
+		byte curriesMore_7bits = (byte)(smallestCbtAt+cbtHeight);
+		long lowBitsOfBize_40bits = bizeOfContent(content);
+		//All 0s and all 0s except first bit is 1, are both bize 0
+		boolean containsCleanNormedBit1 = lowBitsOfBize_40bits!=0 || o6==Op.one.op6Bits;
+		return headerOfFuncall(containsAxconstraint, isClean, o6, containsCleanNormedBit1, curriesMore_7bits, lowBitsOfBize_40bits);
+	}
+	
+	public static byte log2OfNumberThatsAPowOf2(long num){
+		if((num&(num-1))!=0) throw new RuntimeException("Not a powOf2: "+num);
+		//if num is 1 thats 2^0, leadingZeros is 63, return 0
+		return (byte)(63-Long.numberOfLeadingZeros(num));
+	}
+	
 	public static long headerForPowOf2SizeContent(long... content){
 		if((content.length&(content.length-1)) != 0) throw new RuntimeException("Not a powOf2 number of longs: "+content.length);
 		throw new RuntimeException("TODO");

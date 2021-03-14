@@ -39,6 +39,10 @@ public class Test{
 			testIfElse();
 			testLogic();
 			testEquals();
+			test_cxLinPlusOnetwoscomplement();
+			test_cxLinPlusTwoscomplement();
+			testLinget();
+			testLinput();
 			
 			//thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger();
 			//testIsHalted();
@@ -49,7 +53,7 @@ public class Test{
 			//TODO instead of recur1 to recur7, depending on number of params, use opcode (ops 1 - 7) to know exactly where to recur from,
 			//which will in other implementations (than this spec) be cached in every node what is its op and number of curries.
 			
-			test_linPlusOneTwoscomplement();
+			test_cxLinPlusOnetwoscomplement;
 			*/
 			
 			//test_linPlusTwoscomplement();
@@ -805,32 +809,101 @@ public class Test{
 		testEqq("lazigPairIsleafWiki", e(lazig,pair,isleaf,wiki), e(pair,isleaf));
 	}
 	
-	/*public static void test_linPlusOneTwoscomplement(){
-		lg("Starting test_linPlusOneTwoscomplement");
-		testEqq("(linPlusOneTwoscomplement u) -> u, aka number with no digits", e(linPlusOneTwoscomplement(),u), u);
-		testEqq("(F u)==I. Remember that when reading the following tests.", e(F,u), I);
-		testEqq("(linPlusOneTwoscomplement (F u)) -> (T u), aka 0 -> 1", e(linPlusOneTwoscomplement(),e(F,u)), e(T,u));
-		testEqq("(linPlusOneTwoscomplement (T u)) -> (F u), aka 1 -> 0 losing high digit to twosComplement", e(linPlusOneTwoscomplement(),e(F,u)), e(T,u));
-		testEqq("(linPlusOneTwoscomplement (T (F u))) -> (F (T u)) //01 -> 10", e(linPlusOneTwoscomplement(), e(T,e(F,u))), e(F,e(T,u)));
-		testEqq("(linPlusOneTwoscomplement (F (T u))) -> (T (T u)) //10 -> 11", e(linPlusOneTwoscomplement(), e(F,e(T,u))), e(T,e(T,u)));
-		testEqq("(linPlusOneTwoscomplement (T (T u))) -> (F (F u)) //11 -> 00, wraps", e(linPlusOneTwoscomplement(), e(T,e(T,u))), e(F,e(F,u)));
-		testEqq("(linPlusOneTwoscomplement (T (T (T u)))) -> (F (F (F u))) //111 -> 000, wraps", e(linPlusOneTwoscomplement(), e(T,e(T,e(T,u)))), e(F,e(F,e(F,u))));
-		testEqq("(linPlusOneTwoscomplement (T (T (F (T u))))) -> (F (F (T (T u)))) //1011 -> 1100", e(linPlusOneTwoscomplement(), e(T,e(T,e(F,e(T,u))))), e(F,e(F,e(T,e(T,u)))));
+	public static void test_cxLinPlusOnetwoscomplement(){
+		lg("Starting test_cxLinPlusOnetwoscomplement");
+		//context/cx is normally some kind of treemap (TODO) which goes in first param of many funcs,
+		//but since cxLinPlusOnetwoscomplement doesnt use it (its just there for consistency with other funcs), it can be anything.
+		fn cx = u;
+		testEqq("(f u)==i. Remember that when reading the following tests.", e(f,u), i);
+		testEqq("(cxLinPlusOnetwoscomplement u) -> u, aka number with no digits", e(cxLinPlusOnetwoscomplement,cx,u), u);
+		testEqq("(cxLinPlusOnetwoscomplement (f u)) -> (t u), aka 0 -> 1", e(cxLinPlusOnetwoscomplement,cx,e(f,u)), e(t,u));
+		testEqq("(cxLinPlusOnetwoscomplement (t u)) -> (f u), aka 1 -> 0 losing high digit to twosComplement", e(cxLinPlusOnetwoscomplement,cx,e(f,u)), e(t,u));
+		testEqq("(cxLinPlusOnetwoscomplement (t (f u))) -> (f (t u)) //01 -> 10", e(cxLinPlusOnetwoscomplement,cx, e(t,e(f,u))), e(f,e(t,u)));
+		testEqq("(cxLinPlusOnetwoscomplement (f (t u))) -> (t (t u)) //10 -> 11", e(cxLinPlusOnetwoscomplement,cx, e(f,e(t,u))), e(t,e(t,u)));
+		testEqq("(cxLinPlusOnetwoscomplement (t (t u))) -> (f (f u)) //11 -> 00, wraps", e(cxLinPlusOnetwoscomplement,cx, e(t,e(t,u))), e(f,e(f,u)));
+		testEqq("(cxLinPlusOnetwoscomplement (t (t (t u)))) -> (f (f (f u))) //111 -> 000, wraps", e(cxLinPlusOnetwoscomplement,cx, e(t,e(t,e(t,u)))), e(f,e(f,e(f,u))));
+		testEqq("(cxLinPlusOnetwoscomplement (t (t (f (t u))))) -> (f (f (t (t u)))) //1011 -> 1100", e(cxLinPlusOnetwoscomplement,cx, e(t,e(t,e(f,e(t,u))))), e(f,e(f,e(t,e(t,u)))));
+		testEqq("(cxLinPlusOnetwoscomplement (f (f (f (f u))))) -> (t (f (f (f u)))) //0000 -> 0001", e(cxLinPlusOnetwoscomplement,cx, e(f,e(f,e(f,e(f,u))))), e(t,e(f,e(f,e(f,u)))));
+		testEqq("(cxLinPlusOnetwoscomplement (f (f (f (t u))))) -> (f (t (f (f u)))) //1000 -> 0100", e(cxLinPlusOnetwoscomplement,cx, e(t,e(f,e(f,e(f,u))))), e(f,e(t,e(f,e(f,u)))));
 	}
 	
-	public static void test_linPlusTwoscomplement(){
+	public static void test_cxLinPlusTwoscomplement(){
 		lg("Starting test_linPlusTwoscomplement");
-		testEqq("(F u)==I again. Remember that when reading the following tests.", e(F,u), I);
-		fn plus = linPlusTwoscomplement();
-		testEqq("(linPlusTwoscomplement u u) -> u, 2 numbers with no digits -> no digits", e(plus,u,u), u);
-		testEqq("(linPlusTwoscomplement (F u) (F u)) -> (F u)", e(plus,e(F,u),e(F,u)), e(F,u));
-		testEqq("(linPlusTwoscomplement (T u) (F u)) -> (T u)", e(plus,e(T,u),e(F,u)), e(T,u));
-		testEqq("(linPlusTwoscomplement (F u) (T u)) -> (T u)", e(plus,e(F,u),e(T,u)), e(T,u));
-		testEqq("(linPlusTwoscomplement (T u) (T u)) -> (F u), carry loses digit", e(plus,e(T,u),e(T,u)), e(F,u));
-		testEqq("(linPlusTwoscomplement (T (F u)) (T (F u))) -> (F (T u)), 01+01->10", e(plus,e(T,e(F,u)),e(T,e(F,u))), e(F,e(T,u)));
+		fn cx = u;
+		testEqq("(f u)==i again. Remember that when reading the following tests.", e(f,u), i);
+		fn plus = cxLinPlusTwoscomplement;
+		fn plusCx = plus.e(cx);
+		testEqq("(linPlusTwoscomplement u u) -> u, 2 numbers with no digits -> no digits", e(plusCx,u,u), u);
+		testEqq("(linPlusTwoscomplement (F u) (F u)) -> (F u)", e(plusCx,e(f,u),e(f,u)), e(f,u));
+		testEqq("(linPlusTwoscomplement (T u) (F u)) -> (T u)", e(plusCx,e(t,u),e(f,u)), e(t,u));
+		testEqq("(linPlusTwoscomplement (F u) (T u)) -> (T u)", e(plusCx,e(f,u),e(t,u)), e(t,u));
+		testEqq("(linPlusTwoscomplement (T u) (T u)) -> (F u), carry loses digit", e(plusCx,e(t,u),e(t,u)), e(f,u));
+		testEqq("(linPlusTwoscomplement (T (F u)) (T (F u))) -> (F (T u)), 01+01->10", e(plusCx,e(t,e(f,u)),e(t,e(f,u))), e(f,e(t,u)));
+		testEqq("(linPlusTwoscomplement (t (f u)) (f (t u))) -> (t (t u)), 01+10->11", e(plusCx,e(t,e(f,u)),e(f,e(t,u))), e(t,e(t,u)));
+		
+		fn twoZeros = e(f,e(f,u));
+		fn threeZeros = e(f,twoZeros);
+		fn fourZeros = e(f,threeZeros);
+		
+		fn twoOnes = e(t,e(t,u));
+		fn threeOnes = e(t,twoOnes);
+		fn fourOnes = e(t,threeOnes);
+		fn fiveOnes = e(t,fourOnes);
+		
+		testEqq("(linPlusTwoscomplement (f (f u)) (f (f u))) -> (f (f u)), 00+00->00",
+			e(plusCx, twoZeros, twoZeros), twoZeros);
+		
+		testEqq("(linPlusTwoscomplement (f (f u)) (t (t u))) -> (t (t u)), 00+11->11",
+				e(plusCx, twoZeros, twoOnes), twoOnes);
+		
+		testEqq("(linPlusTwoscomplement (t (t u)) (f (f u))) -> (t (t u)), 11+00->11",
+			e(plusCx, twoOnes, twoZeros), twoOnes);
+		
+		
+		testEqq("(linPlusTwoscomplement (f (f (f (f u)))) (f (f (f (f u))))) -> (f (f (f (f u)))), 0000+0000->0000",
+			e(plusCx, fourZeros, fourZeros), fourZeros);
+		
+		testEqq("(linPlusTwoscomplement (t (t (t (t u)))) (f (f (f (f u))))) -> (t (t (t (t u)))), 1111+0000->1111",
+			e(plusCx, fourOnes, fourZeros), fourOnes);
+		
+		testEqq("(linPlusTwoscomplement (t (t (t (t u)))) (f (f (f (f u))))) -> (t (t (t (t u)))), 1111+0000->1111",
+			e(plusCx, fourOnes, fourZeros), fourOnes);
+		
 		testEqq("(linPlusTwoscomplement (T (T (F (T u))))) (T (F (F (F u))))) -> (F (F (T (T u)))), 1011+0001->1100",
-			e(plus,e(T,e(T,e(F,e(T,u)))),e(T,e(F,e(F,e(F,u))))), e(F,e(F,e(T,e(T,u)))) );
-	}*/
+			e(plusCx,e(t,e(t,e(f,e(t,u)))),e(t,e(f,e(f,e(f,u))))), e(f,e(f,e(t,e(t,u)))) );
+		
+		testEqq("(linPlusTwoscomplement (t (f (t (t (f u))))) (f (t (f (f (t u)))))) -> (t (t (t (t (t u))))), 01101+10010->11111 (no carries)",
+			e(plusCx, e(t,e(f,e(t,e(t,e(f,u))))), e(f,e(t,e(f,e(f,e(t,u)))))), fiveOnes);
+	}
+	
+	public static void testLinget(){
+		testEqq("(linget (pair zero one) u) -> (pair zero one)", e(linget,e(pair,zero,one),u), e(pair,zero,one));
+		testEqq("(linget (pair zero one) (t u)) -> (pair zero)", e(linget,e(pair,zero,one),t(u)), e(pair,zero));
+		testEqq("(linget (pair zero one) (t (t u))) -> pair", e(linget,e(pair,zero,one),tt(u)), pair);
+		testEqq("(linget (pair zero one) (t (f u))) -> zero", e(linget,e(pair,zero,one),t(f(u))), zero);
+		testEqq("(linget (pair zero one) (f u)) -> one", e(linget,e(pair,zero,one),f(u)), one);
+		testEqq("(linget (pair (one zero) one) (t (f (t u)))) -> one", e(linget,e(pair,e(one,zero),one),t(f(t(u)))), one);
+		testEqq("(linget (pair (one zero) one) (t (f (f u)))) -> zero", e(linget,e(pair,e(one,zero),one),t(f(f(u)))), zero);
+		
+		testEqq("(linget (pair s wiki) u) -> (pair s wiki)", e(linget,e(pair,s,wiki),u), e(pair,s,wiki));
+		testEqq("(linget (pair s wiki) (t u)) -> (pair s)", e(linget,e(pair,s,wiki),t(u)), e(pair,s));
+		testEqq("(linget (pair s wiki) (t (t u))) -> pair", e(linget,e(pair,s,wiki),tt(u)), pair);
+		testEqq("(linget (pair s wiki) (t (f u))) -> s", e(linget,e(pair,s,wiki),t(f(u))), s);
+		testEqq("(linget (pair s wiki) (f u)) -> wiki", e(linget,e(pair,s,wiki),e(f,u)), wiki);
+		testEqq("(linget (pair (one zero) wiki) (t (f (t u)))) -> one", e(linget,e(pair,e(one,zero),wiki),t(f(t(u)))), one);
+		testEqq("(linget (pair (one zero) wiki) (t (f (f u)))) -> zero", e(linget,e(pair,e(one,zero),wiki),t(f(f(u)))), zero);
+	}
+	
+	public static void testLinput(){
+		testEqq("(linput ((00)(00)) (t (t u)) 1)->((10)(00))",
+			e(linput,e(zero,zero,e(zero,zero)),t(t(u)),one), e(one,zero,e(zero,zero)));
+		testEqq("(linput ((00)(00)) (t (f u)) 1)->((01)(00))",
+			e(linput,e(zero,zero,e(zero,zero)),t(f(u)),one), e(zero,one,e(zero,zero)));
+		testEqq("(linput ((00)(00)) (f (t u)) 1)->((00)(10))",
+			e(linput,e(zero,zero,e(zero,zero)),f(t(u)),one), e(zero,zero,e(one,zero)));
+		testEqq("(linput ((00)(00)) (f (f u)) 1)->((00)(01))",
+			e(linput,e(zero,zero,e(zero,zero)),f(f(u)),one), e(zero,zero,e(zero,one)));
+	}
 	
 	/*
 	public static void testChurchEncodingOfArithmetic(){

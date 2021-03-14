@@ -25,7 +25,6 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	Should those first 5 params have to be either zero or one?
 	*/
 	
-	
 	public EvalerChain compiled();
 	
 	/** new EvalerChain's prev() normally points at what compiled() returns before this was called.
@@ -39,6 +38,16 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	
 	public default $<Subclass> e(long maxSpend, Subclass param){
 		return compiled().eval(maxSpend, this, param);
+	}
+	
+	public default Subclass e(Object wrapMe){
+		//FIXME pay gas (part of maxSpend) for the wrapping
+		return e(compiled().ww(wrapMe));
+	}
+	
+	public default Subclass e(long maxSpend, Object wrapMe){
+		//FIXME pay gas (part of maxSpend) for the wrapping
+		return e(maxSpend,compiled().ww(wrapMe));
 	}
 	
 	/** UnaryOperator does lambda call */
@@ -155,7 +164,19 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	and the λ isnt created until its halted, even if the evaling and halted form are the same (which is often true).
 	*/
 	public default boolean isHalted(){
-		return curriesMore()>0;
+		return curriesMore()>0; //FIXME read comment of this func, about cases like (axa anything)
+		//which isHalted only if (anything u)->u, but before (anything u) returns,
+		//dont know if its halted or not.
+		//If (anything u)->u then /*nonhalted*/(axa anything)->/*halted*/(axa anything),
+		//which seems to be bad logic but since this wikibinator106 VM only has halted nodes,
+		//this function can actually just be "return true",
+		//and (axa ) would never happen unless its halted since
+		//it would instead be on java stack in Evaler.eval(long,axa,anything)
+		//until it halts (if ever) then it would return (axa anything) or (axb anything)
+		//depending if (anything u) returns u/cleanLeaf vs returns anything other than u/cleanLeaf.
+		//Similarly, (axb anything) is halted if (anything u)->anything_except_u
+		//such as (axb (fpr (+ 2) 2 5)) would be halted cuz (fpr (+ 2) 2 5 u)->(u u)
+		//cuz 2+2 does not equal 5. (axa (fpr (+ 2) 2 4)) would be halted cuz 2+2 equals 4.
 	}
 	
 	/** If this is a cbt, then it has 2 exponent cbtHeight() bits, and this ranges 0..120, or 121 is a nonhalted state.
@@ -346,6 +367,10 @@ public interface λ<Subclass extends λ<Subclass>> extends UnaryOperator<Subclas
 	since (todo choose a design?) only halted nodes are allowed.
 	*/
 	public Subclass p(Subclass r);
+	
+	public default Subclass p(Object wrapMe){
+		return p(compiled().ww(wrapMe));
+	}
 	
 	/*public default String toDataUrl(fn idMaker){
 		throw new RuntimeException("TODO concat data:"+Const.contentTypePlr+" base64 something, then call idMaker on this, on this.l(), on this.r()... Or just define a dataUrl as a kind of id, so given an idMaker (such as marklar106b idMaker), the dataUrlIdMaker would do this. Want this for dragAndDrop into and out of java window");
