@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.event.KeyEvent;
@@ -250,6 +251,14 @@ public class UI extends JPanel implements Consumer<long[]>{
 	
 	public static final byte symbolOfCircle = 1;
 	
+	public static final byte symbolOfTriangleTopLeft = 2;
+	
+	public static final byte symbolOfTriangleTopRight = 3;
+	
+	public static final byte symbolOfTriangleBottomRight = 4;
+	
+	public static final byte symbolOfTriangleBottomLeft = 5;
+	
 	public static final byte symbolOfChar(char c){
 		if(c < 2 || 127 < c) throw new RuntimeException("for now its ASCII only, didnt have enough bits per voxel for char (int)"+c+" aka "+c);
 		return (byte)c;
@@ -384,17 +393,40 @@ public class UI extends JPanel implements Consumer<long[]>{
 					//TODO use linePixelsThick
 					G.setStroke(strokeOfThickness(linePixelsThick));
 					g.drawLine(xa, ya, xb, yb);
-				}else if(symbol == symbolOfSolidRectangleOrPixel){
+				}else{
+					switch(symbol){
+					case symbolOfSolidRectangleOrPixel:
+						g.fillRect(xa, ya, xb-xa, yb-ya);
+					break;case symbolOfCircle:
+						g.fillOval(xa, ya, xb-xa, yb-ya);
+					break;case symbolOfTriangleTopLeft: //FIXME these triangles might be named wrong or in wrong order
+						g.fillPolygon(triPolygon(ya,xa, yb,xa, ya,xb)); //TODO optimize, avoid creating Polygon each time, share a mutable Polygon or something
+					break;case symbolOfTriangleTopRight:
+						g.fillPolygon(triPolygon(ya,xa, ya,xb, yb,xb));
+					break;case symbolOfTriangleBottomRight:
+						g.fillPolygon(triPolygon(yb,xa, ya,xb, yb,xb));
+					break;case symbolOfTriangleBottomLeft:
+						g.fillPolygon(triPolygon(yb,xa, ya,xa, yb,xb));
+					break;default: //char
+						//TODO use (xa, ya, xb, yb) rect instead of just the xa ya position and default font size
+						char c = (char)symbol;
+						int fontSize = Math.max(1, Math.min(yb-ya, 2047)); //TODO optimize: is this max/min needed?
+						g.setFont(fontOfSize(fontSize));
+						g.drawString(""+c, xa, (ya+yb)/2); //FIXME alignment should fit exactly in the given rectangle
+					}
+				}
+				/*if(symbol == symbolOfSolidRectangleOrPixel){
 					g.fillRect(xa, ya, xb-xa, yb-ya);
 				}else if(symbol ==  symbolOfCircle){
 					g.fillOval(xa, ya, xb-xa, yb-ya);
+					
 				}else{ //char
 					//TODO use (xa, ya, xb, yb) rect instead of just the xa ya position and default font size
 					char c = (char)symbol;
 					int fontSize = Math.max(1, Math.min(yb-ya, 2047)); //TODO optimize: is this max/min needed?
 					g.setFont(fontOfSize(fontSize));
 					g.drawString(""+c, xa, (ya+yb)/2); //FIXME alignment should fit exactly in the given rectangle
-				}
+				}*/
 			}
 		}
 		
@@ -438,6 +470,10 @@ public class UI extends JPanel implements Consumer<long[]>{
 		*/
 	}
 	
+	public static Polygon triPolygon(int y0, int x0, int y1, int x1, int y2, int x2){
+		return new Polygon(new int[]{x0,x1,x2}, new int[]{y0,y1,y2}, 3);
+	}
+	
 	public void accept(long[] voxels){
 		this.voxels = voxels;
 		repaint();
@@ -467,7 +503,13 @@ public class UI extends JPanel implements Consumer<long[]>{
 			individualPixels,
 			checkbox(new Rectangle(44,355,20,20), 2, true),
 			textAt(355,64,24,12,0x57d,"hello"),
-			checkbox(new Rectangle(134,355,20,20), 2, true)
+			checkbox(new Rectangle(134,355,20,20), 2, true),
+			new long[]{-1+
+				voxel(400, 400, 500, 550, symbolOfTriangleTopLeft, 0x4f7),
+				voxel(400, 400, 500, 550, symbolOfTriangleBottomRight, 0xc22),
+				voxel(500, 400, 550, 500, symbolOfTriangleTopRight, 0xabc),
+				voxel(500, 400, 550, 500, symbolOfTriangleBottomLeft, 0xcba),
+			}
 		));
 		window.add(ui);
 		window.setSize(600,600);
@@ -502,7 +544,7 @@ public class UI extends JPanel implements Consumer<long[]>{
 
 
 	too big: triangle
-		x y x y x y color
+		x y x y x y color4
 	*/
 	
 	
