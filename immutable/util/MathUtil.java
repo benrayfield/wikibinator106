@@ -846,6 +846,13 @@ public class MathUtil{
 		return b;
 	}
 	
+	public static byte[] shortToBytes(short s){
+		return new byte[]{
+			(byte)(s>>>8),
+			(byte)s
+		};
+	}
+	
 	public static byte[] intToBytes(int i){
 		return new byte[]{
 			(byte)(i>>>24),

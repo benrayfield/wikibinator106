@@ -1,4 +1,5 @@
 package wikibinator106.impls.marklar106;
+import immutable.util.MathUtil;
 import wikibinator106.spec.$;
 import wikibinator106.spec.Op;
 
@@ -13,12 +14,26 @@ public class PowOf2SizeBytesBlob extends AbstractFn{
 	
 	protected fn l, r;
 	
+
+	public PowOf2SizeBytesBlob(short s){
+		this(MathUtil.shortToBytes(s));
+	}
+	
+	public PowOf2SizeBytesBlob(int i){
+		this(MathUtil.intToBytes(i));
+	}
+	
+	public PowOf2SizeBytesBlob(long j){
+		this(MathUtil.longToBytes(j));
+	}
+	
 	public PowOf2SizeBytesBlob(byte... content){
 		this(0, content.length, content);
 	}
 	
 	public PowOf2SizeBytesBlob(int from, int toExcl, byte... content){
 		super(Marklar106bId.headerForPowOf2SizeContent(content)); //FIXME
+		if(toExcl-from <= 1) throw new RuntimeException("Use ImportStatic.cbt(byte) instead to get deduped form of a byte");
 		this.from = from;
 		this.toExcl = toExcl;
 		this.content = content;

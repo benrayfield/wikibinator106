@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.WeakHashMap;
 import java.util.function.Supplier;
 
+import immutable.util.MathUtil;
 import wikibinator106.spec.*;
 
 public class ImportStatic{
@@ -501,20 +502,126 @@ public class ImportStatic{
 	public static final fn rawBitsWrap(String s){
 		fn x = rawBitsWrapperCache.get(s);
 		if(x == null){
-			x = cbt(strToBytes(s));
+			x = cbtAllowDupIfMoreThan1Byte(strToBytes(s));
 			rawBitsWrapperCache.put(s, x);
 		}
 		return x;
 	}
 	
-	/** does not dedup until get id (which is always perfect dedup),
+	/** deduped */
+	private static fn[] cbt1s;
+	
+	/** deduped */
+	private static fn[] cbt2s;
+	
+	/** deduped */
+	private static fn[] cbt4s;
+	
+	/** deduped */
+	private static fn[] cbt8s;
+	static{
+		cbt1s = new fn[]{zero, one};
+		cbt2s = new fn[]{
+			cbt1s[0].p(cbt1s[0]),
+			cbt1s[0].p(cbt1s[1]),
+			cbt1s[1].p(cbt1s[0]),
+			cbt1s[1].p(cbt1s[1])
+		};
+		cbt4s = new fn[16];
+		for(int i=0; i<16; i++){
+			cbt4s[i] = cbt2s[i>>2].p(cbt2s[i&3]);
+		}
+		cbt8s = new fn[256];
+		for(int i=0; i<256; i++){
+			cbt8s[i] = cbt4s[i>>4].p(cbt4s[i&15]);
+		}
+	}
+	
+	/** If is not a powOf2 size, then is padded by 10000... until next powOf2.
+	Does not dedup until get id (which is always perfect dedup),
 	but everything above it is deduped as if this is checked for equality by == instead of content
 	so that will avoid exponential cost (instead the same average cost of constant/bigO(1))
 	where just some bitstrings are not deduped but all combos of them are deduped pairs.
 	*/
-	public static final fn cbt(byte[] bits){
+	public static fn cbtAllowDupIfMoreThan1Byte(byte... bits){
+		if(bits.length == 1) return cbt(bits[0]);
+		if(bits.length == 0) return one; //the padded form of empty bitstring
 		if(!isPowOf2(bits.length)) bits = pad(bits);
 		return new PowOf2SizeBytesBlob(bits);
+	}
+	
+	/** dedup. Lazy-dedup with just wrapping primitive arrays is much faster than this. */
+	public static fn cbt(byte... bits){
+		if(bits.length == 0) return one; //the padded form of empty bitstring. otherwise dont pad, but there is no cbt size 0.
+		if(!isPowOf2(bits.length)) bits = pad(bits); //can only pad to a multiple of 8 bits, so "return one" being 1 bit is checked separately.
+		return cbt(0, bits.length, bits);
+	}
+	
+	/** dedup. toExcl-from must be a powOf2 num of bytes. Lazy-dedup with just wrapping primitive arrays is much faster than this. */
+	public static fn cbt(int from, int toExcl, byte... bits){
+		if(toExcl-from == 1) return cbt(bits[from]);
+		int mid = (from+toExcl)>>1;
+		return cbt(from,mid,bits).p(cbt(mid,toExcl,bits));
+	}
+	
+	/** dedup */
+	public static fn cbt(byte b){
+		return cbt8s[b&0xff];
+	}
+	
+	/** dedup */
+	public static fn cbt(short s){
+		return cbt8s[s>>>8].p(cbt8s[s&255]);
+	}
+	
+	/** dedup */
+	public static fn cbt(int i){
+		return cbt((short)(i>>>16)).p(cbt((short)i));
+	}
+	
+	/** dedup */
+	public static fn cbt(long j){
+		return cbt((int)(j>>>32)).p(cbt((int)j));
+	}
+	
+	/** dedup but lost type info. normed double except allow subnormals. */
+	public static fn cbt(double d){
+		return cbt(Double.doubleToLongBits(d));
+	}
+	
+	/** dedup but lost type info. normed float except allow subnormals. */
+	public static fn cbt(float f){
+		return cbt(Float.floatToIntBits(f));
+	}
+	
+	public static fn cbtAllowDup(short s){
+		return new PowOf2SizeBytesBlob(s);
+	}
+	
+	public static fn cbtAllowDup(int i){
+		return new PowOf2SizeBytesBlob(i);
+	}
+	
+	public static fn cbtAllowDup(long j){
+		return new PowOf2SizeBytesBlob(j);
+	}
+	
+	public static fn cbtAllowDup(long... longs){
+		return cbt(MathUtil.longsToBytes(longs));
+	}
+	
+	public static fn cbtAllowDup(int... ints){
+		return cbt(MathUtil.intsToBytes(ints));
+	}
+	
+	/** loses type info. normed double except allows subnormals. */
+	public static final fn cbtAllowDup(double d){
+		return new PowOf2SizeBytesBlob(Double.doubleToLongBits(d));
+	}
+	
+	/** loses type info. normed float except (TODO verify) allows subnormals. */
+	public static final fn cbtAllowDup(float f){
+		return new PowOf2SizeBytesBlob(Float.floatToIntBits(f));
 	}
 	
 	public static boolean isPowOf2(int i){

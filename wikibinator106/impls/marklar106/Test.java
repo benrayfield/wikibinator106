@@ -1,6 +1,9 @@
 package wikibinator106.impls.marklar106;
 import static wikibinator106.impls.marklar106.ImportStatic.*;
 
+import wikibinator106.spec.Const;
+import wikibinator106.spec.Op;
+
 /** FIXME make the tests independent of implementation, other than you cant call java from javascript,
 but put it in spec instead of impl, and just call it on impl with param of a DIRTY instance of leaf
 since everything can be derived from that including the CLEAN leaf.
@@ -41,8 +44,10 @@ public class Test{
 			testEquals();
 			test_cxLinPlusOnetwoscomplement();
 			test_cxLinPlusTwoscomplement();
+			testGrowinglist();
 			testLinget();
 			testLinput();
+			testBitstringsSoBigTheyMustUseGrowinglist();
 			
 			//thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger();
 			//testIsHalted();
@@ -876,6 +881,57 @@ public class Test{
 			e(plusCx, e(t,e(f,e(t,e(t,e(f,u))))), e(f,e(t,e(f,e(f,e(t,u)))))), fiveOnes);
 	}
 	
+	public static void testGrowinglist(){
+		lg("Starting testGrowinglist");
+		fn g = growinglist;
+		//prev list is nil/u. Next 64 params are list contents.
+		//65th param causes another list with this list as its prev, and so on.
+		//For example, a list with 3 pointers to growinglist holds 129-192 things.
+		//A growinglist of 192 things requires storinbg 64+1+64+1+64 callpairs,
+		//not including (growinglist u) which is shared between most or all growinglists.
+		//Technically the first of its 65 params doesnt have to be a prev list, but its normally used that way.
+		fn list = u;
+		int offset = 0;
+		for(int block=0; block<3; block++){
+			{
+				fn nextList = growinglist.e(list);
+				
+				//testEqq("testGrowinglist_block"+block+"_l", nextList.l(), g);
+				test("testGrowinglist_block"+block+"_l", nextList.l()==g); //FIXME test passed but display of cbt needs this optimization: "Exception in thread "main" java.lang.RuntimeException: TODO lazyeval header to avoid looking for highest 1 bit at some recursions into l or r"
+				
+				//testEqq("testGrowinglist_block"+block+"_r_isPrevList", nextList.r(), list);
+				test("testGrowinglist_block"+block+"_r_isPrevList", nextList.r()==list); //FIXME test passed but display of cbt needs this optimization: "Exception in thread "main" java.lang.RuntimeException: TODO lazyeval header to avoid looking for highest 1 bit at some recursions into l or r"
+				
+				list = nextList;
+			}
+			for(int i=0; i<64; i++){
+				fn item = cbt((byte)offset);
+				fn nextList = list.e(item);
+				
+				//testEqq("testGrowinglist_"+offset+"_l", nextList.l(), list);
+				test("testGrowinglist_"+offset+"_l", nextList.l()==list); //FIXME test passed but display of cbt needs this optimization: "Exception in thread "main" java.lang.RuntimeException: TODO lazyeval header to avoid looking for highest 1 bit at some recursions into l or r"
+				
+				//testEqq("testGrowinglist_"+offset+"_r", nextList.r(), item);
+				test("testGrowinglist_"+offset+"_r", nextList.r()==item); //FIXME test passed but display of cbt needs this optimization: "Exception in thread "main" java.lang.RuntimeException: TODO lazyeval header to avoid looking for highest 1 bit at some recursions into l or r"
+				
+				list = nextList;
+				offset++;
+			}
+		}
+		fn findAListItem = list;
+		for(int i=0; i<64; i++){
+			findAListItem = findAListItem.l();
+		}
+		findAListItem = findAListItem.r();
+		for(int i=0; i<5; i++){
+			findAListItem = findAListItem.l();
+		}
+		findAListItem = findAListItem.r();
+		//testEqq("testGrowinglist_findAListItem", findAListItem, cbt((byte)(offset-1-64-5)));
+		test("testGrowinglist_findAListItem", findAListItem==cbt((byte)(offset-1-64-5)));  //FIXME test passed but display of cbt needs this optimization: "Exception in thread "main" java.lang.RuntimeException: TODO lazyeval header to avoid looking for highest 1 bit at some recursions into l or r"
+		lg("testGrowinglist tests pass");
+	}
+	
 	public static void testLinget(){
 		testEqq("(linget (pair zero one) u) -> (pair zero one)", e(linget,e(pair,zero,one),u), e(pair,zero,one));
 		testEqq("(linget (pair zero one) (t u)) -> (pair zero)", e(linget,e(pair,zero,one),t(u)), e(pair,zero));
@@ -903,6 +959,24 @@ public class Test{
 			e(linput,e(zero,zero,e(zero,zero)),f(t(u)),one), e(zero,zero,e(one,zero)));
 		testEqq("(linput ((00)(00)) (f (f u)) 1)->((00)(01))",
 			e(linput,e(zero,zero,e(zero,zero)),f(f(u)),one), e(zero,zero,e(zero,one)));
+	}
+	
+	public static void testBitstringsSoBigTheyMustUseGrowinglist(){
+		lg("Starting testBitstringsSoBigTheyMustUseGrowinglist");
+		fn cbt = zero; //cbt size pow(2,0)==1
+		testEqq("log2OfMaxCbtSize", Const.log2OfMaxCbtSize, 120);
+		for(int i=0; i<=Const.log2OfMaxCbtSize; i++){
+			cbt = cbt.e(cbt);
+			lg("i="+i+" cbt.curriesSoFar=="+cbt.curriesSoFar());
+		}
+		testEqq("cbt at max height, check curriesSoFar", cbt.curriesSoFar(), 126);
+		testEqq("cbt at max height, check op6Bits", cbt.op6Bits(), Op.zero.op6Bits);
+		fn aGrowinglist = cbt.e(cbt);
+		testEqq("cbt became growinglist by passing max height", aGrowinglist.op6Bits(), Op.growinglist.op6Bits);
+		testEqq("get cbt left from aGrowinglist", aGrowinglist.l().r(), cbt);
+		testEqq("get cbt right from aGrowinglist", aGrowinglist.r(), cbt); //both are all 0s
+		//aGrowinglist = aGrowinglist.e(aGrowinglist);
+		lg("testBitstringsSoBigTheyMustUseGrowinglist tests pass");
 	}
 	
 	/*

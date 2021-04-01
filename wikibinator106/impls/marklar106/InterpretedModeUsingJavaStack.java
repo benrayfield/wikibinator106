@@ -78,19 +78,24 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 			Op op = Op.ordinalToOp(func.op6Bits()&31);
 			switch(op){
 			case zero: case one:
-				//"FIXME need to check areSameSizeCbts at each curry, not just the last, similar to ax."
-				
-				if(funcIsClean && param.isClean()){ //cbt/bitstring optimization
-					//TODO return some wrapper of bitstring like LongBlob (todo will rename that to PowOf2SizeLongArrayBlob?)
-					//or blob of non-pow-of-2-aligned size that represents a powOf2 size cbt just doesnt store the padding,
-					//in some cases. Which cases?
-					boolean areSameSizeCbts = param.isCbt() && funcCurriesMore==paramCurriesMore;
-					//A cbt called on anything is a cbt twice as big up to 2^120 bits but after that goes in growinglist.
-					ret = cp(func, areSameSizeCbts?param:func);
-					//FIXME pay gas but dont do this part cuz its bigO(1) to compute: get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
-				}else{
-					throw new RuntimeException("normal callpair instead of cbt optimization");
-					//FIXME pay gas but dont do this part cuz its bigO(1) to compute: get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+				{
+					if(funcCurriesMore==1){
+						//its becoming so big it doesnt fit in cbt, so continue as Op.growinglist.
+						ret = growinglist.e(nil).e(func).e(param);
+					}else{
+						if(funcIsClean && param.isClean()){ //cbt/bitstring optimization
+							//TODO return some wrapper of bitstring like LongBlob (todo will rename that to PowOf2SizeLongArrayBlob?)
+							//or blob of non-pow-of-2-aligned size that represents a powOf2 size cbt just doesnt store the padding,
+							//in some cases. Which cases?
+							boolean areSameSizeCbts = param.isCbt() && funcCurriesMore==paramCurriesMore;
+							//A cbt called on anything is a cbt twice as big up to 2^120 bits but after that goes in growinglist.
+							ret = cp(func, areSameSizeCbts?param:func);
+							//FIXME pay gas but dont do this part cuz its bigO(1) to compute: get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+						}else{
+							throw new RuntimeException("normal callpair instead of cbt optimization");
+							//FIXME pay gas but dont do this part cuz its bigO(1) to compute: get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+						}
+					}
 				}
 			break;case fal:
 				ret = param; //return second of 2 params
@@ -201,6 +206,15 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 				}
 			break;case growinglist:
 				{
+					
+					//(growinglist prevList ...64 things... nextThing)
+					// -> (growinglist (growinglist prevList ...64 things...) nextThing).
+					ret = cp(funcIsClean?growinglist_u:Growinglist_u, func, param);
+					
+					
+					
+					/*OLD...
+					
 					//(growinglist x y z) -> (growinglist (growinglist x y) z).
 					fn x = func.l().r(); //third last param
 					fn y = func.r(); //second last param
@@ -214,6 +228,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 					//ret = cp(cp(g,cp(g,cp(g,x),y)),param);
 					//causes infloop to call eval inside eval this way, so use cp instead: ret = g.e(g.e(x).e(y)).e(param);
 					//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
+					*/
 				}
 				//FIXME get $<fn> and verify gas at each step, but TODO create a func in ImportStatic to do a small forest of such calls automatically, instead of hardcoding it here
 			break;case typeval:

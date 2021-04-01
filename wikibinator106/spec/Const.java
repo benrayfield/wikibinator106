@@ -20,7 +20,11 @@ public class Const{
 	*/
 	public static final boolean isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx = true;
 	
-	public static final int log2OfMaxCbtSize = Op.zero.curriesAll-6;
+	/** 120. -5 cuz first 5 params choose which of 32 ops.
+	-1 cuz next param (u/nil in case of optimizable cbt) is comment which can normally be anything.
+	-1 more cuz a cbt is halted, but the last param creates a growinglist for if cbt doesnt fit in this (bigger than 2^120 bits).
+	*/
+	public static final int log2OfMaxCbtSize = Op.zero.curriesAll-7;
 	
 	/** cbtSize is 2^cbtHeight so 2^0 is 1 */
 	public static final int minCbtSize = 1;

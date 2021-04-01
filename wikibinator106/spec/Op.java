@@ -20,8 +20,11 @@ public enum Op{
 	So you can keep using cbts/bitstrings the same way, calling growinglist_cbtlike_thing on growinglist_cbtlike_thing,
 	to get a growinglist_cbtlike_thing twice as big, but its not a cbt anymore.
 	FIXME you can or cant have a comment other than cleanLeaf in clean cbt???
+	<br><br>
+	UPDATE: growinglist takes 5+1+1+64+1=74 params,
+	used to have less objects in linkedlists than pair func and for unlimited size bitstrings.
 	*/
-	zero(5+1+121,true),
+	zero(5+1+120+1,true),
 	
 	/** See comment of Op.zero about params. Bitstrings up to 2^120-1 bits. The last 1 bit is the first bit of padding.
 	The default kind of id is a 256 bit id and stores the low 32 (UPDATE: 40) bits of bize (bitstring size),
@@ -58,8 +61,11 @@ public enum Op{
 	You can still have up to cbt<2^120>, and can still compute bize using lambdas,
 	but its slower.
 	TODO what should the 127th curry do?
+	<br><br>
+	UPDATE: growinglist takes 5+1+1+64+1=74 params,
+	used to have less objects in linkedlists than pair func and for unlimited size bitstrings.
 	*/
-	one(5+1+121,true),
+	one(5+1+120+1,true),
 	
 	/** the lambda Lx.Ly.y. (fal u) is the normed form of cleanIdentityFunc,
 	and (Fal u) is normed dirtyIdentityFunc which is the most general but as usual can only
@@ -174,7 +180,67 @@ public enum Op{
 	/** the lambda Lx.Ly.Lz.zxy. Church-pair lambda of 3 params */
 	pair(5+1+3,false),
 	
-	/** (growinglist x y z) -> (growinglist (growinglist x y) z).
+	/** (growinglist prevList param0 param1 ... param64 param65)
+	-> (growinglist (growinglist prevList param0 param1 ... param64) param65).
+	Its similar to pair func for making linkedlists but creates less objects for list of same size.
+	A reverse ordered pair list of 5 things is: (pair (pair (pair (pair (pair λ a) b) c) d) e)
+	aka [[[[[λ a] b] c] d] e]. λ is nil/cleanleaf/u.
+	A growinglist of 5 thigns is: (growinglist λ a b c d e),
+	and only acts like pair with an extra object per 64 instead of per 2.
+	You can of course display a growinglist reversed or not,
+	but pair can actually store things reversed or forward like
+	[[[[[nil a] b] c] d] e] aka <λ a b c d e>
+	vs [a [b [c [d [e nil]]]]] aka [a b c d e λ].
+	You always write λ/nil in these various kinds of linkedlists cuz otherwise
+	it would imply nil is there when its not, and you might instead want a tree of pairs without nil.
+	It also simplifies the syntax parsing and tostring rules.
+	<br><br>
+	As usual the first 5 params choose which of 32 ops, and next param is comment which can be anything.
+	After that is prevList, then 0-64 list items (can be anything), and if theres another param it evals to
+	put self as prevList into a new growinglist with λ as its comment (cuz λ is default comment).
+	<br><br>
+	You might, for example, want to use a growinglist as a simple map alternating key val key val key val...
+	so can fit a map of size 32 into the first (growinglist nil ...64 things...),
+	and a map of 33..64 things in (growinglist (growinglist nil ...64 things...) ...64 things...),
+	and so on, but you'd still need a function wrapping it to do mapPut and mapGet,
+	and it would be slow to linear search it, checking equals for each key,
+	so its only meant for small maps, and for bigger maps use curry1..curry16 to derive treemap
+	using maybe marklar106bId to generate cbt256 ids to sort the treemap by
+	so anything can be a key and anything can be a value.
+	<br><br>
+	---
+	<br><br>
+	SOLUTION IS: changing growinglist to take 65 params, the first being nil or the previous list its appended to,
+	so each growinglist section holds 0-64 list items, so for example a list of 192 things
+	starts with (growinglist nil) then call that on 192 things.
+	After calling it on 64 things its just (growinglist nil ...64 things...),
+	but 1 more thing x and its (growinglist (growinglist nil ...64 things...) x)
+	so 192 things is (growinglist (growinglist (growinglist nil ...64 things...) ...64 things...) ...64 things...),
+	or 131 things is (growinglist (growinglist (growinglist nil ...64 things...) ...64 things...) ...3 things...),
+	or 0 things is (growinglist nil). nil is u/cleanleaf.
+	<br><br>
+	<br><br>
+	<br><br>
+	PROBLEM WAS...
+	want a growinglist-like 120 or 121 param thing, or maybe just 64? or maybe it just infloops when reaches 127 params?
+	Maybe replace curry16 with that?
+	Or maybe replace growinglist with that?
+	Dont want it to be curry120 cuz thats too much recursion to find funcBody,
+	even though funcBody will likely be cached in some implementations, its too much recursion to verify funcBody.
+	An infcur op (never fills all its params, just keeps appending them) would make optimizations slower
+	that depend on curriesMore curriesAll and curriesSoFar each fitting in a byte and not having to check for an infcur value of them.
+	If there was 1 more bit of op, then there could be 64 ops instead of 32, or 128 instead of 64 if you count clean/dirty,
+	plus 1 more bit for the binheap indexing, so whats currently called op6Bits would be op7Bits,
+	and the isclean bit would normally be stored with it. But if want an extra bit,
+	have to take it from somewhere in the 64 bit header. If take it from bize40 making that bize39,
+	that complicates bize storage not being byte aligned. 
+	If go down to max 63 params instead of 127, number of curries fits in 1 less bit, and bitstrings would have max 2^56 bits.
+	I dont want to reduce any of those things.
+	*
+	<br><br>
+	OLD...
+	<br><br>
+	(growinglist x y z) -> (growinglist (growinglist x y) z).
 	This is mostly here so Op.zero and Op.one can keep acting like bitstrings above 2^120 bits,
 	as a cbt called on anything is a cbt twice as big,
 	and 2 cbts size 2^120 bits one called on the other returns a growinglist containing those 2, and so on,
@@ -184,7 +250,8 @@ public enum Op{
 	or all possible universe states, but even then its probably better to use some other datastruct
 	cuz cbt is as deep as log of its size, which can get very deep if its very sparse.
 	*/
-	growinglist(5+1+3,false),
+	growinglist(5+1+1+64+1,false),
+	//OLD: growinglist(5+1+3,false),
 	
 	/** (typeval x y z)->(y z). Normally just keep it as (typeval x y)
 	such as (typeval "image/jpeg" ...bytesofjpgfile...) as a semantic.
