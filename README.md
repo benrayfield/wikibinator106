@@ -57,7 +57,7 @@ This will be https://en.wikipedia.org/wiki/Peephole_optimization research of
 implementing the wikibinator106 universal function in the form of many (axa (fpr func param return)),
 and between those, the peephole optimizations will be funcs (with Evaler.java optimizations)
 that take a lazyX as param and return a lazyY,
-which proves (axa (twoLazysEvalToSame lazyX lazyY)) and (axa (twoLazysEvalToSame lazyX lazyY)),
+which proves (axa (twoLazysEvalToSame lazyX lazyY)) and (axa (twoLazysEvalToSame lazyY lazyX)),
 where twoLazysEvalToSame is a derived func of 3 params that calls each of its first 2 params
 on u/nil/theUniversalFunc and returns u or (u u) depending if what those return is equal,
 and as usual the axa around it is halted only
