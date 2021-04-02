@@ -3,7 +3,7 @@
 
 All test cases pass: https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java 
 
-UPDATE 2021-4-2, starting another implementation of wikibinator106 designed to be far more efficient, that computes the exact same universal function[
+UPDATE 2021-4-2, starting another implementation of wikibinator106 (axcompiler106) designed to be far more efficient, that computes the exact same universal function (and can be used interchangibly with, or both together in multiple computers, marklar106 implementation):[
 ```
 package wikibinator106.impls.axcompiler106;
 
