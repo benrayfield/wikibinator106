@@ -4,7 +4,8 @@
 Its still impractically slow cuz doesnt have a compiler and is running in interpreted mode, so its hard to write interesting code for a tutorial yet.
 
 All test cases pass: https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
-https://github.com/benrayfield/wikibinator106/blob/main/data/wikibinator106/testOutputs/marklar106TestOutput.txt 
+https://github.com/benrayfield/wikibinator106/blob/main/data/wikibinator106/testOutputs/marklar106TestOutput.txt
+That test output contains "(c2 {{,ifElse {,isleaf q1}}#n21 (lazig {,isleaf q0}) (lazig {n21 (lazig ,f) (lazig {,and {recur2 {,l q1} {,l q0}} {recur2 {,r q1} {,r q0}}})})})" which is a derived equals function. Every (...) or {...} etc is a self contained function. An inner function cant see "var names" in the outer function. There are no vars at all, only constants. {,ifElse {,isleaf q1}}#n21 is a self contained function, and the #n21 is not part of the function but is only displayed that way to say {,ifElse {,isleaf q1}} occurs again later in that code string. Similarly, ifElse is a self contained function (not displayed here, but I built it in ImportStatic.java, and it is a lambda like anything else. All lambdas are made of a universal function (λ), either that or the dirty form of the universal function which is like a nonstrict vs strict mode, except they're not modes, they're functions that can be called on eachother in any combos.
 
 UPDATE 2021-4-2, starting another implementation of wikibinator106 (axcompiler106) designed to be far more efficient, that computes the exact same universal function (and can be used interchangibly with, or both together in multiple computers, marklar106 implementation):[
 ```
