@@ -372,6 +372,9 @@ public class Marklar106bId{
 		return (o6==axa6Bits || o6==axb6Bits) && curriesSoFar(header)==opIsKnownAt;
 	}
 
+	/** its normed if its first 5 params (which choose from 32 ops) are all u or (u u), and its comment (6th param) is u.
+	Aka it contains something that .equals(ImportStatic.one).
+	*/
 	public static boolean containsCleanNormedBit1_ignoreIfLiteralCbt256(long header){
 		return (header&maskContainsCleanNormedBit1_ignoreIfLiteralCbt256)!=0;
 		//return !isLiteral256Bits(header) && (header&maskContainsCleanNormedBit1_ignoreIfLiteralCbt256)!=0;

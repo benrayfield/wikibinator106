@@ -1,0 +1,6 @@
+
+
+Its important to remember that all objects are immutable and can only be forkEdited. People will mostly want to use treemaps inside treemaps recursively, where some keys and values are general functions and some are blobs and some are typeval. The syntax .abc.def.ghi means start with the param, and call it on "abc", and call what that reutnrs on "def", and call what that retunrs on "ghi", similar to this.abc.def.ghi, except theres no this object.
+.abc.def.ghi=(...somefunc...) maybe should be a syntax for a function that when called on a treemap, returns a forkEdited treemap with the abc def ghi path replaced by what (...somefunc... theTreemap) returns.
+Similarly, .[a function call goes here].def.ghi, maybe should include that syntax.
+If you just write abc instead of .abc, it means to look for a constant named that, like (otherstuff (..stuff...)#abc abc) calls otherstuff on abc and calls that on abc.

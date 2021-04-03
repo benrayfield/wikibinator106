@@ -157,6 +157,7 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 				{
 					$<fn> constraintReturned = param.e(gas,u);
 					if(constraintReturned.fn == u){ //verified constraint. Return (axa param) which is the constraint.
+						//(axa x) is halted/verifiedConstraint if (x u) -> u.
 						//constraintReturned.fn != null && constraintReturned.fn.isCleanLeaf()
 						ret = cp(func,param); //func is axa or Axa
 					}else{ //did not verify constraint. May be proven failed failed or did not have enough gas to verify it.
@@ -183,7 +184,8 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 				{
 					//see comments in axa.
 					$<fn> constraintReturned = param.e(gas,u);
-					if(constraintReturned.fn == u){
+					if(constraintReturned.fn != null && constraintReturned.fn != u){ //verified constraint. Return (axb param) which is the constraint.
+						//(axb x) is halted/verifiedConstraint if (x u) -> anything_except_u.
 						ret = cp(func,param); //func is axb or Axb
 					}else{
 						boolean disprovedConstraint = constraintReturned.fn != null;

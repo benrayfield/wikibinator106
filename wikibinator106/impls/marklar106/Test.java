@@ -48,6 +48,7 @@ public class Test{
 			testLinget();
 			testLinput();
 			testBitstringsSoBigTheyMustUseGrowinglist();
+			test_axableTwoLazysEvalToSame();
 			
 			//thisHelpsInManuallyTestingCacheFuncParamReturnUsingDebugger();
 			//testIsHalted();
@@ -977,6 +978,34 @@ public class Test{
 		testEqq("get cbt right from aGrowinglist", aGrowinglist.r(), cbt); //both are all 0s
 		//aGrowinglist = aGrowinglist.e(aGrowinglist);
 		lg("testBitstringsSoBigTheyMustUseGrowinglist tests pass");
+	}
+	
+	/** this is a basic test of what axcompiler106 is a research path toward,
+	that it will (TODO) transform lazy to lazy that evals to same thing
+	and generate (axa (axableTwoLazysEvalToSame laxyX lazyY)) to prove it. 
+	*/
+	public static void test_axableTwoLazysEvalToSame(){
+		lg("Starting test_axableTwoLazysEvalToSame");
+		fn lazyReturnIota_byLazig = lazig.e(iota.l()).e(iota.r());
+		fn lazyReturnIota_byT = t(iota);
+		testEqq("(lazyReturnIota_byLazig u)->iota", lazyReturnIota_byLazig.e(u), iota);
+		testEqq("(lazyReturnIota_byT u)->iota", lazyReturnIota_byT.e(u), iota);
+		testEqq("twoLazysEvalToSame.e(lazyReturnIota_byLazig).e(lazyReturnIota_byT)",
+			twoLazysEvalToSame.e(lazyReturnIota_byLazig).e(lazyReturnIota_byT), t);
+		fn axableDoThe2LazysOfIotaBothReturnSame = axableTwoLazysEvalToSame.e(lazyReturnIota_byLazig).e(lazyReturnIota_byT);
+		testEqq("(axableDoThe2LazysOfIotaBothReturnSame u)->u", axableDoThe2LazysOfIotaBothReturnSame.e(u), u);
+		testEqq("axb becomes axa (or could be reversed, which would be an error), on axableDoThe2LazysOfIotaBothReturnSame",
+			axb.e(axableDoThe2LazysOfIotaBothReturnSame), axa.e(axableDoThe2LazysOfIotaBothReturnSame));
+		testEqq("axb becomes axa (verify its axa), on axableDoThe2LazysOfIotaBothReturnSame",
+			axb.e(axableDoThe2LazysOfIotaBothReturnSame).l(), axa);
+		fn lazyReturnsPair = t(pair);
+		fn axableTheseLazysShouldntReturnSameButDoThey = axableTwoLazysEvalToSame.e(lazyReturnIota_byLazig).e(lazyReturnsPair);
+		testEqq("(axableTheseLazysShouldntReturnSameButDoThey u)->(u u)", axableTheseLazysShouldntReturnSameButDoThey.e(u), uu);
+		testEqq("axa becomes axb (or could be reversed, which would be an error), on axableTheseLazysShouldntReturnSameButDoThey",
+			axa.e(axableTheseLazysShouldntReturnSameButDoThey), axb.e(axableTheseLazysShouldntReturnSameButDoThey));
+		testEqq("axa becomes axb (verify its axb), on axableTheseLazysShouldntReturnSameButDoThey",
+			axa.e(axableTheseLazysShouldntReturnSameButDoThey).l(), axb);
+		lg("test_axableTwoLazysEvalToSame tests pass");
 	}
 	
 	/*

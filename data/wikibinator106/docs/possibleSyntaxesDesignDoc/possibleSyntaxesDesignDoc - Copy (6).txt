@@ -1,0 +1,39 @@
+
+
+Its important to remember that all objects are immutable and can only be forkEdited. People will mostly want to use treemaps inside treemaps recursively, where some keys and values are general functions and some are blobs and some are typeval. The syntax .abc.def.ghi means start with the param, and call it on "abc", and call what that reutnrs on "def", and call what that retunrs on "ghi", similar to this.abc.def.ghi, except theres no this object.
+.abc.def.ghi=(...somefunc...) maybe should be a syntax for a function that when called on a treemap, returns a forkEdited treemap with the abc def ghi path replaced by what (...somefunc... theTreemap) returns.
+Similarly, .[a function call goes here].def.ghi, maybe should include that syntax.
+If you just write abc instead of .abc, it means to look for a constant named that, like (otherstuff (..stuff...)#abc abc) calls otherstuff on abc and calls that on abc.
+
+TODO syntax or just ( ... calls ... ) for loops and if/else etc, as funcs that take a map and return a map,
+where things like ".[a function call goes here].def.ghi" can be inside the loops,
+which is hard to optimize and may be very slow, but its something I need to do often at least
+a little of it here and there between the very efficient number crunching (optimized by lazycl).
+Something like WHILE and PROGN should be enough for that.
+Remember the generated calls of lazig that arent much human readable, that were generated near every if/else in the equals function.
+Do something about that to make it easy to read or use different funcs to build a similar equals that is easier for Humans to understand,
+about the if/else mostly. Create a variant of if/else thats easier to read its internal workings???
+
+{,while condition loopBody} will take a treemap param and return a forkEdited treemap.
+I could make that using an ifElse and the recursion ops.
+
+I want a syntax for progn. Like { ... } aka sCurryList, progn is made of calls of s,
+but I dont want a syntax for loops cuz those already will look good in existing syntax, where while, ifElse, etc are #names of constant functions.
+
+
+Similar to the basic {,while condition loopBody},
+I could make a function (for "j" 0 maxExcl loopBody) which would forkEdit its param treemap to have j as 0, then call {,while condition loopBody} on that, then forkEdit it to have the original value of j or to not have a j at all if it didnt before, or something like that. But what if loopBody is meant to return something in the j key/val? Or even simpler, (for "j" maxExcl loopBody) is always j from 0 to maxExcl-1. Or simpler than that, (for "j" firstValOfJ loopBody) would count down from firstValOfJ to 0 (incl or excl?). Could derive as many of these variants of looping as the user wants, at runtime.
+
+(putdeep val [...linkedlist of keys...] map) -> forkEdited map.
+Recurses into (putdeep val (cdr [...linkedlist of keys...]) map) or returns val if its (putdeep val [] map).
+..
+Similarly, (getdeep [...linkedlist of keys...] map).
+..
+Any syntaxes like ".abc.def.ghi=(...somefunc...)" would be made of calls of putdeep and getdeep which are derived funcs,
+especially their sCurryList forms aka {...} instead of (...).
+
+In a read-eval-print loop (like a terminal), that could actually be a stateless function thats
+just one long progn that takes an empty map as its param, and you keep taking that and progn that with the next command,
+so you could effectively read and write var names but they're just parts of a stateless map that you're
+writing the next command in to forkEdit that stateless map. But if it got very long
+then it might have garbcol problems.
