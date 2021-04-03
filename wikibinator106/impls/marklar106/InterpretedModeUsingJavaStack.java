@@ -155,49 +155,57 @@ public class InterpretedModeUsingJavaStack implements Evaler<fn>{
 				}
 			break;case axa:
 				{
-					$<fn> constraintReturned = param.e(gas,u);
-					if(constraintReturned.fn == u){ //verified constraint. Return (axa param) which is the constraint.
-						//(axa x) is halted/verifiedConstraint if (x u) -> u.
-						//constraintReturned.fn != null && constraintReturned.fn.isCleanLeaf()
-						ret = cp(func,param); //func is axa or Axa
-					}else{ //did not verify constraint. May be proven failed failed or did not have enough gas to verify it.
-						//if returns anything except u/cleanLeaf, axa is disproven, and axb is proven.
-						//TODO should the opcodes be slightly redesigned to allow axa to return an axb?
-						boolean disprovedConstraint = constraintReturned.fn != null;
-						if(Const.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
-							//disproof of [one of axa or axb] proves the other, but if nonhalting then neither can be
-							//proven and neither is true so if you're using nsat colors at a lower level than lambdas,
-							//using at least 3 colors: axa, axb, nonhalting, and maybe also color for leaf, normalcall,
-							//etc, see comments and incomplete code
-							//in earlier forks of wikibinator (such as wikibinator101..105).
-							//I'm creating Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx in case want to change that later.
-							ret = cp(funcIsClean?axb:Axb,param);
-						}else{
-							ret = null;
+					if(func.curriesMore()==2){ //(axa x) verifies constraint. (axa x y)->(x (t y)).
+						$<fn> constraintReturned = param.e(gas,u);
+						if(constraintReturned.fn == u){ //verified constraint. Return (axa param) which is the constraint.
+							//(axa x) is halted/verifiedConstraint if (x u) -> u.
+							//constraintReturned.fn != null && constraintReturned.fn.isCleanLeaf()
+							ret = cp(func,param); //func is axa or Axa
+						}else{ //did not verify constraint. May be proven failed failed or did not have enough gas to verify it.
+							//if returns anything except u/cleanLeaf, axa is disproven, and axb is proven.
+							//TODO should the opcodes be slightly redesigned to allow axa to return an axb?
+							boolean disprovedConstraint = constraintReturned.fn != null;
+							if(Const.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
+								//disproof of [one of axa or axb] proves the other, but if nonhalting then neither can be
+								//proven and neither is true so if you're using nsat colors at a lower level than lambdas,
+								//using at least 3 colors: axa, axb, nonhalting, and maybe also color for leaf, normalcall,
+								//etc, see comments and incomplete code
+								//in earlier forks of wikibinator (such as wikibinator101..105).
+								//I'm creating Op.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx in case want to change that later.
+								ret = cp(funcIsClean?axb:Axb,param);
+							}else{
+								ret = null;
+							}
 						}
+						gas = constraintReturned.gas;
+									//FIXME thats what to do at first param of axa/axb. at second param,
+									//call first param on T/t/F/f of second param for turing complete types.
+					}else{ //curriesMore == 1
+						ret = func.r().e(t(param)); //(axa x y)->(x (t y)).
 					}
-					gas = constraintReturned.gas;
-								//FIXME thats what to do at first param of axa/axb. at second param,
-								//call first param on T/t/F/f of second param for turing complete types.
 				}
 			break;case axb:
 				{
-					//see comments in axa.
-					$<fn> constraintReturned = param.e(gas,u);
-					if(constraintReturned.fn != null && constraintReturned.fn != u){ //verified constraint. Return (axb param) which is the constraint.
-						//(axb x) is halted/verifiedConstraint if (x u) -> anything_except_u.
-						ret = cp(func,param); //func is axb or Axb
-					}else{
-						boolean disprovedConstraint = constraintReturned.fn != null;
-						if(Const.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
-							ret = cp(funcIsClean?axa:Axa,param);
+					if(func.curriesMore()==2){ //(axb x) verifies constraint. (axb x y)->(x (f y)).
+						//see comments in axa.
+						$<fn> constraintReturned = param.e(gas,u);
+						if(constraintReturned.fn != null && constraintReturned.fn != u){ //verified constraint. Return (axb param) which is the constraint.
+							//(axb x) is halted/verifiedConstraint if (x u) -> anything_except_u.
+							ret = cp(func,param); //func is axb or Axb
 						}else{
-							ret = null;
+							boolean disprovedConstraint = constraintReturned.fn != null;
+							if(Const.isDisproofOfOneKindOfAxReturnsTheOtherKindOfAx && disprovedConstraint){
+								ret = cp(funcIsClean?axa:Axa,param);
+							}else{
+								ret = null;
+							}
 						}
+						gas = constraintReturned.gas;
+						//FIXME thats what to do at first param of axa/axb. at second param,
+						//call first param on T/t/F/f of second param for turing complete types.
+					}else{ //curriesMore == 1
+						ret = func.r().e(f(param)); //(axb x y)->(x (f y)).
 					}
-					gas = constraintReturned.gas;
-					//FIXME thats what to do at first param of axa/axb. at second param,
-					//call first param on T/t/F/f of second param for turing complete types.
 				}
 			break;case pair:
 				{

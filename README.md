@@ -3,7 +3,8 @@
 
 Its still impractically slow cuz doesnt have a compiler and is running in interpreted mode, so its hard to write interesting code for a tutorial yet.
 
-All test cases pass: https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java 
+All test cases pass: https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java
+https://github.com/benrayfield/wikibinator106/blob/main/data/wikibinator106/testOutputs/marklar106TestOutput.txt 
 
 UPDATE 2021-4-2, starting another implementation of wikibinator106 (axcompiler106) designed to be far more efficient, that computes the exact same universal function (and can be used interchangibly with, or both together in multiple computers, marklar106 implementation):[
 ```
