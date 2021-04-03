@@ -1,7 +1,7 @@
 # wikibinator106
 (TODO) A deterministic way for millions of people and AIs to build and play together in p2p, safely sandboxed but not dumbed-down, a very simple kind of self-aware living number, where 2 numbers combine to create or find another number, and so on, and a number can be anything such a word, video, game, simulation, publicKey, GPU optimization, music tools, way to use multiple clouds together, etc.
 
-Its still impractically slow cuz doesnt have a compiler and is running in interpreted mode.
+Its still impractically slow cuz doesnt have a compiler and is running in interpreted mode, so its hard to write interesting code for a tutorial yet.
 
 All test cases pass: https://github.com/benrayfield/wikibinator106/blob/main/wikibinator106/impls/marklar106/Test.java 
 
